@@ -572,26 +572,278 @@
     .mirror-frame { height: 48vh; }
     .decor-banner { font-size: 11px; top: 8px; left: 8px; white-space: normal; max-width: 70%; }
   }
+
+  /* =================== World chrome: top bar, main menu, pages =================== */
+  body { background-color: #dff0fb; background-repeat: no-repeat; background-size: cover; background-attachment: fixed; background-position: center bottom; }
+  .topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: linear-gradient(180deg, #34343a, #222226); box-shadow: 0 2px 10px rgba(0, 0, 0, .25); }
+  .topbar-in { max-width: 1240px; margin: 0 auto; padding: 8px 24px; display: flex; align-items: center; gap: 22px; }
+  .topbar .wordmark { color: #ffd84a; font-size: 30px; -webkit-text-stroke: 1.5px #3b2a14; paint-order: stroke fill; text-shadow: 0 2px 0 #fff3; }
+  .topbar .wordmark i { color: #fff; -webkit-text-stroke: 0; }
+  .me { display: flex; align-items: center; gap: 12px; border: 0; background: none; color: #fff; text-align: left; padding: 0; min-width: 0; }
+  .me-face { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: #fff; box-shadow: 0 0 0 3px #fff; flex: 0 0 auto; }
+  .me-face svg { width: 100%; height: 100%; display: block; }
+  .me-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .me-info b { font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .lvl { display: flex; align-items: center; gap: 8px; }
+  .lvl-badge {
+    font-style: normal; width: 22px; height: 22px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #5a3a00;
+    background: radial-gradient(circle at 40% 35%, #ffe680, #f0b51f); border-radius: 50%; box-shadow: 0 0 0 2px #fff6;
+  }
+  .xp { width: 180px; height: 8px; border-radius: 99px; background: #55555c; overflow: hidden; }
+  .xp span { display: block; height: 100%; background: linear-gradient(90deg, #ffd84a, #f5a623); border-radius: 99px; transition: width .6s ease; }
+  .xp-text { font-size: 10.5px; color: #b9b9c2; }
+  .wallet { display: flex; gap: 10px; margin-left: auto; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; background: #4a4a52; border-radius: 99px; padding: 3px 14px 3px 3px; color: #fff; font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+  .pill .coin { width: 30px; height: 30px; }
+  .pill.bump { animation: bump .6s ease; }
+  @keyframes bump { 30% { transform: scale(1.12); background: #6a5ad0; } }
+  .coin { width: 18px; height: 18px; vertical-align: -4px; display: inline-block; }
+  .btn.dark { background: #4a4a52; border-color: #4a4a52; color: #fff; }
+
+  .page { max-width: 1240px; margin: 14px auto 48px; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 20px 60px -20px rgba(30, 50, 90, .45); }
+  .mainnav { display: flex; justify-content: center; gap: 4px; background: #2e2e33; border-radius: 16px 16px 0 0; padding: 0 12px; overflow-x: auto; scrollbar-width: none; }
+  .mainnav::-webkit-scrollbar { display: none; }
+  .mainnav button {
+    position: relative; border: 0; background: none; color: #fff; font-weight: 700; font-size: 13.5px; letter-spacing: .6px; text-transform: uppercase;
+    padding: 18px 16px; white-space: nowrap; opacity: .82; transition: opacity .2s;
+  }
+  .mainnav button:hover, .mainnav button.on { opacity: 1; }
+  .mainnav button.on::after { content: ""; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); border: 8px solid transparent; border-bottom-color: #fff; }
+  .page main.stage-main { margin: 0; max-width: none; padding: 20px; }
+
+  /* home */
+  .hero { position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 1200 / 420; max-height: 420px; width: 100%; background: #bfe3fb; }
+  .hero > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .hero-strip { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 14px 2px 22px; }
+  .hero-strip h1 { margin: 0; font-family: var(--round); font-weight: 700; font-size: 28px; color: var(--plum); line-height: 1.15; text-wrap: balance; }
+  .hero-strip p { margin: 2px 0 0; color: #6a5d7c; }
+  .btn.big { padding: 12px 22px; font-size: 15px; }
+  .btn.primary { background: linear-gradient(135deg, #a87bf7, #7c4ee0); border-color: transparent; color: #fff; box-shadow: 0 8px 18px -10px rgba(109, 63, 209, .9); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; transform: none; }
+  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; }
+  .sec-title { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #2b2138; border-bottom: 1px solid #ebe6f2; padding-bottom: 8px; margin: 26px 0 16px; }
+  .cards3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .tile { border: 1px solid #ece6f4; border-radius: 16px; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; background: linear-gradient(#fff, #faf8fe); }
+  .tile h4 { margin: 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #8b7d9c; }
+  .tile p { margin: 0; font-size: 13px; color: #4b3d60; flex: 1; }
+  .tile .btn { align-self: flex-start; }
+  .tile-big { display: flex; align-items: center; gap: 8px; }
+  .tile-big .coin { width: 40px; height: 40px; }
+  .tile-big b { font-family: var(--round); font-size: 34px; color: var(--plum); line-height: 1; }
+  .tile-big span { color: #8b7d9c; font-weight: 600; }
+  .tile-theme { border-radius: 12px; padding: 18px 12px; background: linear-gradient(135deg, var(--a), var(--b)); color: #fff; font-family: var(--round); font-size: 19px; text-shadow: 0 1px 2px #0005; }
+  .tile-items { display: flex; gap: 6px; }
+  .tile-items span { flex: 1; display: flex; flex-direction: column; align-items: center; background: #f6f2fc; border-radius: 10px; padding: 4px; }
+  .tile-items > span > svg { width: 100%; height: 64px; }
+  .tile-items small .coin { width: 14px; height: 14px; margin-right: 3px; }
+  .tile-items small { font-weight: 700; font-size: 12px; color: #4b3d60; }
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 18px 10px; }
+  .person { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+  .person-face { position: relative; width: 104px; height: 104px; margin-bottom: 6px; }
+  .person-face svg { width: 100%; height: 100%; border-radius: 50%; background: #f4eefb; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e3d9f2; }
+  .person.cur .person-face svg { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--violet); }
+  .crown {
+    position: absolute; top: -6px; right: -8px; min-width: 40px; height: 34px; padding: 10px 6px 0; font-size: 12px; font-weight: 800; color: #4a3200;
+    background: no-repeat center/100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E%3Cpath d='M3 12 L11 18 L20 4 L29 18 L37 12 L34 32 L6 32 Z' fill='%23f5c542' stroke='%23c9961c' stroke-width='1.5'/%3E%3C/svg%3E");
+  }
+  .person b { color: var(--violet-deep); font-size: 15px; }
+  .person small { color: #8b7d9c; margin-bottom: 6px; }
+  .promos { display: flex; flex-direction: column; gap: 16px; }
+  .promo { border: 0; padding: 0; background: none; text-align: right; display: flex; flex-direction: column; gap: 6px; }
+  .promo-art { width: 100%; aspect-ratio: 300 / 130; border-radius: 6px; overflow: hidden; display: grid; place-items: center; }
+  .promo-art svg, .promo-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .promo > span { font-family: var(--round); font-weight: 700; font-size: 20px; color: var(--violet); text-transform: uppercase; }
+  .promo:hover > span { color: var(--violet-deep); }
+  .promo-empty { color: #8b7d9c; font-size: 13px; }
+
+  /* shop */
+  .shop { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; align-items: start; }
+  .fitting { padding: 14px; position: sticky; top: 90px; text-align: center; }
+  .fitting h3, .shop-head h2 { margin: 0 0 10px; font-family: var(--round); font-weight: 700; font-size: 22px; color: var(--plum); text-align: left; }
+  .fit-doll { height: min(60vh, 520px); border-radius: 14px; background: radial-gradient(circle at 50% 35%, #fff, #efe6fb 70%); display: flex; justify-content: center; }
+  .fit-doll svg { height: 100%; width: auto; max-width: 100%; }
+  .fitting p { font-size: 12.5px; color: #6a5d7c; min-height: 2.6em; }
+  .shop-head { display: flex; align-items: baseline; gap: 12px; }
+  .shop-head span { color: #8b7d9c; font-size: 13px; }
+  .shop-tabs { justify-content: flex-start; margin: 4px 0 14px; }
+  .shop-tabs button { background: #f4f0fa; color: #5c4d70; }
+  .shop-tabs button.on { background: var(--plum); color: #fff; }
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 14px; }
+  .shop-card { border: 1px solid #ece6f4; border-radius: 16px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; background: #fff; transition: box-shadow .2s, transform .2s; }
+  .shop-card:hover { box-shadow: 0 12px 24px -16px rgba(80, 40, 120, .5); transform: translateY(-2px); }
+  .shop-card.trying { border-color: var(--violet); box-shadow: 0 0 0 1px var(--violet); }
+  .shop-thumb { background: linear-gradient(#fbf9fe, #f2ecfb); border-radius: 12px; height: 130px; }
+  .shop-thumb svg { width: 100%; height: 100%; }
+  .shop-card b { font-size: 14px; }
+  .shop-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .shop-tags span, .contest-tags span { font-size: 10.5px; font-weight: 600; background: #f1eafd; color: #6d3fd1; padding: 2px 8px; border-radius: 99px; }
+  .shop-row { display: flex; gap: 6px; align-items: center; }
+  .shop-row .btn { flex: 1; justify-content: center; }
+  .price { font-weight: 800; font-size: 16px; color: var(--plum); display: inline-flex; align-items: center; gap: 5px; }
+  .price .coin { width: 20px; height: 20px; }
+  .item.more { justify-content: center; background: #f6f2fc; border: 1px dashed #cdbdf0; color: #6d3fd1; }
+  .more-n { font-family: var(--round); font-size: 26px; font-weight: 700; }
+  .owned-tag { font-size: 12.5px; color: #1d8a5a; font-weight: 600; }
+
+  /* contests */
+  .contest-banner { border-radius: 16px; padding: 22px 24px; color: #fff; background: linear-gradient(120deg, var(--a), var(--b)); position: relative; overflow: hidden; }
+  .contest-banner::after { content: "★"; position: absolute; right: 24px; top: -20px; font-size: 160px; opacity: .12; }
+  .contest-banner small { text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; opacity: .85; }
+  .contest-banner h2 { margin: 2px 0 4px; font-family: var(--round); font-weight: 700; font-size: 34px; text-shadow: 0 2px 4px #0004; }
+  .contest-banner p { margin: 0 0 10px; max-width: 60ch; }
+  .contest-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .contest-tags span { background: #fff3; color: #fff; font-size: 12px; }
+  .theme-picker { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 18px; }
+  .theme-picker button { border: 1px solid #ece6f4; background: #fff; border-radius: 99px; padding: 6px 14px; font-weight: 600; font-size: 12.5px; color: #4b3d60; }
+  .theme-picker button.on { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .theme-picker em { font-style: normal; background: #ffd84a; color: #4a3200; border-radius: 99px; padding: 0 6px; font-size: 10.5px; margin-left: 4px; }
+  .contest { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 22px; align-items: start; }
+  .runway { height: min(64vh, 560px); border-radius: 16px; overflow: hidden; display: flex; justify-content: center; background: radial-gradient(ellipse at 50% 0%, #ffffff55, transparent 60%), linear-gradient(180deg, var(--a), var(--b)); }
+  .runway svg { height: 100%; width: auto; max-width: 100%; }
+  .brief { padding: 16px 18px; }
+  .brief h3 { margin: 0 0 8px; font-family: var(--round); font-size: 19px; color: var(--plum); }
+  .brief ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; color: #6a5d7c; }
+  .brief li.ok { color: #1d8a5a; font-weight: 600; }
+  .brief .best { margin: 10px 0 0; font-size: 13px; color: #4b3d60; }
+  .contest-actions { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+  .continue.small { width: auto; flex: 1; font-size: 19px; padding: 12px 22px; }
+  .result { display: flex; align-items: center; gap: 18px; margin: 4px 0 16px; animation: fade .4s ease; }
+  .score-ring { flex: 0 0 auto; width: 110px; height: 110px; border-radius: 50%; display: grid; place-content: center; text-align: center;
+    background: radial-gradient(circle, #fff 58%, transparent 59%), conic-gradient(var(--m) calc(var(--p) * 1%), #eee8f6 0); }
+  .score-ring b { font-family: var(--round); font-size: 34px; line-height: 1; color: var(--plum); }
+  .score-ring small { color: #8b7d9c; font-size: 11px; }
+  .result-copy h3 { margin: 0 0 4px; font-family: var(--round); font-size: 26px; color: var(--plum); }
+  .result-copy p { margin: 0; color: #4b3d60; }
+  .judges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .judge { display: flex; gap: 10px; border: 1px solid #ece6f4; border-radius: 14px; padding: 10px; animation: fade .5s ease both; }
+  .judge:nth-child(2) { animation-delay: .15s; } .judge:nth-child(3) { animation-delay: .3s; }
+  .judge-face { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background: #f4eefb; }
+  .judge-face svg { width: 100%; height: 100%; }
+  .judge b { display: block; font-size: 13.5px; } .judge small { color: #8b7d9c; font-size: 11.5px; }
+  .judge p { margin: 4px 0 0; font-size: 12.5px; color: #3c3249; font-style: italic; }
+  .stars { color: #f5b82e; letter-spacing: 1px; font-size: 14px; } .stars span { color: #e3dcef; }
+
+  @media (max-width: 980px) {
+    .home-grid, .shop, .contest { grid-template-columns: 1fr; }
+    .promos { flex-direction: row; overflow-x: auto; } .promo { flex: 0 0 240px; }
+    .fitting { position: relative; top: 0; } .fit-doll { height: 46vh; }
+    .runway { height: 52vh; }
+  }
+  @media (max-width: 860px) {
+    .topbar-in { padding: 6px 12px; gap: 10px; }
+    .topbar .wordmark { font-size: 22px; }
+    .me-face { width: 40px; height: 40px; }
+    .me-info .xp-text { display: none; } .xp { width: 90px; }
+    .pill { font-size: 13px; padding-right: 10px; } .pill .coin { width: 24px; height: 24px; } .pill.fame { display: none; }
+    .page { margin: 8px 8px 32px; border-radius: 14px 14px 0 0; }
+    .mainnav { justify-content: flex-start; }
+    .mainnav button { padding: 14px 10px; font-size: 12px; }
+    .page main.stage-main { padding: 10px; }
+    .cards3 { grid-template-columns: 1fr; }
+    .people { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .person-face { width: 82px; height: 82px; }
+    .person b { font-size: 13px; } .person .btn { padding: 5px 10px; }
+    .hero-strip h1 { font-size: 22px; }
+    .judges { grid-template-columns: 1fr; }
+    .contest-banner h2 { font-size: 26px; }
+  }
+  @media (max-width: 480px) { .me-info b { font-size: 13px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; } .topbar .btn.icon { display: none; } }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="wordmark"><i>★</i>Starlife</div>
-  <nav class="views" aria-label="Sections">
-    <button data-view="suite" class="on">Suite</button>
-    <button data-view="parlor">Beauty Parlor</button>
-    <button data-view="album">My Album</button>
-  </nav>
-  <div class="top-acts">
-    <button class="btn small" id="btnPick">Change starlet</button>
-    <button class="btn small icon" id="btnHelp" title="Show the guide" aria-label="Show the guide">?</button>
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="wordmark"><i>★</i>Starlife</div>
+    <button class="me" id="meBtn" title="Change starlet">
+      <span class="me-face" id="meFace"></span>
+      <span class="me-info"><b id="meName"></b><span class="lvl"><i class="lvl-badge" id="meLevel">1</i><span class="xp"><span id="meXp"></span></span></span><span class="xp-text" id="meXpText"></span></span>
+    </button>
+    <div class="wallet">
+      <span class="pill fame" title="Fame"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#8b6cf0" stroke="#6243cf" stroke-width="1.6"/><path d="M12 5.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L12 15.3l-3.8 2 .7-4.3-3.1-3 4.3-.6z" fill="#fff"/></svg><b id="fameVal">0</b></span>
+      <span class="pill coins" title="Coins"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f5c542" stroke="#c9961c" stroke-width="1.6"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#e0a92a" stroke-width="1.2"/><path d="M12 7.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff6d0"/></svg><b id="coinVal">0</b></span>
+    </div>
+    <button class="btn small icon dark" id="btnHelp" title="Show the guide" aria-label="Show the guide">?</button>
   </div>
-</header>
+</div>
+<div class="page">
+  <nav class="mainnav" aria-label="Main menu">
+    <button data-view="home" class="on">What's new</button>
+    <button data-view="suite">My suite</button>
+    <button data-view="parlor">Beauty parlor</button>
+    <button data-view="shop">Shop</button>
+    <button data-view="contests">Contests</button>
+    <button data-view="album">My album</button>
+  </nav>
 
 <main class="stage-main">
+  <!-- ============ WHAT'S NEW ============ -->
+  <section class="view on" data-viewpane="home">
+    <div class="hero" id="hero"></div>
+    <div class="hero-strip">
+      <div><h1>Welcome back, <span id="heroName"></span>!</h1><p>Style a look, enter today's contest and fill your album.</p></div>
+      <div class="row"><button class="btn primary big" data-view="suite">Go to my suite</button><button class="btn big" data-view="contests">Today's contest</button></div>
+    </div>
+    <div class="home-grid">
+      <div>
+        <div class="cards3">
+          <article class="tile" id="bonusTile"></article>
+          <article class="tile" id="contestTile"></article>
+          <article class="tile" id="shopTile"></article>
+        </div>
+        <h3 class="sec-title">Starlets you might like</h3>
+        <div class="people" id="people"></div>
+      </div>
+      <aside class="promos">
+        <button class="promo" data-view="shop"><div class="promo-art" id="promoShop"></div><span>Shop ›</span></button>
+        <button class="promo" data-view="contests"><div class="promo-art" id="promoContest"></div><span>Contests ›</span></button>
+        <button class="promo" data-view="album"><div class="promo-art" id="promoAlbum" style="background:#f4eefb"></div><span>My Album ›</span></button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ SHOP ============ -->
+  <section class="view" data-viewpane="shop">
+    <div class="shop">
+      <div class="card fitting">
+        <h3>Fitting room</h3>
+        <div class="fit-doll" id="fitDoll"></div>
+        <p id="fitNote"></p>
+        <button class="btn small" id="fitClear">Clear fitting room</button>
+      </div>
+      <div>
+        <div class="shop-head"><h2>Boutique</h2><span>New pieces for your wardrobe. Earn coins in Contests and from your daily bonus.</span></div>
+        <nav class="closet-tabs shop-tabs" id="shopTabs"></nav>
+        <div class="shop-grid" id="shopGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTESTS ============ -->
+  <section class="view" data-viewpane="contests">
+    <div class="contest-banner" id="contestBanner">
+      <small>Style contest</small>
+      <h2 id="contestTitle"></h2>
+      <p id="contestDesc"></p>
+      <div class="contest-tags" id="contestTags"></div>
+    </div>
+    <div class="theme-picker" id="themePicker"></div>
+    <div class="contest">
+      <div class="runway" id="contestDoll"></div>
+      <div>
+        <div class="card brief" id="contestBrief"></div>
+        <div class="contest-actions">
+          <button class="btn big" id="contestDress">Change her outfit</button>
+          <button class="continue small" id="enterContest">Enter my look</button>
+        </div>
+        <div id="contestResult"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ SUITE ============ -->
-  <section class="view on" data-viewpane="suite">
+  <section class="view" data-viewpane="suite">
     <div class="suite">
       <div class="suite-stage" id="suiteStage">
         <div class="stage-name" id="stageName"></div>
@@ -762,6 +1014,7 @@
     </div>
   </section>
 </main>
+</div>
 
 <!-- ============ STARLET PICKER ============ -->
 <div class="picker" id="picker" hidden>
@@ -1797,13 +2050,15 @@ function renderHairCards() {
     `<button class="hair-card" data-bind="hair" data-val="${k}"><svg viewBox="96 -6 208 240">${portrait({ ...state, hair: k }, shade(state.skin, -0.35))}</svg><span>${h.label}</span></button>`).join('');
 }
 function renderGrid() {
-  const list = ITEMS.filter(i => i.cat === activeCat);
+  const list = ITEMS.filter(i => i.cat === activeCat && owns(i.id));
+  const locked = ITEMS.filter(i => i.cat === activeCat && !owns(i.id)).length;
   let html = '', grp = null;
   for (const it of list) {
     if (it.group && it.group !== grp) { grp = it.group; html += `<div class="group-label">${grp}</div>`; }
     const c = state.colors[it.id] || it.color;
     html += `<button class="item${state.outfit[it.slot] === it.id ? ' on' : ''}" draggable="false" data-item="${it.id}" title="${it.name}">${scope(itemThumb(it, c), 'T' + it.id + '-')}<span>${it.name}</span></button>`;
   }
+  if (locked) html += `<button class="item more" data-goshop><span class="more-n">+${locked}</span><span>More in the Shop</span></button>`;
   $('#itemGrid').innerHTML = html;
   renderRecolor();
 }
@@ -1910,6 +2165,9 @@ function update(pop = false) {
   renderLayers();
   refreshUI();
   $('#tbUndo').disabled = !undoStack.length;
+  renderTopbar();
+  if (view === 'shop') renderShop();
+  if (view === 'contests') renderContests();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => lsSet(LS_CUR, state), 250);
 }
@@ -1921,6 +2179,10 @@ function setView(v) {
   if (v === 'parlor') { hairSig = ''; renderParlor(); }
   if (v === 'suite') renderSuite();
   if (v === 'album') renderLookbook();
+  if (v === 'home') renderHome();
+  if (v === 'shop') renderShop();
+  if (v === 'contests') renderContests();
+  window.scrollTo({ top: 0 });
   refreshUI();
 }
 function openDrawer(name) {
@@ -1940,6 +2202,7 @@ function openDrawer(name) {
 // ---------- wardrobe actions ----------
 function equip(id, force = false) {
   const it = ITEM[id]; if (!it) return;
+  if (!owns(id)) { toast(`Buy the ${it.name} in the Shop first`); return; }
   const o = state.outfit;
   if (o[it.slot] === id && !force) {
     o[it.slot] = null;
@@ -1964,7 +2227,7 @@ function toast(msg) {
 // ---------- randomize ----------
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function randomize() {
-  const byslot = slot => ITEMS.filter(i => i.slot === slot).map(i => i.id);
+  const byslot = slot => ITEMS.filter(i => i.slot === slot && owns(i.id)).map(i => i.id);
   state.skin = pick(PAL.skin); state.eyeColor = pick(PAL.eyes); state.eyeShape = pick(Object.keys(EYE_SHAPES));
   state.brow = pick(Object.keys(BROWS)); state.browColor = 'match';
   state.hair = pick(Object.keys(HAIR)); state.hairColor = pick(PAL.hair);
@@ -2062,6 +2325,7 @@ async function confirmSave() {
   try {
     const thumb = await snapshot(state, { scale: 0.42, type: 'image/jpeg', quality: 0.85 });
     lookbook.unshift({ id: Date.now().toString(36), name, date: Date.now(), state: clone(state), thumb });
+    reward(5, 10);
     if (!lsSet(LS_BOOK, lookbook)) toast('Saved for this session (browser storage is full or blocked)');
     else toast(`“${name}” added to My Album ✦`);
     renderLookbook();
@@ -2118,6 +2382,7 @@ const GUIDE = [
   () => `Open the <b>Wardrobe</b> and drag clothes onto her. Changed your mind? Drag a piece off her to take it off.`,
   () => `Head to the <b>Beauty Parlor</b> to change her hair, eyes and makeup.`,
   () => `Click <b>My Suite</b> to decorate. Drag the furniture and your starlet around, and pick a wall colour.`,
+  () => `Win coins and fame in <b>Contests</b>, then spend your coins in the <b>Shop</b> on new clothes for her wardrobe.`,
   () => `Love the look? Use the <b>Camera</b> to save a photo to My Album. Make yourself at home, see you soon!`,
 ];
 let guideStep = 0;
@@ -2145,6 +2410,288 @@ function renderGuide() {
   $('#guideNext').textContent = guideStep === GUIDE.length - 1 ? 'Got it' : 'Next ›';
 }
 function closeGuide() { $('#guide').hidden = true; lsSet('starlife.guide.v1', true); }
+
+// =====================================================================
+// Profile: coins, fame and levels. Kept apart from the look, so Undo
+// and saved looks never touch your wallet.
+// =====================================================================
+const LS_PROFILE = 'starlife.profile.v1';
+const today = () => new Date().toISOString().slice(0, 10);
+const dayNo = () => Math.floor(Date.now() / 864e5);
+let profile = Object.assign({ coins: 150, fame: 0, owned: [], lastBonus: '', contests: {} }, lsGet(LS_PROFILE, {}));
+const PRICES = {
+  breton: 30, corset: 50, wide: 40, pencil: 35, slip: 55, gown: 120, wrap: 60, lbd: 65, sundress: 50, sequin: 90,
+  biker: 70, trench: 80, cardigan: 40, puffer: 70, pumps: 40, ankleboots: 50, kneeboots: 60, sandals: 30,
+  crossbody: 50, heartbag: 40, pearls: 45, drops: 35, cateye: 30, heartsunnies: 30, beret: 35, sunhat: 40, tiara: 100,
+};
+const TAGS = {
+  tee: ['casual', 'summer'], cami: ['night', 'summer'], blouse: ['office', 'chic'], turtle: ['winter', 'chic'], corset: ['night', 'glam', 'edgy'], breton: ['casual', 'chic'],
+  jeans: ['casual', 'edgy'], shorts: ['summer', 'casual'], mini: ['night', 'summer'], pleated: ['chic', 'office'], wide: ['office', 'chic'], pencil: ['office', 'glam'],
+  slip: ['night', 'glam'], gown: ['redcarpet', 'glam'], wrap: ['office', 'chic'], lbd: ['night', 'redcarpet', 'chic'], sundress: ['summer', 'casual'], sequin: ['night', 'glam', 'redcarpet'],
+  blazer: ['office', 'chic'], biker: ['night', 'edgy'], trench: ['winter', 'chic'], cardigan: ['winter', 'casual'], denimjk: ['casual', 'edgy'], puffer: ['winter', 'casual'],
+  sneakers: ['casual'], pumps: ['office', 'redcarpet', 'night'], ankleboots: ['winter', 'edgy'], kneeboots: ['winter', 'night', 'edgy'], flats: ['chic', 'office'], sandals: ['summer'],
+  tote: ['casual', 'summer'], clutch: ['redcarpet', 'night'], crossbody: ['casual', 'edgy'], heartbag: ['glam', 'summer'],
+  pearls: ['chic', 'redcarpet'], pendant: ['casual', 'chic'], choker: ['edgy', 'night'], hoops: ['casual', 'glam'], studs: ['office', 'chic'], drops: ['redcarpet', 'glam'],
+  roundspecs: ['office'], cateye: ['chic', 'office'], sunnies: ['summer'], heartsunnies: ['summer', 'glam'],
+  beret: ['chic', 'winter'], sunhat: ['summer'], beanie: ['winter', 'casual'], tiara: ['redcarpet', 'glam'],
+};
+const TAG_LABEL = { casual: 'Casual', summer: 'Summer', night: 'Night out', office: 'Office', chic: 'Chic', winter: 'Winter', glam: 'Glam', edgy: 'Edgy', redcarpet: 'Red carpet' };
+const owns = id => !PRICES[id] || profile.owned.includes(id);
+const FAME_PER_LEVEL = 60;
+const level = () => 1 + Math.floor(profile.fame / FAME_PER_LEVEL);
+const COIN = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f5c542" stroke="#c9961c" stroke-width="1.6"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#e0a92a" stroke-width="1.2"/><path d="M12 7.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff6d0"/></svg>`;
+const FAME = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#8b6cf0" stroke="#6243cf" stroke-width="1.6"/><path d="M12 5.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L12 15.3l-3.8 2 .7-4.3-3.1-3 4.3-.6z" fill="#fff"/></svg>`;
+
+function saveProfile() { lsSet(LS_PROFILE, profile); renderTopbar(); }
+function reward(coins, fame) {
+  const before = level();
+  profile.coins += coins; profile.fame += fame;
+  saveProfile();
+  $$('.wallet .pill').forEach(p => { p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); });
+  if (level() > before) setTimeout(() => toast(`Level up! ${starletName()} is now level ${level()} ✦`), 900);
+}
+function renderTopbar() {
+  const x = STARLETS.find(v => v.id === state.starlet);
+  const lips = x ? PRESETS[x.preset].lips.color : state.makeup.lips.color;
+  $('#meFace').innerHTML = `<svg viewBox="104 30 192 192">${portrait(state, lips === 'none' ? '#c96b78' : lips)}</svg>`;
+  $('#meName').textContent = starletName();
+  $('#meLevel').textContent = level();
+  $('#meXp').style.width = (profile.fame % FAME_PER_LEVEL) / FAME_PER_LEVEL * 100 + '%';
+  $('#meXpText').textContent = `${profile.fame % FAME_PER_LEVEL} / ${FAME_PER_LEVEL} fame to level ${level() + 1}`;
+  $('#coinVal').textContent = profile.coins;
+  $('#fameVal').textContent = profile.fame;
+}
+
+// city skyline painted behind the page, like a view over the rooftops
+function skylineBg() {
+  const r = rng(77);
+  let b = '';
+  const side = (x0, x1) => {
+    for (let x = x0; x < x1;) {
+      const w = 40 + r() * 70, h = 120 + r() * 380, c = ['#d7e6f6', '#c4d8ee', '#b3cbe6', '#e6eef8', '#a9c0dd'][Math.floor(r() * 5)];
+      b += `<rect x="${x.toFixed(0)}" y="${(900 - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${c}"/>`;
+      for (let y = 910 - h; y < 880; y += 18) b += `<rect x="${(x + 8).toFixed(0)}" y="${y.toFixed(0)}" width="${(w - 16).toFixed(0)}" height="6" fill="#fff" opacity=".55"/>`;
+      if (r() > 0.7) b += `<path d="M${(x + w / 2).toFixed(0)},${(900 - h - 60).toFixed(0)} l6,60 h-12 z" fill="${c}"/>`;
+      x += w + 4 + r() * 10;
+    }
+  };
+  side(0, 420); side(1180, 1600);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice"><path d="M0,620 L160,520 L300,600 L420,540 L560,640 L0,700 Z M1100,640 L1260,540 L1400,600 L1600,520 L1600,700 Z" fill="#e3edf7"/>${b}<rect y="860" width="1600" height="40" fill="#cfe0f0"/></svg>`;
+  document.body.style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}"), linear-gradient(180deg, #7ec2f0 0%, #bfe3fb 45%, #eef7fd 100%)`;
+}
+
+// =====================================================================
+// What's New (home)
+// =====================================================================
+const SIGNATURE = {
+  aria: { top: 'cami', bottom: 'pleated', shoes: 'flats', necklace: 'pearls' },
+  zuri: { dress: 'sequin', shoes: 'pumps', earrings: 'drops' },
+  mina: { top: 'breton', bottom: 'jeans', shoes: 'sneakers', glasses: 'roundspecs' },
+  luz: { dress: 'lbd', outer: 'biker', shoes: 'ankleboots', earrings: 'hoops' },
+  noor: { dress: 'sundress', shoes: 'sandals', earrings: 'studs' },
+  ivy: { top: 'turtle', bottom: 'wide', glasses: 'cateye', necklace: 'pendant' },
+};
+const STARLET_FAME = { aria: 104, zuri: 86, mina: 48, luz: 75, noor: 33, ivy: 22 };
+function signatureState(id) { const s = starletState(id); Object.assign(s.outfit, SIGNATURE[id]); s.tucked = true; return s; }
+let heroCache = '';
+function heroSVG() {
+  if (heroCache) return heroCache;
+  const order = ['luz', 'aria', 'zuri', 'mina', 'noor', 'ivy'];
+  const H = 700, W = H * 400 / 820;
+  let dolls = '';
+  order.forEach((id, i) => {
+    const cx = 120 + i * 192, y = 26 + (i % 2) * 14;
+    dolls += `<svg x="${cx - W / 2}" y="${y}" width="${W}" height="${H}" viewBox="0 0 400 820">${renderDoll(signatureState(id), { inner: true })}</svg>`;
+  });
+  heroCache = scope(`<svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><defs>
+    <linearGradient id="hs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3f3"/><stop offset="1" stop-color="#eaf6fb"/></linearGradient>
+    <linearGradient id="hw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9577f"/><stop offset="1" stop-color="#f28aa6"/></linearGradient></defs>
+    <rect width="1200" height="420" fill="url(#hs)"/>
+    <path d="M0,250 L120,170 L240,230 L360,150 L520,240 L640,200 L760,250 L760,420 L0,420 Z" fill="#9fc5b0" opacity=".7"/>
+    <path d="M0,290 L200,240 L420,300 L620,260 L760,300 L760,420 L0,420 Z" fill="#6f9f82" opacity=".75"/>
+    <rect x="0" y="0" width="1200" height="34" fill="#4a4048"/><rect x="0" y="34" width="1200" height="8" fill="#2f282e" opacity=".5"/>
+    ${[60, 260, 460, 660].map(x => `<rect x="${x}" y="34" width="16" height="386" fill="#544a52"/>`).join('')}
+    <path d="M760,0 L1200,0 L1200,420 L760,420 Z" fill="url(#hw)"/>
+    ${Array.from({ length: 9 }, (_, i) => `<path d="M${780 + i * 50},420 L${880 + i * 50},${160 + i * 10} L${900 + i * 50},${160 + i * 10} L${800 + i * 50},420 Z" fill="#2f3d4a" opacity=".55"/>`).join('')}
+    <circle cx="1030" cy="90" r="40" fill="#ffd1dc" opacity=".55"/><circle cx="1120" cy="150" r="22" fill="#ffd1dc" opacity=".5"/>
+    <rect x="0" y="330" width="760" height="10" fill="#3b6b6a"/>${Array.from({ length: 38 }, (_, i) => `<rect x="${i * 20 + 4}" y="270" width="5" height="70" fill="#3b6b6a"/>`).join('')}
+    <rect x="0" y="268" width="760" height="6" fill="#3b6b6a"/>
+    ${dolls}
+    <rect y="380" width="1200" height="40" fill="url(#hs)" opacity="0"/></svg>`, 'HR');
+  return heroCache;
+}
+function renderHome() {
+  if (!$('#hero svg')) $('#hero').insertAdjacentHTML('afterbegin', heroSVG());
+  $('#heroName').textContent = starletName();
+  const claim = profile.lastBonus !== today();
+  $('#bonusTile').innerHTML = `<h4>Daily bonus</h4>
+    <div class="tile-big">${COIN}<b>50</b><span>coins</span></div>
+    <p>${claim ? 'Your daily coins are ready. Spend them in the Shop.' : 'Collected for today. Come back tomorrow for another 50.'}</p>
+    <button class="btn primary small" id="claimBonus"${claim ? '' : ' disabled'}>${claim ? 'Claim 50 coins' : 'Claimed ✓'}</button>`;
+  const th = featuredTheme();
+  $('#contestTile').innerHTML = `<h4>Today's contest</h4><div class="tile-theme" style="--a:${th.bg[0]};--b:${th.bg[1]}"><b>${th.name}</b></div>
+    <p>${th.desc}</p><button class="btn small" data-view="contests">Enter the contest ›</button>`;
+  const fresh = ITEMS.filter(i => PRICES[i.id] && !owns(i.id));
+  const picks = [0, 1, 2].map(k => fresh[(dayNo() * 3 + k * 7) % Math.max(1, fresh.length)]).filter(Boolean);
+  const uniq = [...new Set(picks)];
+  $('#shopTile').innerHTML = `<h4>New in the Shop</h4><div class="tile-items">${uniq.length ? uniq.map(it => `<span>${scope(itemThumb(it, it.color), 'NS' + it.id + '-')}<small>${COIN}${PRICES[it.id]}</small></span>`).join('') : '<p>You own everything. Amazing!</p>'}</div>
+    <button class="btn small" data-view="shop">Visit the Shop ›</button>`;
+  $('#people').innerHTML = STARLETS.map(x => {
+    const lips = PRESETS[x.preset].lips.color, cur = x.id === state.starlet;
+    return `<article class="person${cur ? ' cur' : ''}">
+      <div class="person-face"><svg viewBox="104 30 192 192">${portrait(x, lips === 'none' ? '#c96b78' : lips)}</svg><span class="crown">${STARLET_FAME[x.id]}</span></div>
+      <b>${x.name}</b><small>${x.role}</small>
+      <button class="btn small ${cur ? '' : 'primary'}" data-style="${x.id}">${cur ? 'Styling now' : 'Style her'}</button></article>`;
+  }).join('');
+  const last = lookbook[0];
+  $('#promoAlbum').innerHTML = last ? `<img src="${last.thumb}" alt="">` : `<span class="promo-empty">Your photos will appear here</span>`;
+}
+
+// =====================================================================
+// Shop with fitting room
+// =====================================================================
+let shopCat = 'all', tryOn = [];
+function wearOn(s, id) {
+  const it = ITEM[id], o = s.outfit;
+  o[it.slot] = id;
+  if (it.slot === 'dress') { o.top = null; o.bottom = null; }
+  if (it.slot === 'top' || it.slot === 'bottom') o.dress = null;
+  if (it.slot === 'top') s.tucked = !it.over;
+}
+function renderShop() {
+  const cats = [['all', 'All'], ['top', 'Tops'], ['bottom', 'Bottoms'], ['dress', 'Dresses'], ['outer', 'Jackets'], ['shoes', 'Shoes'], ['acc', 'Accessories']];
+  $('#shopTabs').innerHTML = cats.map(([k, l]) => `<button data-shopcat="${k}" class="${k === shopCat ? 'on' : ''}">${l}</button>`).join('');
+  const list = ITEMS.filter(i => PRICES[i.id] && (shopCat === 'all' || i.cat === shopCat))
+    .sort((a, b) => owns(a.id) - owns(b.id) || PRICES[a.id] - PRICES[b.id]);
+  $('#shopGrid').innerHTML = list.map(it => {
+    const own = owns(it.id), trying = tryOn.includes(it.id);
+    return `<article class="shop-card${own ? ' owned' : ''}${trying ? ' trying' : ''}">
+      <div class="shop-thumb">${scope(itemThumb(it, it.color), 'SH' + it.id + '-')}</div>
+      <b>${it.name}</b>
+      <div class="shop-tags">${(TAGS[it.id] || []).map(t => `<span>${TAG_LABEL[t]}</span>`).join('')}</div>
+      <div class="shop-row">${own ? '<span class="owned-tag">In your wardrobe ✓</span>' : `<span class="price">${COIN}${PRICES[it.id]}</span>`}</div>
+      <div class="shop-row">
+        <button class="btn small" data-tryon="${it.id}">${trying ? 'Take off' : 'Try on'}</button>
+        ${own ? `<button class="btn small primary" data-wearnow="${it.id}">Wear</button>` : `<button class="btn small primary" data-buy="${it.id}"${profile.coins < PRICES[it.id] ? ' aria-disabled="true"' : ''}>Buy</button>`}
+      </div></article>`;
+  }).join('');
+  const s = clone(state); tryOn.forEach(id => wearOn(s, id));
+  $('#fitDoll').innerHTML = scope(renderDoll(s), 'FR');
+  $('#fitNote').textContent = tryOn.length ? `Trying on: ${tryOn.map(id => ITEM[id].name).join(', ')}` : 'Press Try on to see a piece on her before you buy.';
+}
+function buy(id) {
+  const it = ITEM[id], price = PRICES[id];
+  if (owns(id)) return;
+  if (profile.coins < price) { toast(`You need ${price - profile.coins} more coins. Win some in Contests or claim your daily bonus.`); return; }
+  profile.coins -= price; profile.owned.push(id);
+  saveProfile();
+  reward(0, 3);
+  toast(`Bought ${it.name}! It's in your wardrobe ✦`);
+  renderShop();
+}
+
+// =====================================================================
+// Contests: themed style challenges scored by three judges
+// =====================================================================
+const THEMES = [
+  { id: 'carpet', name: 'Red Carpet Premiere', short: 'the red carpet', desc: 'Cameras are flashing. Go glamorous from head to toe.', tags: ['redcarpet', 'glam'], bg: ['#3a1020', '#b3263a'],
+    tip: 'Bold lips and full lashes', makeup: m => (m.lips.color !== 'none' && m.lips.opacity >= 0.7 ? 8 : 0) + (['volume', 'dramatic'].includes(m.mascara) ? 4 : 0) + (m.highlight.opacity >= 0.4 ? 3 : 0) },
+  { id: 'beach', name: 'Beach Day', short: 'the beach', desc: 'Sun, sand and a sea breeze. Keep it light and breezy.', tags: ['summer', 'casual'], bg: ['#2fa9c9', '#f2d48f'],
+    tip: 'Barely-there eyes and glossy lips', makeup: m => (m.shadow.style === 'none' || m.shadow.opacity < 0.45 ? 6 : 0) + (m.lips.finish === 'gloss' ? 5 : 0) + (m.blush.color !== 'none' ? 4 : 0) },
+  { id: 'office', name: 'Office Chic', short: 'the office', desc: 'First day at a fashion magazine. Polished, smart and a little bit chic.', tags: ['office', 'chic'], bg: ['#8a7356', '#e9e1d4'],
+    tip: 'Neat liner and a matte lip', makeup: m => (['tight', 'classic'].includes(m.liner.style) ? 6 : 0) + (m.lips.finish === 'matte' ? 5 : 0) + (m.shadow.style !== 'smoky' ? 4 : 0) },
+  { id: 'snow', name: 'Snow Day Stroll', short: 'a snowy afternoon', desc: "It's freezing outside. Layer up and stay cosy.", tags: ['winter', 'casual'], bg: ['#7da7cf', '#f3f8ff'],
+    tip: 'Rosy cheeks', makeup: m => (m.blush.color !== 'none' && m.blush.opacity >= 0.3 ? 9 : 0) + (m.lips.finish !== 'metallic' ? 3 : 0) + 3 },
+  { id: 'rock', name: 'Rock Concert', short: 'the concert', desc: 'Front row at a sold-out show. Edgy, dark and ready to dance.', tags: ['edgy', 'night'], bg: ['#1b1424', '#6b2a6e'],
+    tip: 'Smoky eyes and strong liner', makeup: m => (m.shadow.style === 'smoky' ? 7 : 0) + (['winged', 'cat', 'smudged'].includes(m.liner.style) ? 5 : 0) + (m.mascara === 'dramatic' ? 3 : 0) },
+];
+const JUDGES = [
+  { name: 'Coco Marlowe', role: 'Magazine editor', skin: '#eab78f', hair: 'bob', hairColor: '#1c1412', lips: '#b3132c' },
+  { name: 'Dex Rivera', role: 'Photographer', skin: '#a5683d', hair: 'pixie', hairColor: '#2a1a12', lips: '#a8705a' },
+  { name: 'June Park', role: 'Designer', skin: '#fde3d3', hair: 'ponytail', hairColor: '#6b3a1f', lips: '#ff6fa3' },
+];
+const featuredTheme = () => THEMES[dayNo() % THEMES.length];
+let themeSel = featuredTheme().id, lastResult = null;
+function scoreLook(s, th) {
+  const o = s.outfit, worn = Object.values(o).filter(Boolean).map(id => ITEM[id]);
+  const base = !!(o.dress || (o.top && o.bottom));
+  let score = base ? 20 : (o.top || o.bottom) ? 8 : 0;
+  if (o.shoes) score += 10;
+  const acc = ['bag', 'necklace', 'earrings', 'glasses', 'hat'].filter(k => o[k]).length;
+  score += Math.min(acc, 3) * 4;
+  const match = [], off = [];
+  for (const it of worn) ((TAGS[it.id] || []).some(t => th.tags.includes(t)) ? match : off).push(it);
+  score += Math.min(match.length * 9, 45) - off.length * 4;
+  const mk = clamp(th.makeup(s.makeup), 0, 15);
+  score = clamp(Math.round(score + mk), 0, 100);
+  return { score, base, match, off, acc, mk, shoes: !!o.shoes };
+}
+function judgeSay(r, th, i) {
+  const c = [];
+  if (!r.base) c.push(`She can't go to ${th.short} in her underwear!`);
+  if (r.match[0]) c.push(`Love the ${r.match[0].name.toLowerCase()}. Perfect for ${th.short}.`);
+  if (r.match[1]) c.push(`The ${r.match[1].name.toLowerCase()} really sells the theme.`);
+  if (r.off[0]) c.push(`The ${r.off[0].name.toLowerCase()} feels off-theme to me.`);
+  if (!r.shoes) c.push('Shoes would finish this look.');
+  if (!r.acc) c.push('Add an accessory or two for some sparkle.');
+  c.push(r.mk >= 10 ? 'The makeup is spot on.' : `${th.tip} would suit ${th.short} better.`);
+  if (r.score >= 85) c.push('Iconic. Front cover material!');
+  if (r.score < 40) c.push('Keep going, this needs more of the theme.');
+  return c[(i * 3 + r.score) % c.length];
+}
+function renderContests() {
+  const th = THEMES.find(t => t.id === themeSel);
+  $('#themePicker').innerHTML = THEMES.map(t => `<button data-theme="${t.id}" class="${t.id === themeSel ? 'on' : ''}">${t.name}${t.id === featuredTheme().id ? ' <em>Today</em>' : ''}</button>`).join('');
+  $('#contestBanner').style.setProperty('--a', th.bg[0]); $('#contestBanner').style.setProperty('--b', th.bg[1]);
+  $('#contestTitle').textContent = th.name;
+  $('#contestDesc').textContent = th.desc;
+  $('#contestTags').innerHTML = th.tags.map(t => `<span>${TAG_LABEL[t]}</span>`).join('') + `<span>Makeup: ${th.tip.toLowerCase()}</span>`;
+  $('#contestDoll').style.setProperty('--a', th.bg[0]); $('#contestDoll').style.setProperty('--b', th.bg[1]);
+  $('#contestDoll').innerHTML = scope(renderDoll(state), 'CT');
+  const r = scoreLook(state, th);
+  const rec = profile.contests[th.id];
+  const line = (ok, text) => `<li class="${ok ? 'ok' : ''}">${ok ? '✓' : '○'} ${text}</li>`;
+  $('#contestBrief').innerHTML = `<h3>Judging checklist</h3><ul>
+    ${line(r.base, 'A full outfit (a dress, or a top with a bottom)')}
+    ${line(r.shoes, 'Shoes')}
+    ${line(r.match.length >= 3, `Pieces that fit the theme: ${r.match.length} (aim for 3 or more)`)}
+    ${line(!r.off.length, r.off.length ? `Off-theme pieces: ${r.off.map(i => i.name).join(', ')}` : 'Nothing off-theme')}
+    ${line(r.acc >= 2, `Accessories: ${r.acc} (2 or 3 is best)`)}
+    ${line(r.mk >= 10, `Makeup: ${th.tip.toLowerCase()}`)}</ul>
+    <p class="best">${rec && rec.date === today() ? `Today's best: <b>${rec.best}</b> points` : 'Prize: up to 50 coins and 25 fame'}</p>`;
+  if (lastResult && lastResult.theme === th.id) showResult(lastResult, false);
+  else $('#contestResult').innerHTML = '';
+}
+function enterContest() {
+  const th = THEMES.find(t => t.id === themeSel), r = scoreLook(state, th);
+  const rec = profile.contests[th.id], fresh = !rec || rec.date !== today();
+  const prev = fresh ? 0 : rec.best;
+  const gain = Math.max(0, r.score - prev);
+  const coins = Math.round(gain / 2), fame = Math.round(gain / 4);
+  profile.contests[th.id] = { date: today(), best: Math.max(prev, r.score) };
+  lastResult = { theme: th.id, r, coins, fame, beat: !fresh && r.score > prev, repeat: !fresh && r.score <= prev };
+  if (coins || fame) reward(coins, fame); else saveProfile();
+  renderContests();
+  showResult(lastResult, true);
+}
+function showResult(res, animate) {
+  const th = THEMES.find(t => t.id === res.theme), r = res.r;
+  const medal = r.score >= 85 ? ['Gold', '#f5c542'] : r.score >= 65 ? ['Silver', '#c7ccd6'] : r.score >= 45 ? ['Bronze', '#d79b63'] : ['Keep styling', '#e7defa'];
+  $('#contestResult').innerHTML = `<div class="result">
+    <div class="score-ring" style="--p:${r.score};--m:${medal[1]}"><b id="scoreNum">${animate ? 0 : r.score}</b><small>points</small></div>
+    <div class="result-copy"><h3>${medal[0]}${r.score >= 45 ? ' medal' : ''}</h3>
+      <p>${res.repeat ? "You've already won today's prize for this contest. Beat your best score to earn more." : res.coins || res.fame ? `You won ${COIN}<b>${res.coins}</b> coins and ${FAME}<b>${res.fame}</b> fame${res.beat ? ' for beating your best' : ''}!` : 'No prize this time.'}</p></div></div>
+    <div class="judges">${JUDGES.map((j, i) => {
+      const stars = clamp(Math.round(r.score / 20 + (i - 1) * 0.4), 1, 5);
+      return `<article class="judge"><div class="judge-face"><svg viewBox="104 30 192 192">${portrait(j, j.lips)}</svg></div>
+        <div><b>${j.name}</b><small>${j.role}</small><div class="stars" aria-label="${stars} out of 5 stars">${'★'.repeat(stars)}<span>${'★'.repeat(5 - stars)}</span></div><p>“${judgeSay(r, th, i)}”</p></div></article>`;
+    }).join('')}</div>`;
+  if (animate) {
+    const el = $('#scoreNum'), t0 = performance.now();
+    const tick = t => { const k = Math.min(1, (t - t0) / 900); el.textContent = Math.round(r.score * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+}
 
 // ---------- events ----------
 document.addEventListener('click', e => {
@@ -2200,6 +2747,16 @@ document.addEventListener('click', e => {
   }
   const un = t.closest('[data-unplace]');
   if (un) { state.room.items = state.room.items.filter(i => i.id !== un.dataset.unplace); update(); return; }
+  const sty = t.closest('[data-style]');
+  if (sty) { if (sty.dataset.style !== state.starlet) { applyStarlet(sty.dataset.style); toast(`Now styling ${starletName()}`); } setView('suite'); return; }
+  if (t.closest('#claimBonus')) { if (profile.lastBonus !== today()) { profile.lastBonus = today(); reward(50, 5); toast('+50 coins! Treat her to something in the Shop.'); renderHome(); } return; }
+  const sc = t.closest('[data-shopcat]'); if (sc) { shopCat = sc.dataset.shopcat; renderShop(); return; }
+  const tr = t.closest('[data-tryon]');
+  if (tr) { const id = tr.dataset.tryon; tryOn = tryOn.includes(id) ? tryOn.filter(x => x !== id) : [...tryOn.filter(x => ITEM[x].slot !== ITEM[id].slot), id]; renderShop(); return; }
+  const by = t.closest('[data-buy]'); if (by) { buy(by.dataset.buy); return; }
+  const wn = t.closest('[data-wearnow]'); if (wn) { equip(wn.dataset.wearnow, true); toast(`${starletName()} is wearing ${ITEM[wn.dataset.wearnow].name}`); renderShop(); return; }
+  const thb = t.closest('[data-theme]'); if (thb) { themeSel = thb.dataset.theme; renderContests(); return; }
+  const shopLink = t.closest('[data-goshop]'); if (shopLink) { setView('shop'); return; }
   const pk = t.closest('[data-pick]'); if (pk) { pickSel = pk.dataset.pick; renderPicker(); return; }
   const car = t.closest('[data-car]');
   if (car) { const i = STARLETS.findIndex(x => x.id === pickSel); pickSel = STARLETS[(i + Number(car.dataset.car) + STARLETS.length) % STARLETS.length].id; renderPicker(); return; }
@@ -2230,7 +2787,10 @@ $('#tbLayers').addEventListener('click', () => { const p = $('#layersPop'); p.hi
 $('#tbUndo').addEventListener('click', undo);
 $('#tbSave').addEventListener('click', openSave);
 $('#btnSave').addEventListener('click', openSave);
-$('#btnPick').addEventListener('click', openPicker);
+$('#meBtn').addEventListener('click', openPicker);
+$('#fitClear').addEventListener('click', () => { tryOn = []; renderShop(); });
+$('#enterContest').addEventListener('click', enterContest);
+$('#contestDress').addEventListener('click', () => { setView('suite'); if (drawer !== 'wardrobe') openDrawer('wardrobe'); });
 $('#btnHelp').addEventListener('click', () => { setView('suite'); openGuide(0); });
 $('#pickerGo').addEventListener('click', () => closePicker(true));
 $('#guideNext').addEventListener('click', () => { if (guideStep < GUIDE.length - 1) { guideStep++; renderGuide(); } else closeGuide(); });
@@ -2336,9 +2896,16 @@ document.addEventListener('dragstart', e => { if (e.target.closest?.('[data-item
 
 // ---------- boot ----------
 buildUI();
+skylineBg();
 update();
+$('#promoShop').innerHTML = `<svg viewBox="0 0 300 130"><rect width="300" height="130" fill="#5cc8c0"/><circle cx="250" cy="20" r="60" fill="#7fd8d0"/>` +
+  ['pumps', 'heartbag', 'heartsunnies'].map((id, i) => scope(itemThumb(ITEM[id], ITEM[id].color), 'PS' + id + '-').replace('<svg ', `<svg x="${18 + i * 92}" y="22" width="80" height="86" `)).join('') + `</svg>`;
+$('#promoContest').innerHTML = `<svg viewBox="0 0 300 130"><defs><linearGradient id="pcg" x1="0" x2="1"><stop offset="0" stop-color="#f06aa8"/><stop offset="1" stop-color="#8f63f0"/></linearGradient></defs><rect width="300" height="130" fill="url(#pcg)"/>` +
+  `<path d="M128,30 h44 v16 a22,22 0 0 1 -44,0 z" fill="#ffd84a" stroke="#c9961c" stroke-width="2"/><rect x="144" y="68" width="12" height="18" fill="#ffd84a"/><rect x="132" y="86" width="36" height="10" rx="2" fill="#c9961c"/>` +
+  `<text x="40" y="58" font-size="30" fill="#fff" opacity=".8">★</text><text x="232" y="96" font-size="24" fill="#fff" opacity=".7">★</text><text x="70" y="108" font-size="18" fill="#fff" opacity=".6">★</text></svg>`;
 lastSnap = JSON.stringify(state); undoStack = []; $('#tbUndo').disabled = true;
 renderLookbook();
+setView('home');
 if (!lsGet(LS_CUR, null) || !lsGet('starlife.guide.v1', false)) openPicker();
 </script>
 </body>

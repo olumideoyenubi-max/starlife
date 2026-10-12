@@ -10,6 +10,11 @@ A dress-up, makeup and room-decorating game in the spirit of the classic Stardol
 
 ## How it plays
 
+- **What's New:** a group photo of all the starlets, your daily coin bonus, today's contest, new arrivals in the Shop, and "Starlets you might like".
+- **Top bar:** your starlet's avatar, name and level, plus your fame and coin balances. Saving looks, contests and shopping earn fame, and every 60 fame is a new level.
+- **Shop:** some clothes cost coins. Try them on in the fitting room, then buy them and they appear in her wardrobe.
+- **Contests:** five themed style challenges (Red Carpet Premiere, Beach Day, Office Chic, Snow Day Stroll, Rock Concert). A live checklist shows what the judges look for. Three judges score her look out of 100, give stars and comment. You win coins and fame once per contest per day, plus more if you beat your best score.
+
 - **Pick your starlet:** choose one of six made-up celebrities from the carousel. She moves into your suite in her underwear.
 - **Your suite:** a furnished room with a wall, a wood floor, a city window, art and furniture. Furniture nearer the front overlaps her, so she can stand behind a table.
 - **Guide:** Stella, your stylist, walks you through the basics in a speech bubble. Press **?** to see the tips again.
@@ -29,4 +34,6 @@ A dress-up, makeup and room-decorating game in the spirit of the classic Stardol
 - **Camera & My Album:** take a photo of the room and save it with a name. From My Album you can wear a look again, download it as a PNG, or delete it.
 - **Toolbar:** Undress, Surprise me, what she's wearing (layer order), Undo, and Save.
 
-Your current suite and your album are kept in the browser's localStorage.
+Your current suite, your album and your coins are kept in the browser's localStorage.
+
+Starlife is an independent fan project. It isn't affiliated with Stardoll and uses none of its code or artwork.
