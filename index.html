@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Starlife Atelier</title>
-<meta name="description" content="A browser dress-up and makeup studio: style your doll, do her makeup, and save looks to your lookbook.">
+<title>Starlife Suite</title>
+<meta name="description" content="A dress-up game: pick a starlet, dress her in your suite, do her makeup and decorate the room.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #fbf5f6;
@@ -344,58 +344,336 @@
     .modal .prev svg { height: 220px; }
     .panel { padding: 14px; }
   }
+
+  [hidden] { display: none !important; }
+  /* =================== Suite layout (Stardoll-style) =================== */
+  :root {
+    --sky-1: #b9a6f2; --sky-2: #e9e2fb; --sky-3: #fbf7ff;
+    --violet: #9b6bf2; --violet-deep: #6d3fd1; --pinkpop: #ec6fa6; --mint: #4fd69c;
+    --plum: #2b2138; --mist: #a59bb3; --lilac-line: #ece6f7;
+    --round: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  }
+  body {
+    background: linear-gradient(165deg, var(--sky-1) 0%, var(--sky-2) 42%, var(--sky-3) 100%) fixed;
+    background-color: var(--sky-3);
+  }
+  header.top {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30;
+    display: flex; align-items: center; gap: 18px; padding: 10px 24px;
+    background: rgba(255, 255, 255, .94); border-bottom: 1px solid var(--lilac-line);
+    backdrop-filter: blur(10px);
+  }
+  .wordmark { display: flex; align-items: center; gap: 8px; font-family: var(--round); font-weight: 800; font-size: 26px; color: var(--plum); letter-spacing: -.5px; line-height: 1; }
+  .wordmark i { font-style: normal; color: #f5b82e; font-size: 22px; filter: drop-shadow(0 1px 0 #c98a00); }
+  .views { display: flex; gap: 26px; margin: 0 auto; }
+  .views button {
+    border: 0; background: none; padding: 8px 2px; font-size: 13px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: #6a5d7c; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s;
+  }
+  .views button.on { color: var(--plum); border-color: var(--plum); }
+  .views button:hover { color: var(--plum); }
+  .top-acts { display: flex; gap: 8px; }
+  .btn.icon { width: 36px; padding: 0; justify-content: center; height: 36px; }
+
+  main.stage-main { max-width: 1320px; margin: 18px auto 40px; padding-inline: 24px; }
+  .view { display: none; }
+  .view.on { display: block; animation: fade .35s ease; }
+
+  .suite {
+    display: grid; grid-template-columns: minmax(0, 1fr) 180px;
+    background: #fff; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 30px 60px -30px rgba(70, 40, 120, .45);
+  }
+  .suite-stage {
+    position: relative; height: min(74vh, 660px); min-height: 420px; overflow: hidden;
+    background: #f8d3df; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  }
+  .suite-stage > svg.suite-room { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .suite-stage.decorating { touch-action: none; }
+  .suite-stage.decorating [data-furn], .suite-stage.decorating [data-doll] { cursor: move; }
+  .suite-stage.drag-over [data-doll] { filter: drop-shadow(0 0 10px rgba(155, 107, 242, .9)); }
+  .suite-stage:fullscreen { height: 100vh; }
+  .suite-stage .stage-name {
+    position: absolute; left: auto; right: 14px; top: 14px; bottom: auto; z-index: 4;
+    background: rgba(255, 255, 255, .88); backdrop-filter: blur(6px); padding: 6px 14px; border-radius: 999px;
+    font-family: var(--serif); font-size: 15px; color: var(--plum); pointer-events: none;
+  }
+
+  .sidebar { display: flex; flex-direction: column; gap: 2px; padding: 16px 10px; border-left: 1px solid var(--lilac-line); background: #fff; }
+  .side-btn {
+    display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 12px 10px; border-radius: 12px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mist); text-align: left;
+    transition: background .2s, color .2s;
+  }
+  .side-btn svg { width: 26px; height: 26px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .side-btn:hover { background: #f7f3fd; color: #4b3d60; }
+  .side-btn.on { background: #f1eafd; color: var(--violet-deep); }
+  .sidebar .save-btn {
+    margin-top: auto; border: 0; border-radius: 14px; padding: 12px; font-weight: 700; color: #fff; font-size: 15px;
+    background: linear-gradient(135deg, #a87bf7, #7c4ee0); box-shadow: 0 10px 20px -10px rgba(109, 63, 209, .8);
+  }
+  .sidebar .save-btn:hover { filter: brightness(1.07); }
+
+  .toolbar {
+    position: absolute; left: 14px; bottom: 14px; z-index: 5;
+    display: flex; gap: 2px; padding: 6px 8px; border-radius: 18px;
+    background: rgba(36, 28, 46, .88); backdrop-filter: blur(8px); box-shadow: 0 12px 24px -12px rgba(0, 0, 0, .5);
+  }
+  .toolbar button {
+    width: 46px; height: 42px; border: 0; background: none; border-radius: 12px; color: #fff; display: grid; place-items: center;
+    transition: background .15s;
+  }
+  .toolbar button:hover, .toolbar button.on { background: rgba(255, 255, 255, .14); }
+  .toolbar button:disabled { opacity: .35; cursor: default; background: none; }
+  .toolbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  .drawer {
+    position: absolute; top: 12px; right: 12px; bottom: 12px; width: min(360px, 48%); z-index: 6;
+    display: flex; flex-direction: column; background: rgba(255, 255, 255, .95); backdrop-filter: blur(12px);
+    border-radius: 18px; box-shadow: 0 20px 40px -18px rgba(60, 30, 90, .5); animation: slideIn .3s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 6px; }
+  .drawer-head h3 { margin: 0; font-family: var(--round); font-weight: 700; font-size: 20px; color: var(--plum); }
+  .drawer-head button { border: 0; background: #f4f0fa; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; color: #6a5d7c; }
+  .drawer-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 14px; overscroll-behavior: contain; }
+  .drawer .closet-tabs { justify-content: flex-start; margin: 0 0 10px; }
+  .drawer .closet-tabs button { background: #f4f0fa; color: #5c4d70; }
+  .drawer .closet-tabs button.on { background: var(--plum); color: #fff; }
+  .drawer .item-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+  .drawer .item { background: linear-gradient(#fff, #f8f4fd); border-color: #efe8f8; }
+  .drawer .item svg { height: 96px; }
+  .drawer .item span { font-size: 11.5px; text-align: center; line-height: 1.2; }
+  .drawer .recolor { margin-top: 12px; }
+  .drawer h4 { font-family: var(--round); font-weight: 700; font-size: 15px; margin: 10px 0 8px; color: var(--plum); }
+  .furn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+  .furn-card { border: 1px solid #efe8f8; background: linear-gradient(#fff, #f8f4fd); border-radius: 14px; padding: 6px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; font-weight: 500; }
+  .furn-card svg { width: 100%; height: 70px; }
+  .furn-card:hover { border-color: var(--violet); }
+  .placed { display: flex; flex-wrap: wrap; gap: 6px; }
+  .placed span { display: inline-flex; align-items: center; gap: 4px; background: #f4f0fa; border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12px; }
+  .placed button { border: 0; background: #fff; width: 20px; height: 20px; border-radius: 50%; color: #8b7d9c; padding: 0; }
+
+  .decor-banner {
+    position: absolute; top: 14px; left: 14px; z-index: 5;
+    display: flex; align-items: center; gap: 10px; white-space: nowrap;
+    background: var(--plum); color: #fff; font-size: 13px; padding: 7px 8px 7px 16px; border-radius: 999px;
+  }
+  .decor-banner button { border: 0; background: var(--violet); color: #fff; border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 12.5px; }
+
+  .layers-pop {
+    position: absolute; left: 14px; bottom: 72px; z-index: 6; width: min(420px, 92%);
+    background: #fff; border-radius: 16px; padding: 12px 14px; box-shadow: 0 18px 36px -16px rgba(40, 20, 60, .5); animation: fade .2s ease;
+  }
+  .layers-pop .layers-head { margin-bottom: 8px; }
+
+  /* guide with speech bubble */
+  .guide { position: absolute; left: 0; top: 10px; z-index: 7; display: flex; align-items: flex-start; max-width: min(620px, 94%); pointer-events: none; }
+  .guide > * { pointer-events: auto; }
+  .guide-face {
+    flex: 0 0 auto; width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin-left: -10px;
+    background: radial-gradient(circle at 50% 30%, #bfe7f7, #8fc6e8); box-shadow: 0 0 0 5px var(--violet), 0 10px 24px -8px rgba(60, 30, 90, .5);
+  }
+  .guide-face svg { width: 100%; height: 100%; display: block; }
+  .bubble {
+    position: relative; margin: 14px 0 0 22px; background: #fff; border-radius: 26px; padding: 20px 26px 16px;
+    box-shadow: 0 16px 34px -14px rgba(40, 20, 60, .45); font-size: 15.5px; line-height: 1.5; color: #222; min-width: 0;
+  }
+  .bubble::before { content: ""; position: absolute; left: -12px; top: 34px; border: 12px solid transparent; border-right-color: #fff; border-left: 0; }
+  .bubble p { margin: 0 0 10px; }
+  .bubble-foot { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 12px; color: #777; }
+  .bubble-foot button { border: 0; background: #f1eafd; color: var(--violet-deep); border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 12.5px; }
+  .bubble-foot button.primary { background: var(--violet); color: #fff; }
+  .bubble-foot .skip { background: none; color: #8b7d9c; margin-right: auto; padding-left: 0; }
+
+  /* beauty parlor */
+  .parlor { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+  .mirror { padding: 14px; position: sticky; top: 76px; }
+  .mirror-frame {
+    position: relative; border-radius: 160px 160px 18px 18px; overflow: hidden; height: min(68vh, 620px);
+    background: radial-gradient(circle at 50% 30%, #fff 0, var(--mirror, #f8d3df) 70%);
+    box-shadow: inset 0 0 0 6px #fff, inset 0 0 0 9px #e7d9f6;
+    display: flex; justify-content: center; align-items: flex-end;
+  }
+  .mirror-frame svg { height: 100%; width: auto; max-width: 100%; display: block; }
+  .mirror-tabs { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+  .mirror-tabs button { border: 1px solid var(--lilac-line); background: #fff; border-radius: 999px; padding: 6px 16px; font-weight: 600; font-size: 12.5px; color: #6a5d7c; }
+  .mirror-tabs button.on { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .parlor .panel { min-height: 0; }
+  .album-card { padding: 20px; }
+  .album-card .lb-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .look img { aspect-ratio: 1000 / 620; object-position: center; }
+
+  /* starlet picker */
+  .picker {
+    position: fixed; inset: 0; z-index: 80; overflow-y: auto; padding: max(16px, env(safe-area-inset-top, 0px)) 16px 24px;
+    background: linear-gradient(165deg, #a993ef 0%, #ddd3fa 45%, #fbf9ff 100%);
+  }
+  .picker-inner { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .picker-logo {
+    font-family: var(--round); font-weight: 800; font-size: clamp(36px, 7vw, 58px); line-height: 1; color: #ffd84a;
+    -webkit-text-stroke: 2px #3b2a14; paint-order: stroke fill; text-shadow: 0 4px 0 #fff, 0 8px 16px rgba(60, 30, 90, .25);
+    margin-top: 6px;
+  }
+  .picker-logo span { color: #fff; -webkit-text-stroke: 2px #3b2a14; }
+  .picker-room {
+    width: min(100%, calc(48vh * 1000 / 620)); aspect-ratio: 1000 / 620; border-radius: 6px; overflow: hidden;
+    box-shadow: 0 30px 40px -24px rgba(50, 30, 80, .55); background: #f8d3df;
+  }
+  .picker-room svg { width: 100%; height: 100%; display: block; }
+  .picker-title {
+    margin: 4px 0 0; padding: 10px 46px 12px; font-family: var(--round); font-weight: 600; font-size: clamp(24px, 4.4vw, 40px);
+    color: #fff; text-transform: uppercase; letter-spacing: .5px; text-align: center;
+    background: linear-gradient(90deg, #f06aa8, #c76be6 55%, #8f63f0);
+    clip-path: polygon(3% 18%, 12% 4%, 40% 10%, 70% 0, 97% 9%, 100% 52%, 95% 92%, 66% 100%, 30% 93%, 6% 100%, 0 62%);
+  }
+  .carousel { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 860px; }
+  .carousel .arrow { flex: 0 0 auto; border: 0; background: none; color: #fff; font-size: 48px; line-height: 1; width: 44px; filter: drop-shadow(0 2px 3px rgba(60, 30, 90, .4)); }
+  .car-track { flex: 1; display: flex; gap: 14px; overflow-x: auto; padding: 12px 6px; scroll-snap-type: x mandatory; scrollbar-width: none; justify-content: safe center; }
+  .car-track::-webkit-scrollbar { display: none; }
+  .car-item { flex: 0 0 auto; border: 0; padding: 0; background: none; scroll-snap-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .car-item svg { width: 104px; height: 104px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px #fff, 0 8px 18px -8px rgba(60, 30, 90, .5); transition: transform .2s, box-shadow .2s; }
+  .car-item span { font-size: 12.5px; font-weight: 600; color: #4b3d60; }
+  .car-item.on svg { transform: scale(1.18); box-shadow: 0 0 0 5px var(--violet), 0 12px 22px -8px rgba(60, 30, 90, .6); }
+  .car-item.on span { color: var(--violet-deep); margin-top: 10px; }
+  .picker-note { margin: 0; color: #3c3249; font-size: 15px; text-align: center; }
+  .continue {
+    width: min(620px, 100%); border: 0; border-radius: 999px; padding: 16px; font-family: var(--round); font-weight: 600;
+    font-size: 24px; letter-spacing: 1px; text-transform: uppercase; color: #fff;
+    background: linear-gradient(180deg, #77ecbc, #3fcf8e); box-shadow: 0 14px 24px -12px rgba(30, 140, 90, .8);
+  }
+  .continue:hover { filter: brightness(1.05); }
+
+  .modal .box.wide { grid-template-columns: 1fr; width: min(640px, 100%); }
+  .modal .box.wide .prev { aspect-ratio: 1000 / 620; }
+  .modal .box.wide .prev svg { height: 100%; width: 100%; }
+
+  @media (max-width: 860px) {
+    header.top { padding: 8px 14px; gap: 10px; flex-wrap: wrap; }
+    .views { order: 3; width: 100%; justify-content: space-around; gap: 6px; margin: 0; }
+    .views button { font-size: 12px; letter-spacing: .5px; }
+    .top-acts { margin-left: auto; }
+    main.stage-main { padding-inline: 12px; margin-top: 12px; }
+    .suite { grid-template-columns: 1fr; }
+    .suite-stage { height: 66vh; min-height: 400px; }
+    .sidebar { flex-direction: row; overflow-x: auto; border-left: 0; border-top: 1px solid var(--lilac-line); padding: 8px; gap: 4px; }
+    .side-btn { flex-direction: column; gap: 4px; padding: 8px 8px; font-size: 9.5px; letter-spacing: .5px; min-width: 64px; text-align: center; }
+    .side-btn svg { width: 22px; height: 22px; }
+    .sidebar .save-btn { display: none; }
+    .drawer { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 56%; }
+    .guide-face { width: 76px; height: 76px; margin-left: 6px; box-shadow: 0 0 0 3px var(--violet); }
+    .bubble { margin: 8px 8px 0 14px; padding: 12px 14px 10px; font-size: 13.5px; border-radius: 18px; }
+    .bubble::before { top: 18px; }
+    .toolbar { left: 8px; bottom: 8px; padding: 4px; }
+    .suite-stage .stage-name { display: none; }
+    .toolbar button { width: 40px; height: 38px; }
+    .parlor { grid-template-columns: 1fr; }
+    .mirror { position: relative; top: 0; }
+    .mirror-frame { height: 48vh; }
+    .decor-banner { font-size: 11px; top: 8px; left: 8px; white-space: normal; max-width: 70%; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand"><h1>Starlife <em>Atelier</em></h1><span>Dress-up &amp; Makeup Studio</span></div>
-  <button class="btn ghost" id="btnRandom" title="Randomize everything">🎲 <span class="t">Surprise me</span></button>
-  <button class="btn ghost" id="btnReset" title="Reset to default">↺ <span class="t">Reset</span></button>
-  <button class="btn primary" id="btnSave">✦ Save Look</button>
+<header class="top">
+  <div class="wordmark"><i>★</i>Starlife</div>
+  <nav class="views" aria-label="Sections">
+    <button data-view="suite" class="on">Suite</button>
+    <button data-view="parlor">Beauty Parlor</button>
+    <button data-view="album">My Album</button>
+  </nav>
+  <div class="top-acts">
+    <button class="btn small" id="btnPick">Change starlet</button>
+    <button class="btn small icon" id="btnHelp" title="Show the guide" aria-label="Show the guide">?</button>
+  </div>
 </header>
 
-<main class="app">
-  <!-- ============ STAGE ============ -->
-  <section class="stage-wrap">
-    <div class="card stage-card">
-      <div class="starlets" id="starlets" aria-label="Choose a starlet"></div>
-      <div class="room" id="room">
-        <svg class="room-bg" id="roomBg" viewBox="0 0 400 820" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
-        <div class="closet" aria-label="Wardrobe">
-          <div class="closet-door left" aria-hidden="true"></div>
-          <div class="closet-door right" aria-hidden="true"></div>
-          <div class="closet-crown">Wardrobe</div>
-          <nav class="closet-tabs">
-            <button data-wcat="top" class="on">Tops</button>
-            <button data-wcat="bottom">Bottoms</button>
-            <button data-wcat="dress">Dresses</button>
-            <button data-wcat="outer">Jackets</button>
-            <button data-wcat="shoes">Shoes</button>
-            <button data-wcat="acc">Accessories</button>
-          </nav>
-          <div class="closet-inner"><div class="item-grid" id="itemGrid"></div></div>
-          <div class="closet-foot">Drag onto her ✦ drag off to remove</div>
+<main class="stage-main">
+  <!-- ============ SUITE ============ -->
+  <section class="view on" data-viewpane="suite">
+    <div class="suite">
+      <div class="suite-stage" id="suiteStage">
+        <div class="stage-name" id="stageName"></div>
+
+        <div class="guide" id="guide" hidden>
+          <div class="guide-face" id="guideFace"></div>
+          <div class="bubble">
+            <p id="guideText"></p>
+            <div class="bubble-foot">
+              <button class="skip" id="guideSkip">Skip</button>
+              <span id="guideCount"></span>
+              <button id="guideBack" aria-label="Previous tip">‹</button>
+              <button class="primary" id="guideNext">Next ›</button>
+            </div>
+          </div>
         </div>
-        <div id="stage" aria-label="Your doll"><div class="stage-name" id="stageName"></div><div class="drop-hint">Drop to dress her ✦</div></div>
-      </div>
-      <div class="stage-tools">
-        <span class="label">Scene</span>
-        <div class="row" id="bgRow"></div>
-      </div>
-      <div class="layers">
-        <div class="layers-head">
-          <h3>Wearing · layer order</h3>
-          <div class="row"><label class="toggle"><input type="checkbox" id="tuckToggle"> Tuck top in</label><button class="btn small" id="btnUndress">Undress</button></div>
+
+        <div class="decor-banner" id="decorBanner" hidden>Drag furniture and your starlet around the room <button id="decorDone">Done</button></div>
+
+        <div class="drawer" id="drawerWardrobe" hidden>
+          <div class="drawer-head"><h3>Wardrobe</h3><button data-close-drawer aria-label="Close wardrobe">×</button></div>
+          <div class="drawer-body">
+            <nav class="closet-tabs">
+              <button data-wcat="top" class="on">Tops</button>
+              <button data-wcat="bottom">Bottoms</button>
+              <button data-wcat="dress">Dresses</button>
+              <button data-wcat="outer">Jackets</button>
+              <button data-wcat="shoes">Shoes</button>
+              <button data-wcat="acc">Accessories</button>
+            </nav>
+            <p class="hint">Drag clothes onto her, or tap to wear. Drag a piece off her to take it off.</p>
+            <div class="item-grid" id="itemGrid"></div>
+            <div class="recolor" id="recolor"></div>
+          </div>
         </div>
-        <div class="layer-list" id="layerList"></div>
+
+        <div class="drawer" id="drawerDecor" hidden>
+          <div class="drawer-head"><h3>My Suite</h3><button data-close-drawer aria-label="Close decorating">×</button></div>
+          <div class="drawer-body">
+            <h4>Wall colour</h4><div class="row" id="wallRow"></div>
+            <h4>Floor</h4><div class="row" id="floorRow"></div>
+            <h4>Add furniture</h4><div class="furn-grid" id="furnGrid"></div>
+            <h4>In your suite</h4><div class="placed" id="placedList"></div>
+          </div>
+        </div>
+
+        <div class="layers-pop" id="layersPop" hidden>
+          <div class="layers-head">
+            <h3>Wearing · layer order</h3>
+            <label class="toggle"><input type="checkbox" id="tuckToggle"> Tuck top in</label>
+          </div>
+          <div class="layer-list" id="layerList"></div>
+        </div>
+
+        <div class="toolbar" role="toolbar" aria-label="Quick actions">
+          <button id="tbUndress" title="Undress" aria-label="Undress"><svg viewBox="0 0 24 24"><path d="M8 4 3 7l2 4 3-1v10h8V10l3 1 2-4-5-3c-1 1.5-2.5 2-4 2S9 5.5 8 4z"/><path d="M4 21 20 3"/></svg></button>
+          <button id="tbRandom" title="Surprise me" aria-label="Surprise me"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r=".9" fill="currentColor"/><circle cx="15" cy="15" r=".9" fill="currentColor"/><circle cx="15" cy="9" r=".9" fill="currentColor"/><circle cx="9" cy="15" r=".9" fill="currentColor"/></svg></button>
+          <button id="tbLayers" title="What she's wearing" aria-label="What she's wearing"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
+          <button id="tbUndo" title="Undo" aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+          <button id="tbSave" title="Save to album" aria-label="Save to album"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></button>
+        </div>
       </div>
-      <div class="recolor" id="recolor"></div>
+
+      <aside class="sidebar" aria-label="Suite menu">
+        <button class="side-btn" data-side="decor"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>My Suite</button>
+        <button class="side-btn" data-side="wardrobe"><svg viewBox="0 0 24 24"><path d="M10 6a2 2 0 1 1 3 1.7c-.8.5-1 1-1 2.3"/><path d="M12 10 2.5 17.5h19z"/></svg>Wardrobe</button>
+        <button class="side-btn" data-side="parlor"><svg viewBox="0 0 24 24"><path d="M9 21h6V12H9z"/><path d="M10 12V7l4-3v8"/></svg>Beauty Parlor</button>
+        <button class="side-btn" data-side="camera"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Camera</button>
+        <button class="side-btn" data-side="full"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Full screen</button>
+        <button class="save-btn" id="btnSave">Save</button>
+      </aside>
     </div>
   </section>
 
-  <!-- ============ PANEL ============ -->
-  <section class="card panel">
+  <!-- ============ BEAUTY PARLOR ============ -->
+  <section class="view" data-viewpane="parlor">
+    <div class="parlor">
+      <div class="card mirror">
+        <div class="mirror-frame" id="parlorDoll"></div>
+        <div class="mirror-tabs"><button data-zoom="face" class="on">Face</button><button data-zoom="full">Full look</button></div>
+      </div>
+        <section class="card panel">
     <nav class="tabs" role="tablist">
       <button data-tab="avatar" class="on">Avatar</button>
       <button data-tab="makeup">Makeup Studio</button>
@@ -472,26 +750,45 @@
     </div>
 
   </section>
+
+    </div>
+  </section>
+
+  <!-- ============ ALBUM ============ -->
+  <section class="view" data-viewpane="album">
+    <div class="card album-card">
+      <div class="lb-head"><h2>My Album</h2><span id="lbCount"></span></div>
+      <div class="lb-grid" id="lookbook"></div>
+    </div>
+  </section>
 </main>
 
-<!-- ============ LOOKBOOK ============ -->
-<section class="lookbook">
-  <div class="card">
-    <div class="lb-head"><h2>Lookbook</h2><span id="lbCount"></span></div>
-    <div class="lb-grid" id="lookbook"></div>
+<!-- ============ STARLET PICKER ============ -->
+<div class="picker" id="picker" hidden>
+  <div class="picker-inner">
+    <div class="picker-logo"><span>★</span> Starlife</div>
+    <div class="picker-room" id="pickerRoom"></div>
+    <h2 class="picker-title">Pick your starlet!</h2>
+    <div class="carousel">
+      <button class="arrow" data-car="-1" aria-label="Previous starlet">‹</button>
+      <div class="car-track" id="carTrack"></div>
+      <button class="arrow" data-car="1" aria-label="Next starlet">›</button>
+    </div>
+    <p class="picker-note" id="pickerNote"></p>
+    <button class="continue" id="pickerGo">Continue</button>
   </div>
-</section>
+</div>
 
 <!-- ============ SAVE MODAL ============ -->
 <div class="modal" id="saveModal" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
-  <div class="box">
+  <div class="box wide">
     <div class="prev" id="savePreview"></div>
     <div>
-      <h3 id="saveTitle">Save this look</h3>
-      <p>Name your creation. It goes into your Lookbook, and you can download it as a PNG.</p>
+      <h3 id="saveTitle">Snap this look</h3>
+      <p>Name it and it goes into My Album. You can also download it as a PNG.</p>
       <input type="text" id="lookName" maxlength="40" placeholder="e.g. Sunday Brunch in Paris">
       <div class="acts">
-        <button class="btn primary" id="confirmSave">✦ Save to Lookbook</button>
+        <button class="btn primary" id="confirmSave">✦ Save to album</button>
         <button class="btn" id="downloadNow">⤓ Download PNG</button>
         <button class="btn ghost" id="cancelSave">Cancel</button>
       </div>
@@ -502,8 +799,8 @@
 
 <script>
 /* =====================================================================
-   Starlife Atelier: a single-file dress-up & makeup game.
-   Everything (doll, clothes, makeup) is drawn as layered SVG from state.
+   Starlife: a single-file dress-up, makeup and room-decorating game.
+   Everything (doll, clothes, makeup, furniture) is drawn as layered SVG from state.
    ===================================================================== */
 
 // ---------- colour utilities ----------
@@ -1134,77 +1431,6 @@ const ITEM = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const SLOT_ORDER = ['shoes', 'bottom', 'top', 'dress', 'outer', 'bag', 'necklace', 'earrings', 'glasses', 'hat'];
 const VB = { top: '95 175 210 290', bottom: '95 380 210 420', dress: '80 175 240 500', outer: '90 220 220 400', shoes: '140 616 120 196' };
 
-// ---------- backgrounds ----------
-const BGS = {
-  blush: { name: 'Blush Studio', sw: '#f4cfdb' },
-  boutique: { name: 'Boutique', sw: '#eadbc6' },
-  runway: { name: 'Runway', sw: '#2a2229' },
-  garden: { name: 'Garden Party', sw: '#cfe8d7' },
-  night: { name: 'Night Out', sw: '#2f2b56' },
-};
-function background(k) {
-  const grad = (a, b) => `<defs><linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="820" fill="url(#bgG)"/>`;
-  const r = rng(11);
-  switch (k) {
-    case 'boutique':
-      return grad('#fbf5ec', '#efe2cf') +
-        `<path d="M86,640 L86,210 A114,114 0 0 1 314,210 L314,640 Z" fill="#fffaf2" stroke="#e3d0b6" stroke-width="3"/>` +
-        `<path d="M200,96 L200,640 M86,330 L314,330" stroke="#efe2cf" stroke-width="2"/>` +
-        `<rect x="0" y="640" width="400" height="180" fill="#e7d6bf"/><path d="M0,640 L400,640" stroke="#d8c3a5" stroke-width="2"/>` +
-        `<path d="M20,90 L20,600 M380,90 L380,600" stroke="#d8c3a5" stroke-width="3"/><circle cx="40" cy="610" r="18" fill="#a9c7a3"/><rect x="30" y="612" width="20" height="28" fill="#cfa98a"/>`;
-    case 'runway':
-      return grad('#1b161b', '#3a2c37') +
-        `<path d="M150,0 L250,0 L360,820 L40,820 Z" fill="#fff" opacity=".06"/>` +
-        `<path d="M140,600 L260,600 L340,820 L60,820 Z" fill="#4a3a46"/><path d="M200,600 L200,820" stroke="#fff" stroke-width="1" opacity=".15"/>` +
-        Array.from({ length: 22 }, (_, i) => `<circle cx="${i % 2 ? 20 + r() * 40 : 340 + r() * 40}" cy="${520 + r() * 280}" r="${4 + r() * 3}" fill="#fff" opacity="${0.1 + r() * 0.15}"/>`).join('') +
-        `<ellipse cx="200" cy="790" rx="120" ry="30" fill="#fff" opacity=".08"/>`;
-    case 'garden':
-      return grad('#eef8f1', '#cfe8d7') +
-        `<circle cx="330" cy="90" r="40" fill="#fff6d9" opacity=".9"/>` +
-        Array.from({ length: 16 }, (_, i) => { const x = i % 2 ? r() * 70 : 330 + r() * 70, y = 120 + r() * 600; return `<ellipse cx="${x}" cy="${y}" rx="${14 + r() * 12}" ry="6" transform="rotate(${r() * 180} ${x} ${y})" fill="${['#9ccaa8', '#7fb592', '#b6dcc0'][i % 3]}" opacity=".8"/>`; }).join('') +
-        Array.from({ length: 10 }, () => `<circle cx="${r() * 400}" cy="${700 + r() * 100}" r="4" fill="${['#f7b6c8', '#fff', '#f6d36b'][Math.floor(r() * 3)]}"/>`).join('') +
-        `<ellipse cx="200" cy="820" rx="300" ry="70" fill="#b9dcc4"/>`;
-    case 'night':
-      return grad('#1d2142', '#3f2f62') +
-        Array.from({ length: 50 }, () => `<circle cx="${(r() * 400).toFixed(0)}" cy="${(r() * 520).toFixed(0)}" r="${(0.5 + r() * 1.3).toFixed(1)}" fill="#fff" opacity="${(0.4 + r() * 0.6).toFixed(2)}"/>`).join('') +
-        `<circle cx="320" cy="90" r="30" fill="#fdf3d0"/><circle cx="334" cy="80" r="28" fill="#232548"/>` +
-        Array.from({ length: 12 }, (_, i) => { const h = 80 + r() * 140; return `<rect x="${i * 34}" y="${700 - h}" width="30" height="${h + 120}" fill="#231d3d"/>` + `<rect x="${i * 34 + 8}" y="${720 - h}" width="4" height="5" fill="#f6d36b" opacity=".7"/>`; }).join('');
-    default:
-      return grad('#fdeef2', '#f3cbd8') +
-        `<circle cx="70" cy="120" r="60" fill="#fff" opacity=".35"/><circle cx="340" cy="260" r="90" fill="#fff" opacity=".25"/><circle cx="330" cy="70" r="24" fill="#fff" opacity=".4"/>` +
-        `<ellipse cx="200" cy="810" rx="260" ry="60" fill="#eab6c7" opacity=".55"/>`;
-  }
-}
-
-// ---------- full doll render ----------
-function renderDoll(s, { bg = true, standalone = false, width, height } = {}) {
-  const o = s.outfit;
-  const I = k => (o[k] && ITEM[o[k]]) || null;
-  const col = id => s.colors[id] || ITEM[id].color;
-  const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? `<g data-slot="${k}">${it[p](col(it.id), s)}</g>` : ''; };
-  let out = `<defs>${baseDefs()}${skinDefs(s.skin)}${faceDefs(s)}</defs>`;
-  if (bg) out += background(s.bg);
-  out += `<ellipse cx="200" cy="802" rx="70" ry="8" fill="#000" opacity=".2" filter="url(#blur6)"/>`;
-  out += `<g filter="url(#hairTex)">${hairBack(s)}</g>`;
-  out += bodyBase(s.skin);
-  out += underwear(s.underwear);
-  if (I('shoes') && !I('shoes').over) out += part('shoes');
-  if (s.tucked) out += part('top') + part('bottom'); else out += part('bottom') + part('top');
-  out += part('dress');
-  if (I('shoes') && I('shoes').over) out += part('shoes');
-  out += arms(s.skin);
-  out += part('top', 'sleeves') + part('dress', 'sleeves');
-  out += part('outer') + part('outer', 'sleeves');
-  out += part('bag');
-  out += hands(s.skin);
-  out += part('necklace');
-  out += head(s);
-  out += `<g filter="url(#hairTex)">${hairFront(s)}</g>`;
-  out += part('earrings') + part('glasses') + part('hat');
-  const size = standalone ? ` width="${width || 400}" height="${height || 820}"` : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 820"${size} preserveAspectRatio="xMidYMid meet">${out}</svg>`;
-}
-
 // wardrobe thumbnail: the garment on its own, on a hanger where it hangs
 const HANGER = `<path d="M200,222 L200,212 q0,-9 8,-9 q7,0 7,7" fill="none" stroke="#b9a7b0" stroke-width="2.6" stroke-linecap="round"/><path d="M146,250 L200,222 L254,250" fill="none" stroke="#b9a7b0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
 function itemThumb(it, color) {
@@ -1231,7 +1457,7 @@ const starletName = () => (STARLETS.find(x => x.id === state.starlet) || {}).nam
 const DEFAULT = {
   starlet: 'aria', underwear: '#f4c7d3',
   skin: '#f6cfb3', eyeShape: 'almond', eyeColor: '#4a78b5', brow: 'natural', browColor: 'match',
-  hair: 'long', hairColor: '#e3c07a', bg: 'blush', tucked: true,
+  hair: 'long', hairColor: '#e3c07a', tucked: true,
   makeup: {
     shadow: { style: 'soft', color: '#c9a2a8', opacity: 0.4 },
     liner: { style: 'tight', color: '#2a1c1c' },
@@ -1262,12 +1488,14 @@ function sanitize(s) {
   if (!HAIR[s.hair]) s.hair = DEFAULT.hair;
   if (!EYE_SHAPES[s.eyeShape]) s.eyeShape = DEFAULT.eyeShape;
   if (!BROWS[s.brow]) s.brow = DEFAULT.brow;
-  if (!BGS[s.bg]) s.bg = DEFAULT.bg;
+  if (!s.room || !Array.isArray(s.room.items)) s.room = clone(DEFAULT.room);
+  s.room.items = s.room.items.filter(i => FURN[i.k]);
+  if (!FLOORS[s.room.floor]) s.room.floor = 'oak';
   if (!/^#[0-9a-f]{6}$/i.test(s.underwear || '')) s.underwear = DEFAULT.underwear;
   for (const k of Object.keys(s.outfit)) if (s.outfit[k] && !ITEM[s.outfit[k]]) s.outfit[k] = null;
   return s;
 }
-let state = sanitize(merge(clone(DEFAULT), lsGet(LS_CUR, null)));
+let state = clone(DEFAULT); // replaced with the saved state once the suite defaults exist (see below)
 let lookbook = lsGet(LS_BOOK, []);
 
 const getP = p => p.split('.').reduce((o, k) => o?.[k], state);
@@ -1316,9 +1544,209 @@ function slider(id, path, min = 0, max = 1, step = 0.01) {
   $('#' + id).innerHTML = `<input type="range" min="${min}" max="${max}" step="${step}" data-range="${path}" aria-label="${path}"><output></output>`;
 }
 
-function buildUI() {
-  $('#bgRow').innerHTML = Object.entries(BGS).map(([k, b]) => `<button class="bg-dot" style="--c:${b.sw}" data-bind="bg" data-val="${k}" title="${b.name}" aria-label="${b.name}"></button>`).join('');
+// ---------- id scoping: every rendered SVG gets its own id namespace ----------
+function scope(svg, p) {
+  const ids = new Set([...svg.matchAll(/id="([^"]+)"/g)].map(m => m[1]));
+  return svg.replace(/(id="|url\(#)([^")]+)/g, (m, a, b) => ids.has(b) ? a + p + b : m);
+}
 
+// ---------- full doll render ----------
+function renderDoll(s, { standalone = false, width, height, vb = '0 0 400 820', inner = false } = {}) {
+  const o = s.outfit;
+  const I = k => (o[k] && ITEM[o[k]]) || null;
+  const col = id => s.colors[id] || ITEM[id].color;
+  const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? `<g data-slot="${k}">${it[p](col(it.id), s)}</g>` : ''; };
+  let out = `<defs>${baseDefs()}${skinDefs(s.skin)}${faceDefs(s)}</defs>`;
+  out += `<ellipse cx="200" cy="802" rx="78" ry="9" fill="#000" opacity=".22" filter="url(#blur6)"/>`;
+  out += `<g filter="url(#hairTex)">${hairBack(s)}</g>`;
+  out += bodyBase(s.skin);
+  out += underwear(s.underwear);
+  if (I('shoes') && !I('shoes').over) out += part('shoes');
+  if (s.tucked) out += part('top') + part('bottom'); else out += part('bottom') + part('top');
+  out += part('dress');
+  if (I('shoes') && I('shoes').over) out += part('shoes');
+  out += arms(s.skin);
+  out += part('top', 'sleeves') + part('dress', 'sleeves');
+  out += part('outer') + part('outer', 'sleeves');
+  out += part('bag');
+  out += hands(s.skin);
+  out += part('necklace');
+  out += head(s);
+  out += `<g filter="url(#hairTex)">${hairFront(s)}</g>`;
+  out += part('earrings') + part('glasses') + part('hat');
+  if (inner) return out;
+  const size = standalone ? ` width="${width || 400}" height="${height || 820}"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${size} preserveAspectRatio="xMidYMax meet">${out}</svg>`;
+}
+
+// =====================================================================
+// The suite: a room with furniture the starlet stands in
+// =====================================================================
+const ROOM_W = 1000, ROOM_H = 620, WALL_Y = 430, FLOOR_Y = 444, DOLL_H = 520;
+const WALLS = ['#f8d3df', '#86aba1', '#cbbcef', '#f3ead9', '#a9c6ef', '#f6c9a8', '#2e2a4f', '#ffffff'];
+const FLOORS = { oak: { l: 'Light oak', c: ['#efe6da', '#ddcdb9'] }, walnut: { l: 'Walnut', c: ['#a8774f', '#7f5639'] }, white: { l: 'Whitewash', c: ['#f8f7f4', '#e6e1da'] }, rose: { l: 'Rose tile', c: ['#f2d6dc', '#e2b8c2'] } };
+const depth = y => 0.74 + 0.26 * clamp((y - FLOOR_Y) / (ROOM_H - FLOOR_Y), 0, 1);
+
+const wood = '#7a5c45', cream = '#f3ede2', piping = '#c48a99';
+const FURN = {
+  window: { name: 'City window', layer: 'wall', draw: () => {
+    const id = nid(), r = rng(5);
+    let city = '';
+    for (let x = -82; x < 82; x += 14 + r() * 10) {
+      const h = 50 + r() * 110, w = 14 + r() * 16, c = ['#9aa3b8', '#b8b2c6', '#c9b7a8', '#8e9bb0', '#d6cfc4'][Math.floor(r() * 5)];
+      city += `<rect x="${x.toFixed(0)}" y="${(70 - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${c}"/>`;
+      for (let wy = 74 - h; wy < 60; wy += 9) city += `<rect x="${(x + 3).toFixed(0)}" y="${wy.toFixed(0)}" width="${(w - 6).toFixed(0)}" height="3" fill="#fff" opacity=".45"/>`;
+    }
+    let trees = '';
+    for (let x = -90; x < 95; x += 12) trees += `<circle cx="${x}" cy="${78 + r() * 14}" r="${12 + r() * 9}" fill="${['#4f7a45', '#3f6b3a', '#5f8f4f'][Math.floor(r() * 3)]}"/>`;
+    return `<clipPath id="${id}"><rect x="-82" y="-114" width="164" height="228"/></clipPath>
+      <rect x="-104" y="-128" width="208" height="264" rx="3" fill="#000" opacity=".08" filter="url(#fShadow)"/>
+      <rect x="-96" y="-128" width="192" height="256" rx="3" fill="#fbfbfa" stroke="#e2dfda" stroke-width="2"/>
+      <g clip-path="url(#${id})"><rect x="-82" y="-114" width="164" height="228" fill="url(#skyG)"/>${city}${trees}
+        <path d="M-82,-60 L-20,-114 L10,-114 L-82,-20 Z" fill="#fff" opacity=".18"/></g>
+      <rect x="-82" y="-10" width="164" height="10" fill="#fbfbfa"/><rect x="-82" y="-114" width="164" height="228" fill="none" stroke="#d8d4ce" stroke-width="3"/>
+      <rect x="-108" y="128" width="216" height="10" rx="2" fill="#fff" stroke="#e2dfda"/>`;
+  } },
+  art: { name: 'Abstract print', layer: 'wall', draw: () =>
+    `<rect x="-70" y="-88" width="140" height="176" fill="#000" opacity=".08" filter="url(#fShadow)"/>
+     <rect x="-66" y="-86" width="132" height="172" fill="#ece3cf" stroke="#cdbf9e" stroke-width="3"/>
+     <rect x="-52" y="-72" width="104" height="144" fill="#fffdf8"/>
+     <circle cx="-12" cy="-22" r="30" fill="#f2b5a7"/><circle cx="18" cy="12" r="24" fill="#a9c6ef" opacity=".85"/>
+     <path d="M-40,52 Q-10,20 40,46" fill="none" stroke="#2b2138" stroke-width="3"/><rect x="-30" y="30" width="16" height="16" fill="#f6c453"/>` },
+  map: { name: 'Vintage map', layer: 'wall', draw: () =>
+    `<rect x="-96" y="-116" width="192" height="232" fill="#000" opacity=".08" filter="url(#fShadow)"/>
+     <rect x="-92" y="-114" width="184" height="228" fill="#e9e1cc" stroke="#cdbf9e" stroke-width="5"/>
+     <rect x="-74" y="-96" width="148" height="192" fill="#a9d3df"/>
+     <path d="M-60,-70 C-30,-90 10,-60 0,-30 C-10,0 30,10 20,50 C10,80 -40,70 -50,40 C-60,10 -80,-40 -60,-70 Z" fill="#efe7cf"/>
+     <path d="M30,-80 C50,-70 60,-40 44,-30 C30,-24 20,-50 30,-80 Z" fill="#efe7cf"/>
+     <path d="M-50,-40 L10,20 M-30,30 L20,-20" stroke="#c9a179" stroke-width="1" stroke-dasharray="3 3"/>` },
+  mirror: { name: 'Gold mirror', layer: 'wall', draw: () =>
+    `<ellipse cx="0" cy="0" rx="62" ry="92" fill="#000" opacity=".08" filter="url(#fShadow)"/>
+     <ellipse cx="0" cy="0" rx="58" ry="88" fill="#e2c46a" stroke="#b8963a" stroke-width="2"/>
+     <ellipse cx="0" cy="0" rx="48" ry="78" fill="#dfe9ee"/><path d="M-30,-40 L10,-70 L22,-60 L-24,-20 Z" fill="#fff" opacity=".55"/>` },
+  sofa: { name: 'Cream sofa', layer: 'floor', w: 380, draw: () => {
+    const cush = [-1, 0, 1].map(i => `<rect x="${i * 112 - 54}" y="-158" width="108" height="86" rx="20" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>`).join('');
+    const seat = [-1, 0, 1].map(i => `<rect x="${i * 112 - 54}" y="-86" width="108" height="30" rx="10" fill="#f7f2e8" stroke="${piping}" stroke-width="1.6"/>`).join('');
+    return `<rect x="-170" y="-12" width="10" height="12" fill="${wood}"/><rect x="160" y="-12" width="10" height="12" fill="${wood}"/>
+      <rect x="-188" y="-72" width="376" height="62" rx="12" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>${cush}${seat}
+      <rect x="-206" y="-122" width="48" height="112" rx="22" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>
+      <rect x="158" y="-122" width="48" height="112" rx="22" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>
+      <path d="M-150,-120 Q-110,-110 -80,-126 M40,-130 Q70,-118 100,-128" stroke="#e4dccd" stroke-width="2" fill="none"/>`;
+  } },
+  armchair: { name: 'Armchair', layer: 'floor', w: 170, draw: () =>
+    `<rect x="-70" y="-12" width="8" height="12" fill="${wood}"/><rect x="62" y="-12" width="8" height="12" fill="${wood}"/>
+     <rect x="-62" y="-150" width="124" height="90" rx="22" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>
+     <rect x="-80" y="-74" width="160" height="64" rx="12" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>
+     <rect x="-58" y="-86" width="116" height="28" rx="10" fill="#f7f2e8" stroke="${piping}" stroke-width="1.6"/>
+     <rect x="-92" y="-116" width="40" height="106" rx="18" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>
+     <rect x="52" y="-116" width="40" height="106" rx="18" fill="${cream}" stroke="${piping}" stroke-width="1.6"/>` },
+  rocker: { name: 'Pink rocker', layer: 'floor', w: 230, draw: () =>
+    `<path d="M-120,-4 Q0,16 118,-10" fill="none" stroke="${wood}" stroke-width="7" stroke-linecap="round"/>
+     <path d="M-76,-2 L-62,-74 M72,-4 L58,-70 M-40,2 L-30,-74 M40,0 L30,-70" stroke="${wood}" stroke-width="6" stroke-linecap="round"/>
+     <path d="M-92,-246 L-58,-254 L-28,-96 L-66,-86 Z" fill="#e2589a" stroke="#b83c78" stroke-width="1.5"/>
+     <path d="M-74,-74 L84,-60 L88,-88 L-60,-104 Z" fill="#ec6aa9" stroke="#b83c78" stroke-width="1.5"/>
+     <path d="M-80,-128 L64,-120 M64,-120 L60,-86 M-46,-126 L-40,-96" stroke="${wood}" stroke-width="7" stroke-linecap="round"/>` },
+  sidetable: { name: 'Lamp table', layer: 'floor', w: 150, draw: () =>
+    `<ellipse cx="0" cy="-2" rx="44" ry="8" fill="#e9e6e2" stroke="#cfcac4"/>
+     <path d="M-10,-6 C-14,-40 -24,-70 -8,-100 L8,-100 C24,-70 14,-40 10,-6 Z" fill="#f4f2ef" stroke="#cfcac4"/>
+     <ellipse cx="0" cy="-104" rx="70" ry="13" fill="#f7f5f2" stroke="#cfcac4"/><rect x="-70" y="-104" width="140" height="8" fill="#eeeae5"/>
+     <path d="M-14,-112 Q0,-150 14,-112 Z" fill="#fff" stroke="#d9d4ce"/><rect x="-2" y="-176" width="4" height="40" fill="#c9a24a"/>
+     <path d="M-44,-170 L44,-170 L26,-236 L-26,-236 Z" fill="#f06aa0" stroke="#c94f84"/>
+     <ellipse cx="0" cy="-170" rx="44" ry="6" fill="#ffd6e6" opacity=".9"/>` },
+  plant: { name: 'Monstera', layer: 'floor', w: 170, draw: () => {
+    const r = rng(9); let leaves = '';
+    for (let i = 0; i < 11; i++) {
+      const a = -170 + i * 16 + r() * 8, rad = a * Math.PI / 180, d = 60 + r() * 50;
+      const x = Math.cos(rad) * d, y = -150 + Math.sin(rad) * d * 0.9;
+      leaves += `<path d="M0,-140 Q${(x * 0.5).toFixed(0)},${(-150 + (y + 150) * 0.3).toFixed(0)} ${x.toFixed(0)},${y.toFixed(0)}" stroke="#2c5e33" stroke-width="2" fill="none"/>` +
+        `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(26 + r() * 10).toFixed(0)}" ry="${(18 + r() * 6).toFixed(0)}" transform="rotate(${(a + 90).toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})" fill="${i % 2 ? '#2f7a3e' : '#3d8f4a'}" stroke="#235a2c" stroke-width="1"/>` +
+        `<path d="M${x.toFixed(0)},${y.toFixed(0)} l${(Math.cos(rad) * 18).toFixed(0)},${(Math.sin(rad) * 14).toFixed(0)}" stroke="#235a2c" stroke-width="1.2"/>`;
+    }
+    return `<path d="M-30,0 L-20,-100 M30,0 L20,-100 M0,0 L0,-100" stroke="#222" stroke-width="3"/><path d="M-28,-60 L28,-60" stroke="#222" stroke-width="2"/>
+      <path d="M-44,-134 Q-44,-96 0,-94 Q44,-96 44,-134 Z" fill="#fbfbfa" stroke="#d9d6d1"/>${leaves}`;
+  } },
+  coffeetable: { name: 'Glass table', layer: 'floor', w: 320, draw: () =>
+    `<rect x="-150" y="-92" width="6" height="92" fill="#b9c2c6"/><rect x="144" y="-92" width="6" height="92" fill="#b9c2c6"/>
+     <rect x="-122" y="-110" width="4" height="70" fill="#c9d1d4" opacity=".7"/><rect x="118" y="-110" width="4" height="70" fill="#c9d1d4" opacity=".7"/>
+     <path d="M-130,-112 L130,-112 L160,-92 L-160,-92 Z" fill="#cfe6ea" fill-opacity=".45" stroke="#9fbfc6" stroke-width="1.5"/>
+     <rect x="-160" y="-92" width="320" height="6" fill="#bcd9de" opacity=".8"/>` },
+  rug: { name: 'Pink rug', layer: 'rug', w: 440, draw: () => {
+    const id = nid();
+    return `<pattern id="${id}" width="40" height="22" patternUnits="userSpaceOnUse"><rect width="40" height="22" fill="#e45f95"/>
+        <path d="M20,3 C28,6 28,16 20,19 C12,16 12,6 20,3 Z" fill="#c9437a"/><circle cx="0" cy="11" r="4" fill="#f08ab3"/><circle cx="40" cy="11" r="4" fill="#f08ab3"/></pattern>
+      <path d="M-180,-44 L180,-44 L230,28 L-230,28 Z" fill="url(#${id})" stroke="#c9437a" stroke-width="2"/>`;
+  } },
+  floorlamp: { name: 'Arc lamp', layer: 'floor', w: 120, draw: () =>
+    `<ellipse cx="0" cy="-3" rx="26" ry="6" fill="#2b2b2b"/><path d="M0,-6 L0,-250 Q0,-300 60,-300" fill="none" stroke="#2b2b2b" stroke-width="4"/>
+     <path d="M40,-300 Q60,-330 84,-300 Z" fill="#f6c453" stroke="#c9a24a"/><ellipse cx="62" cy="-298" rx="20" ry="4" fill="#fff6c9"/>` },
+  gift: { name: 'Gift box', layer: 'floor', w: 110, draw: () =>
+    `<rect x="-46" y="-70" width="92" height="70" rx="3" fill="#1f1b22"/><rect x="-50" y="-82" width="100" height="16" rx="3" fill="#2d2830"/>
+     <rect x="-6" y="-82" width="12" height="82" fill="#a37ef5"/><path d="M0,-84 C-30,-120 -44,-84 0,-84 C30,-120 44,-84 0,-84 Z" fill="#b896f8" stroke="#8a62e8"/>
+     <rect x="16" y="-48" width="18" height="22" rx="2" fill="#e8c96a" transform="rotate(18 25 -37)"/>` },
+  boxes: { name: 'Moving box', layer: 'floor', w: 200, draw: () =>
+    `<path d="M-90,-120 L60,-120 L96,-96 L-54,-96 Z" fill="#c8915e"/><rect x="-90" y="-120" width="150" height="120" fill="#c48a55"/>
+     <path d="M60,-120 L96,-96 L96,18 L60,0 Z" fill="#a8723f"/><rect x="-28" y="-120" width="26" height="40" fill="#d9b183" opacity=".9"/>
+     <text x="-15" y="-46" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-weight="700" fill="#8f5f33" opacity=".75">MOVING CO.</text>
+     <circle cx="38" cy="-90" r="8" fill="#5ee0c4"/>` },
+};
+
+function roomSVG(s, { vb = `0 0 ${ROOM_W} ${ROOM_H}`, standalone = false, scale = 1, aspect = 'xMidYMax slice' } = {}) {
+  const r = s.room, wall = r.wall, fl = (FLOORS[r.floor] || FLOORS.oak).c;
+  let o = `<defs>${baseDefs()}
+    <linearGradient id="wallG" x1="0" x2="1"><stop offset="0" stop-color="${shade(wall, -0.14)}"/><stop offset=".28" stop-color="${wall}"/><stop offset=".78" stop-color="${wall}"/><stop offset="1" stop-color="${shade(wall, -0.08)}"/></linearGradient>
+    <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${fl[1]}"/><stop offset="1" stop-color="${fl[0]}"/></linearGradient>
+    <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fc6ef"/><stop offset="1" stop-color="#e8f4fb"/></linearGradient>
+    <filter id="fShadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+    <clipPath id="floorClip"><path d="M0,${FLOOR_Y} L950,${FLOOR_Y} L1000,484 L1000,${ROOM_H} L0,${ROOM_H} Z"/></clipPath></defs>`;
+  o += `<rect width="${ROOM_W}" height="${WALL_Y}" fill="url(#wallG)"/><rect width="${ROOM_W}" height="40" fill="#000" opacity=".05" filter="url(#blur6)"/>`;
+  o += `<path d="M950,0 L1000,0 L1000,470 L950,${WALL_Y} Z" fill="${shade(wall, -0.2)}"/>`;
+  const place = (it, inner) => `<g data-furn="${it.id}" transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) scale(${(FURN[it.k].layer === 'wall' ? 1 : depth(it.y)).toFixed(3)})">${inner}</g>`;
+  for (const it of r.items.filter(i => FURN[i.k]?.layer === 'wall')) o += place(it, FURN[it.k].draw());
+  o += `<path d="M0,${WALL_Y} L950,${WALL_Y} L950,${FLOOR_Y} L0,${FLOOR_Y} Z" fill="#fbfbfa"/><path d="M950,${WALL_Y} L1000,470 L1000,484 L950,${FLOOR_Y} Z" fill="#ecebe8"/>`;
+  // wood floor with planks narrowing into the distance
+  let planks = '';
+  const rr = rng(21);
+  for (let k = 1; k <= 12; k++) {
+    const y = FLOOR_Y + (ROOM_H - FLOOR_Y) * Math.pow(k / 12, 1.45), prev = FLOOR_Y + (ROOM_H - FLOOR_Y) * Math.pow((k - 1) / 12, 1.45);
+    planks += `<path d="M0,${y.toFixed(1)} L1000,${y.toFixed(1)}" stroke="#000" stroke-opacity=".09" stroke-width="1"/>`;
+    for (let x = rr() * 200; x < 1000; x += 160 + rr() * 140) planks += `<path d="M${x.toFixed(0)},${prev.toFixed(1)} L${x.toFixed(0)},${y.toFixed(1)}" stroke="#000" stroke-opacity=".08"/>`;
+    planks += `<path d="M${(rr() * 600).toFixed(0)},${((prev + y) / 2).toFixed(1)} l${(120 + rr() * 200).toFixed(0)},0" stroke="#fff" stroke-opacity=".25" stroke-width="1.5"/>`;
+  }
+  o += `<path d="M0,${FLOOR_Y} L950,${FLOOR_Y} L1000,484 L1000,${ROOM_H} L0,${ROOM_H} Z" fill="url(#floorG)"/><g clip-path="url(#floorClip)">${planks}</g>`;
+  for (const it of r.items.filter(i => FURN[i.k]?.layer === 'rug')) o += place(it, FURN[it.k].draw());
+  // floor furniture and the doll, back to front so nearer things overlap farther ones
+  const floor = r.items.filter(i => FURN[i.k]?.layer === 'floor').map(i => ({ y: i.y, svg: place(i, `<ellipse cx="0" cy="0" rx="${(FURN[i.k].w || 150) * 0.46}" ry="10" fill="#000" opacity=".13" filter="url(#fShadow)"/>` + FURN[i.k].draw()) }));
+  const d = r.doll, sc = depth(d.y), dw = DOLL_H * 400 / 820;
+  floor.push({ y: d.y, svg: `<g data-doll="1" transform="translate(${d.x.toFixed(1)},${d.y.toFixed(1)}) scale(${sc.toFixed(3)})"><svg x="${(-dw / 2).toFixed(1)}" y="${(-DOLL_H * 802 / 820).toFixed(1)}" width="${dw.toFixed(1)}" height="${DOLL_H}" viewBox="0 0 400 820" overflow="visible">${renderDoll(s, { inner: true })}</svg></g>` });
+  floor.sort((a, b) => a.y - b.y).forEach(f => { o += f.svg; });
+  const size = standalone ? ` width="${ROOM_W * scale}" height="${ROOM_H * scale}"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="suite-room" viewBox="${vb}"${size} preserveAspectRatio="${aspect}">${o}</svg>`;
+}
+const furnThumb = k => {
+  const f = FURN[k];
+  const vb = f.layer === 'wall' ? '-120 -140 240 290' : f.layer === 'rug' ? '-240 -60 480 100' : `${-(f.w || 200) / 2 - 20} -320 ${(f.w || 200) + 40} 330`;
+  return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMax meet"><defs><filter id="fShadow"><feGaussianBlur stdDeviation="8"/></filter><linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fc6ef"/><stop offset="1" stop-color="#e8f4fb"/></linearGradient></defs>${f.draw()}</svg>`;
+};
+
+// ---------- default suite ----------
+DEFAULT.room = {
+  wall: '#f8d3df', floor: 'oak', doll: { x: 540, y: 604 },
+  items: [
+    { id: 'w1', k: 'window', x: 330, y: 205 }, { id: 'w2', k: 'map', x: 780, y: 190 },
+    { id: 'f1', k: 'rug', x: 560, y: 572 }, { id: 'f2', k: 'rocker', x: 175, y: 598 },
+    { id: 'f3', k: 'sidetable', x: 360, y: 588 }, { id: 'f4', k: 'plant', x: 850, y: 590 },
+  ],
+};
+delete DEFAULT.bg;
+state = sanitize(merge(clone(DEFAULT), lsGet(LS_CUR, null)));
+
+// =====================================================================
+// UI
+// =====================================================================
+let view = 'suite', activeTab = 'avatar', activeCat = 'top', hairSig = '', drawer = null, decorMode = false, zoom = 'face';
+const HOST = { name: 'Stella' };
+
+function buildUI() {
   swatches('skinRow', 'skin', PAL.skin);
   chips('eyeShapeRow', 'eyeShape', Object.entries(EYE_SHAPES).map(([v, e]) => ({ v, l: e.label })));
   swatches('eyeColorRow', 'eyeColor', PAL.eyes);
@@ -1326,7 +1754,6 @@ function buildUI() {
   swatches('browColorRow', 'browColor', ['#1c1412', '#3b2416', '#6b3a1f', '#a77b4f', '#d8c3a0'], { match: true });
   swatches('hairColorRow', 'hairColor', PAL.hair);
   swatches('underwearRow', 'underwear', ['#f4c7d3', '#ffffff', '#1f1b22', '#e9c46a', '#c8b6e2', '#a9c6ef', '#e8c3a0', '#d9475e']);
-
   $('#presetRow').innerHTML = Object.entries(PRESETS).map(([name, p]) =>
     `<button class="preset" data-preset="${name}"><b>${name}</b><span>${[p.shadow.color, p.lips.color, p.blush.color].filter(c => c && c !== 'none').map(c => `<i style="background:${c}"></i>`).join('') || '<i style="background:#f1e5ea"></i>'}</span></button>`).join('');
   chips('shadowStyleRow', 'makeup.shadow.style', [{ v: 'none', l: 'None' }, { v: 'soft', l: 'Soft Wash' }, { v: 'smoky', l: 'Smoky' }, { v: 'winged', l: 'Winged' }, { v: 'halo', l: 'Halo' }]);
@@ -1336,21 +1763,21 @@ function buildUI() {
   swatches('linerColorRow', 'makeup.liner.color', PAL.liner);
   chips('mascaraRow', 'makeup.mascara', [{ v: 'none', l: 'None' }, { v: 'natural', l: 'Natural' }, { v: 'volume', l: 'Volume' }, { v: 'dramatic', l: 'Dramatic' }]);
   chips('contactsRow', 'makeup.contacts', CONTACTS);
-
   swatches('lipColorRow', 'makeup.lips.color', PAL.lips, { none: true });
   chips('lipFinishRow', 'makeup.lips.finish', [{ v: 'matte', l: 'Matte' }, { v: 'gloss', l: 'Gloss' }, { v: 'metallic', l: 'Metallic' }]);
   slider('lipOpacity', 'makeup.lips.opacity');
   swatches('lipLinerRow', 'makeup.lips.liner', PAL.lipLiner, { none: true });
-
   swatches('blushColorRow', 'makeup.blush.color', PAL.blush, { none: true });
   chips('blushPlaceRow', 'makeup.blush.place', [{ v: 'apple', l: 'Apples' }, { v: 'lifted', l: 'Lifted' }, { v: 'draped', l: 'Draped' }]);
   slider('blushOpacity', 'makeup.blush.opacity', 0, 0.8);
   chips('hlColorRow', 'makeup.highlight.color', PAL.hl.map(h => ({ ...h, dot: h.v })));
   slider('hlOpacity', 'makeup.highlight.opacity');
   slider('contourOpacity', 'makeup.contour.opacity', 0, 0.7);
+  // suite decorating
+  swatches('wallRow', 'room.wall', WALLS);
+  chips('floorRow', 'room.floor', Object.entries(FLOORS).map(([v, f]) => ({ v, l: f.l, dot: f.c[1] })));
+  $('#furnGrid').innerHTML = Object.entries(FURN).map(([k, f]) => `<button class="furn-card" data-addfurn="${k}" title="Add ${f.name}">${scope(furnThumb(k), 'F' + k + '-')}<span>${f.name}</span></button>`).join('');
 }
-
-let activeTab = 'avatar', activeCat = 'top', hairSig = '', bgSig = '';
 
 function portrait(s, lips = '#c96b78') {
   const sk = s.skin, e = shade(sk, -0.22);
@@ -1369,34 +1796,15 @@ function renderHairCards() {
   $('#hairGrid').innerHTML = Object.entries(HAIR).map(([k, h]) =>
     `<button class="hair-card" data-bind="hair" data-val="${k}"><svg viewBox="96 -6 208 240">${portrait({ ...state, hair: k }, shade(state.skin, -0.35))}</svg><span>${h.label}</span></button>`).join('');
 }
-function renderStarlets() {
-  $('#starlets').innerHTML = STARLETS.map(x => {
-    const lips = PRESETS[x.preset].lips.color;
-    return `<button class="starlet" data-starlet="${x.id}" title="${x.name}, ${x.role}"><svg viewBox="104 20 192 192">${portrait(x, lips === 'none' ? '#c96b78' : lips)}</svg><span>${x.name.split(' ')[0]}<small>${x.role}</small></span></button>`;
-  }).join('');
-}
-function applyStarlet(id) {
-  const x = STARLETS.find(v => v.id === id); if (!x) return;
-  const keepBook = state.tucked;
-  state = clone(DEFAULT);
-  Object.assign(state, { starlet: x.id, skin: x.skin, hair: x.hair, hairColor: x.hairColor, eyeShape: x.eyeShape, eyeColor: x.eyeColor, brow: x.brow, underwear: x.underwear, bg: x.bg, tucked: keepBook });
-  applyPreset(x.preset, false);
-  hairSig = '';
-  update(true);
-  toast(`Meet ${x.name}. Drag clothes onto her ✦`);
-}
-
 function renderGrid() {
   const list = ITEMS.filter(i => i.cat === activeCat);
   let html = '', grp = null;
-  PFX = 't';
   for (const it of list) {
     if (it.group && it.group !== grp) { grp = it.group; html += `<div class="group-label">${grp}</div>`; }
     const c = state.colors[it.id] || it.color;
-    html += `<button class="item${state.outfit[it.slot] === it.id ? ' on' : ''}" draggable="false" data-item="${it.id}" title="${it.name}">${itemThumb(it, c)}<span>${it.name}</span></button>`;
+    html += `<button class="item${state.outfit[it.slot] === it.id ? ' on' : ''}" draggable="false" data-item="${it.id}" title="${it.name}">${scope(itemThumb(it, c), 'T' + it.id + '-')}<span>${it.name}</span></button>`;
   }
   $('#itemGrid').innerHTML = html;
-  PFX = '';
   renderRecolor();
 }
 
@@ -1448,27 +1856,85 @@ function refreshUI() {
   });
 }
 
-function renderStage(pop = false) {
-  const stage = $('#stage');
-  stage.querySelector('svg')?.remove();
-  stage.insertAdjacentHTML('afterbegin', renderDoll(state, { bg: false }));
-  if (bgSig !== state.bg) { bgSig = state.bg; $('#roomBg').innerHTML = background(state.bg); }
+
+
+function renderSuite(pop = false) {
+  const st = $('#suiteStage');
+  const a = st.clientWidth ? st.clientWidth / Math.max(1, st.clientHeight) : ROOM_W / ROOM_H;
+  let vw = ROOM_W, vx = 0;
+  if (a < ROOM_W / ROOM_H) { vw = ROOM_H * a; vx = clamp(state.room.doll.x - vw / 2, 0, ROOM_W - vw); }
+  st.querySelector('svg.suite-room')?.remove();
+  st.insertAdjacentHTML('afterbegin', scope(roomSVG(state, { vb: `${vx.toFixed(1)} 0 ${vw.toFixed(1)} ${ROOM_H}` }), 'S'));
+  st.classList.toggle('decorating', decorMode);
   const x = STARLETS.find(v => v.id === state.starlet);
-  $('#stageName').innerHTML = x ? `${x.name}<small>${x.role}</small>` : 'My Doll';
-  $$('[data-starlet]').forEach(b => b.classList.toggle('on', b.dataset.starlet === state.starlet));
-  if (pop) { stage.classList.remove('pop'); void stage.offsetWidth; stage.classList.add('pop'); }
+  $('#stageName').textContent = x ? `${x.name} · ${x.role}` : 'My starlet';
+  if (pop) { const d = st.querySelector('[data-doll] > svg'); d?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.02)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'ease-out' }); }
+}
+function renderParlor() {
+  $('#parlorDoll').style.setProperty('--mirror', state.room.wall);
+  $('#parlorDoll').innerHTML = scope(renderDoll(state, { vb: zoom === 'face' ? '106 4 188 250' : '0 0 400 820' }), 'B');
+  $$('[data-zoom]').forEach(b => b.classList.toggle('on', b.dataset.zoom === zoom));
+  renderHairCards();
+}
+function renderDecor() {
+  $('#placedList').innerHTML = state.room.items.map(i => `<span>${FURN[i.k].name}<button data-unplace="${i.id}" aria-label="Remove ${FURN[i.k].name}">×</button></span>`).join('') || '<span class="empty">Empty room</span>';
+}
+
+// ---------- undo history ----------
+let undoStack = [], lastSnap = JSON.stringify(state), lastPush = 0, restoring = false;
+function record() {
+  const cur = JSON.stringify(state);
+  if (cur === lastSnap) return;
+  if (!restoring && Date.now() - lastPush > 600) { undoStack.push(lastSnap); if (undoStack.length > 60) undoStack.shift(); lastPush = Date.now(); }
+  lastSnap = cur;
+}
+function undo() {
+  if (!undoStack.length) return;
+  restoring = true;
+  state = sanitize(merge(clone(DEFAULT), JSON.parse(undoStack.pop())));
+  hairSig = '';
+  update(true);
+  restoring = false;
+  lastPush = 0;
+  toast('Undone');
 }
 
 let saveTimer;
 function update(pop = false) {
+  record();
   UID = 0;
-  renderStage(pop);
-  if (activeTab === 'avatar') renderHairCards();
-  renderGrid();
+  renderSuite(pop);
+  if (view === 'parlor') renderParlor();
+  if (drawer === 'wardrobe') renderGrid();
+  if (drawer === 'decor') renderDecor();
   renderLayers();
   refreshUI();
+  $('#tbUndo').disabled = !undoStack.length;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => lsSet(LS_CUR, state), 250);
+}
+
+function setView(v) {
+  view = v;
+  $$('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  $$('[data-viewpane]').forEach(p => p.classList.toggle('on', p.dataset.viewpane === v));
+  if (v === 'parlor') { hairSig = ''; renderParlor(); }
+  if (v === 'suite') renderSuite();
+  if (v === 'album') renderLookbook();
+  refreshUI();
+}
+function openDrawer(name) {
+  drawer = drawer === name ? null : name;
+  $('#drawerWardrobe').hidden = drawer !== 'wardrobe';
+  $('#drawerDecor').hidden = drawer !== 'decor';
+  decorMode = drawer === 'decor';
+  $('#decorBanner').hidden = !decorMode;
+  $$('[data-side]').forEach(b => b.classList.toggle('on', b.dataset.side === drawer));
+  if (drawer === 'wardrobe') { renderGrid(); $('#guide').hidden = true; }
+  if (drawer === 'decor') { renderDecor(); $('#guide').hidden = true; }
+  $('#layersPop').hidden = true;
+  renderSuite();
+  refreshUI();
 }
 
 // ---------- wardrobe actions ----------
@@ -1495,93 +1961,13 @@ function toast(msg) {
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800);
 }
 
-// ---------- snapshots ----------
-async function snapshot(s, { scale = 2, caption = '', type = 'image/png', quality = 0.9, crop = 1 } = {}) {
-  UID = 0;
-  const svg = renderDoll(s, { standalone: true });
-  const img = new Image();
-  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-  try {
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
-    const W = 400 * scale, Hd = 820 * scale * crop, foot = caption ? 64 * scale : 0;
-    const cv = document.createElement('canvas');
-    cv.width = W; cv.height = Hd + foot;
-    const ctx = cv.getContext('2d');
-    ctx.drawImage(img, 0, 0, W, 820 * scale);
-    if (caption) {
-      ctx.fillStyle = '#fffaf9'; ctx.fillRect(0, Hd, W, foot);
-      ctx.fillStyle = '#241c21'; ctx.textAlign = 'center';
-      ctx.font = `500 ${22 * scale}px "Playfair Display", Georgia, serif`;
-      ctx.fillText(caption, W / 2, Hd + 32 * scale);
-      ctx.fillStyle = '#b85c7a';
-      ctx.font = `500 ${9 * scale}px Inter, sans-serif`;
-      ctx.fillText('S T A R L I F E   A T E L I E R', W / 2, Hd + 50 * scale);
-    }
-    return cv.toDataURL(type, quality);
-  } finally { URL.revokeObjectURL(url); }
-}
-async function download(s, name) {
-  try {
-    if (document.fonts?.ready) await document.fonts.ready;
-    const data = await snapshot(s, { scale: 2, caption: name || 'My Look' });
-    const filename = (name || 'my-look').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
-    // When hosted as a Claude artifact, saving goes through the viewer's downloads capability.
-    const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;
-    if (dl) {
-      const blob = await (await fetch(data)).blob();
-      try { await dl.save({ filename, data: blob }); toast('Snapshot saved ✦'); }
-      catch (err) { if (err?.code !== 'declined') toast('Downloads are not available here'); }
-      return;
-    }
-    const a = document.createElement('a');
-    a.href = data;
-    a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    toast('Snapshot downloaded ✦');
-  } catch (e) { console.error(e); toast('Could not create the image in this browser'); }
-}
-
-// ---------- lookbook ----------
-function renderLookbook() {
-  $('#lbCount').textContent = lookbook.length ? `${lookbook.length} saved look${lookbook.length > 1 ? 's' : ''}` : '';
-  $('#lookbook').innerHTML = lookbook.length ? lookbook.map(l => `
-    <article class="look" data-look="${l.id}">
-      <img src="${l.thumb}" alt="${esc(l.name)}" loading="lazy">
-      <div class="meta"><b title="${esc(l.name)}">${esc(l.name)}</b><small>${new Date(l.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</small>
-        <div class="acts"><button data-act="wear">Wear</button><button data-act="dl">PNG</button><button data-act="del" aria-label="Delete">✕</button></div>
-      </div>
-    </article>`).join('')
-    : `<div class="lb-empty" style="grid-column:1/-1"><b>Your lookbook is empty</b>Style your doll, then hit <em>Save Look</em> to keep it here.</div>`;
-}
-function openSave() {
-  UID = 0;
-  $('#savePreview').innerHTML = renderDoll(state);
-  $('#lookName').value = '';
-  $('#saveModal').classList.add('on');
-  setTimeout(() => $('#lookName').focus(), 50);
-}
-const closeSave = () => $('#saveModal').classList.remove('on');
-async function confirmSave() {
-  const name = $('#lookName').value.trim() || `Look No. ${lookbook.length + 1}`;
-  try {
-    const thumb = await snapshot(state, { scale: 0.6, type: 'image/jpeg', quality: 0.85, crop: 600 / 820 });
-    const look = { id: Date.now().toString(36), name, date: Date.now(), state: clone(state), thumb };
-    lookbook.unshift(look);
-    if (!lsSet(LS_BOOK, lookbook)) toast('Saved for this session (browser storage is full or blocked)');
-    else toast(`“${name}” added to your lookbook ✦`);
-    renderLookbook();
-    closeSave();
-    $('.lookbook').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch (e) { console.error(e); toast('Could not save that look'); }
-}
-
 // ---------- randomize ----------
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function randomize() {
   const byslot = slot => ITEMS.filter(i => i.slot === slot).map(i => i.id);
   state.skin = pick(PAL.skin); state.eyeColor = pick(PAL.eyes); state.eyeShape = pick(Object.keys(EYE_SHAPES));
   state.brow = pick(Object.keys(BROWS)); state.browColor = 'match';
-  state.hair = pick(Object.keys(HAIR)); state.hairColor = pick(PAL.hair); state.bg = pick(Object.keys(BGS));
+  state.hair = pick(Object.keys(HAIR)); state.hairColor = pick(PAL.hair);
   applyPreset(pick(Object.keys(PRESETS).slice(1)), false);
   state.makeup.contacts = Math.random() < 0.25 ? pick(CONTACTS.slice(1)).v : 'none';
   const o = state.outfit;
@@ -1605,22 +1991,189 @@ function applyPreset(name, doUpdate = true) {
   if (doUpdate) { update(); toast(`${name} applied`); }
 }
 
+
+
+// ---------- snapshots ----------
+async function snapshot(s, { scale = 1.6, caption = '', type = 'image/png', quality = 0.9 } = {}) {
+  UID = 0;
+  const svg = roomSVG(s, { standalone: true, scale: 1 });
+  const img = new Image();
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  try {
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const W = ROOM_W * scale, Hr = ROOM_H * scale, foot = caption ? 56 * scale : 0;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = Hr + foot;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0, W, Hr);
+    if (caption) {
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, Hr, W, foot);
+      ctx.fillStyle = '#2b2138'; ctx.textAlign = 'center';
+      ctx.font = `500 ${20 * scale}px "Playfair Display", Georgia, serif`;
+      ctx.fillText(caption, W / 2, Hr + 28 * scale);
+      ctx.fillStyle = '#9b6bf2'; ctx.font = `600 ${8 * scale}px Inter, sans-serif`;
+      ctx.fillText('★  S T A R L I F E', W / 2, Hr + 45 * scale);
+    }
+    return cv.toDataURL(type, quality);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function download(s, name) {
+  try {
+    if (document.fonts?.ready) await document.fonts.ready;
+    const data = await snapshot(s, { scale: 1.6, caption: name || 'My Look' });
+    const filename = (name || 'my-look').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+    // When hosted as a Claude artifact, saving goes through the viewer's downloads capability.
+    const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;
+    if (dl) {
+      const blob = await (await fetch(data)).blob();
+      try { await dl.save({ filename, data: blob }); toast('Snapshot saved ✦'); }
+      catch (err) { if (err?.code !== 'declined') toast('Downloads are not available here'); }
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = data; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('Snapshot downloaded ✦');
+  } catch (e) { console.error(e); toast('Could not create the image in this browser'); }
+}
+
+// ---------- album ----------
+function renderLookbook() {
+  $('#lbCount').textContent = lookbook.length ? `${lookbook.length} photo${lookbook.length > 1 ? 's' : ''}` : '';
+  $('#lookbook').innerHTML = lookbook.length ? lookbook.map(l => `
+    <article class="look" data-look="${l.id}">
+      <img src="${l.thumb}" alt="${esc(l.name)}" loading="lazy">
+      <div class="meta"><b title="${esc(l.name)}">${esc(l.name)}</b><small>${new Date(l.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</small>
+        <div class="acts"><button data-act="wear">Wear</button><button data-act="dl">PNG</button><button data-act="del" aria-label="Delete">✕</button></div>
+      </div>
+    </article>`).join('')
+    : `<div class="lb-empty" style="grid-column:1/-1"><b>Your album is empty</b>Dress your starlet, then press the camera or <em>Save</em> to take a photo.</div>`;
+}
+function openSave() {
+  UID = 0;
+  $('#savePreview').innerHTML = scope(roomSVG(state, {}), 'M');
+  $('#lookName').value = '';
+  $('#saveModal').classList.add('on');
+  setTimeout(() => $('#lookName').focus(), 50);
+}
+const closeSave = () => $('#saveModal').classList.remove('on');
+async function confirmSave() {
+  const name = $('#lookName').value.trim() || `Look No. ${lookbook.length + 1}`;
+  try {
+    const thumb = await snapshot(state, { scale: 0.42, type: 'image/jpeg', quality: 0.85 });
+    lookbook.unshift({ id: Date.now().toString(36), name, date: Date.now(), state: clone(state), thumb });
+    if (!lsSet(LS_BOOK, lookbook)) toast('Saved for this session (browser storage is full or blocked)');
+    else toast(`“${name}” added to My Album ✦`);
+    renderLookbook();
+    closeSave();
+  } catch (e) { console.error(e); toast('Could not save that look'); }
+}
+
+// ---------- starlets & picker ----------
+function starletState(id, base = state) {
+  const x = STARLETS.find(v => v.id === id);
+  const s = clone(DEFAULT);
+  s.room = clone(base.room);
+  Object.assign(s, { starlet: x.id, skin: x.skin, hair: x.hair, hairColor: x.hairColor, eyeShape: x.eyeShape, eyeColor: x.eyeColor, brow: x.brow, underwear: x.underwear });
+  const p = PRESETS[x.preset];
+  for (const k of Object.keys(p)) { if (typeof p[k] === 'object') Object.assign(s.makeup[k], p[k]); else s.makeup[k] = p[k]; }
+  return s;
+}
+function applyStarlet(id) {
+  state = starletState(id);
+  hairSig = '';
+  update(true);
+}
+let pickSel = 'aria';
+function openPicker() {
+  pickSel = state.starlet || 'aria';
+  $('#carTrack').innerHTML = STARLETS.map(x => {
+    const lips = PRESETS[x.preset].lips.color;
+    return `<button class="car-item" data-pick="${x.id}"><svg viewBox="104 30 192 192">${portrait(x, lips === 'none' ? '#c96b78' : lips)}</svg><span>${x.name.split(' ')[0]}</span></button>`;
+  }).join('');
+  $('#picker').hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderPicker();
+}
+function renderPicker() {
+  const s = starletState(pickSel);
+  UID = 0;
+  $('#pickerRoom').innerHTML = scope(roomSVG(s, { aspect: 'xMidYMid meet' }), 'P');
+  $$('[data-pick]').forEach(b => b.classList.toggle('on', b.dataset.pick === pickSel));
+  $(`[data-pick="${pickSel}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  const x = STARLETS.find(v => v.id === pickSel);
+  $('#pickerNote').innerHTML = `<b>${x.name}</b>, ${x.role.toLowerCase()}. You can restyle her any time, and there are <b>millions</b> of ways to dress up!`;
+}
+function closePicker(go) {
+  if (go) { applyStarlet(pickSel); toast(`Welcome home, ${STARLETS.find(v => v.id === pickSel).name}!`); }
+  $('#picker').hidden = true;
+  document.body.style.overflow = '';
+  setView('suite');
+  if (go && !lsGet('starlife.guide.v1', false)) openGuide();
+}
+
+// ---------- guide ----------
+const GUIDE = [
+  () => `Welcome to your new suite! I'm ${HOST.name}, your stylist. ${starletName()} has just moved in and needs an outfit.`,
+  () => `Open the <b>Wardrobe</b> and drag clothes onto her. Changed your mind? Drag a piece off her to take it off.`,
+  () => `Head to the <b>Beauty Parlor</b> to change her hair, eyes and makeup.`,
+  () => `Click <b>My Suite</b> to decorate. Drag the furniture and your starlet around, and pick a wall colour.`,
+  () => `Love the look? Use the <b>Camera</b> to save a photo to My Album. Make yourself at home, see you soon!`,
+];
+let guideStep = 0;
+function guideHost() {
+  const h = clone(DEFAULT);
+  Object.assign(h, { skin: '#d9a273', hair: 'waves', hairColor: '#c9944f', eyeShape: 'almond', eyeColor: '#6b4a2b', brow: 'arched' });
+  const p = PRESETS['Soft Glam'];
+  for (const k of Object.keys(p)) { if (typeof p[k] === 'object') Object.assign(h.makeup[k], p[k]); else h.makeup[k] = p[k]; }
+  Object.assign(h.outfit, { top: 'cami', necklace: 'pendant', earrings: 'hoops' });
+  h.colors.cami = '#f3a6c3';
+  return h;
+}
+function openGuide(step = 0) {
+  guideStep = step;
+  if (drawer) openDrawer(drawer);
+  UID = 0;
+  $('#guideFace').innerHTML = scope(renderDoll(guideHost(), { vb: '92 6 216 300' }), 'H');
+  $('#guide').hidden = false;
+  renderGuide();
+}
+function renderGuide() {
+  $('#guideText').innerHTML = GUIDE[guideStep]();
+  $('#guideCount').textContent = `${guideStep + 1}/${GUIDE.length}`;
+  $('#guideBack').disabled = guideStep === 0;
+  $('#guideNext').textContent = guideStep === GUIDE.length - 1 ? 'Got it' : 'Next ›';
+}
+function closeGuide() { $('#guide').hidden = true; lsSet('starlife.guide.v1', true); }
+
 // ---------- events ----------
 document.addEventListener('click', e => {
   if (suppressClick) return;
   const t = e.target;
-  const sl = t.closest('[data-starlet]');
-  if (sl) { applyStarlet(sl.dataset.starlet); return; }
   const bind = t.closest('[data-bind]');
   if (bind) { setP(bind.dataset.bind, bind.dataset.val); update(); return; }
-
+  const v = t.closest('[data-view]'); if (v) { setView(v.dataset.view); return; }
+  const side = t.closest('[data-side]');
+  if (side) {
+    const k = side.dataset.side;
+    if (k === 'wardrobe' || k === 'decor') openDrawer(k);
+    else if (k === 'parlor') setView('parlor');
+    else if (k === 'camera') openSave();
+    else if (k === 'full') {
+      const st = $('#suiteStage');
+      if (document.fullscreenElement) document.exitFullscreen?.();
+      else if (st.requestFullscreen) st.requestFullscreen().catch(() => toast('Full screen is not available here'));
+      else toast('Full screen is not available here');
+    }
+    return;
+  }
+  if (t.closest('[data-close-drawer]') || t.closest('#decorDone')) { openDrawer(null); return; }
   const tab = t.closest('[data-tab]');
   if (tab) {
     activeTab = tab.dataset.tab;
     $$('[data-tab]').forEach(b => b.classList.toggle('on', b === tab));
     $$('[data-pane]').forEach(p => p.classList.toggle('on', p.dataset.pane === activeTab));
-    hairSig = '';
-    update();
+    hairSig = ''; renderHairCards(); refreshUI();
     return;
   }
   const sub = t.closest('[data-subtab]');
@@ -1630,29 +2183,32 @@ document.addEventListener('click', e => {
     return;
   }
   const wc = t.closest('[data-wcat]');
-  if (wc) {
-    activeCat = wc.dataset.wcat;
-    $$('[data-wcat]').forEach(b => b.classList.toggle('on', b === wc));
-    renderGrid();
-    return;
-  }
-  const item = t.closest('[data-item]');
-  if (item) { equip(item.dataset.item); return; }
+  if (wc) { activeCat = wc.dataset.wcat; $$('[data-wcat]').forEach(b => b.classList.toggle('on', b === wc)); renderGrid(); return; }
+  const item = t.closest('[data-item]'); if (item) { equip(item.dataset.item); return; }
   const rc = t.closest('[data-recolor]');
-  if (rc) {
-    if (rc.dataset.recolor === 'reset') delete state.colors[state.focus]; else state.colors[state.focus] = rc.dataset.recolor;
-    update(); return;
-  }
+  if (rc) { if (rc.dataset.recolor === 'reset') delete state.colors[state.focus]; else state.colors[state.focus] = rc.dataset.recolor; update(); return; }
   const rm = t.closest('[data-remove]');
   if (rm) { const it = ITEM[state.outfit[rm.dataset.remove]]; state.outfit[rm.dataset.remove] = null; update(); toast(`Took off ${it.name}`); return; }
-  const pr = t.closest('[data-preset]');
-  if (pr) { applyPreset(pr.dataset.preset); return; }
+  const pr = t.closest('[data-preset]'); if (pr) { applyPreset(pr.dataset.preset); return; }
+  const zm = t.closest('[data-zoom]'); if (zm) { zoom = zm.dataset.zoom; renderParlor(); return; }
+  const add = t.closest('[data-addfurn]');
+  if (add) {
+    const k = add.dataset.addfurn, f = FURN[k];
+    const y = f.layer === 'wall' ? 200 : f.layer === 'rug' ? 560 : 580;
+    state.room.items.push({ id: 'i' + Date.now().toString(36), k, x: 300 + Math.random() * 400, y });
+    update(); toast(`Added ${f.name}. Drag it into place.`); return;
+  }
+  const un = t.closest('[data-unplace]');
+  if (un) { state.room.items = state.room.items.filter(i => i.id !== un.dataset.unplace); update(); return; }
+  const pk = t.closest('[data-pick]'); if (pk) { pickSel = pk.dataset.pick; renderPicker(); return; }
+  const car = t.closest('[data-car]');
+  if (car) { const i = STARLETS.findIndex(x => x.id === pickSel); pickSel = STARLETS[(i + Number(car.dataset.car) + STARLETS.length) % STARLETS.length].id; renderPicker(); return; }
   const act = t.closest('[data-act]');
   if (act) {
     const id = act.closest('[data-look]').dataset.look, look = lookbook.find(l => l.id === id);
     if (!look) return;
-    if (act.dataset.act === 'wear') { state = sanitize(merge(clone(DEFAULT), clone(look.state))); hairSig = ''; update(true); window.scrollTo({ top: 0, behavior: 'smooth' }); toast(`Wearing “${look.name}”`); }
-    if (act.dataset.act === 'dl') download(look.state, look.name);
+    if (act.dataset.act === 'wear') { state = sanitize(merge(clone(DEFAULT), clone(look.state))); hairSig = ''; setView('suite'); update(true); toast(`Wearing “${look.name}”`); }
+    if (act.dataset.act === 'dl') download(sanitize(merge(clone(DEFAULT), clone(look.state))), look.name);
     if (act.dataset.act === 'del') {
       if (!act.dataset.armed) { act.dataset.armed = '1'; act.textContent = 'Sure?'; setTimeout(() => { if (act.isConnected) { delete act.dataset.armed; act.textContent = '✕'; } }, 2500); return; }
       lookbook = lookbook.filter(l => l.id !== id); lsSet(LS_BOOK, lookbook); renderLookbook(); toast(`Deleted “${look.name}”`);
@@ -1663,54 +2219,109 @@ document.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset.range) { setP(t.dataset.range, parseFloat(t.value)); update(); }
   else if (t.dataset.color) { setP(t.dataset.color, t.value); update(); }
-  else if (t.hasAttribute('data-recolor-input')) { state.colors[state.focus] = t.value; UID = 0; renderStage(); renderLayers(); }
+  else if (t.hasAttribute('data-recolor-input')) { state.colors[state.focus] = t.value; UID = 0; renderSuite(); renderLayers(); }
 });
 document.addEventListener('change', e => { if (e.target.hasAttribute('data-recolor-input')) update(); });
 $('#tuckToggle').addEventListener('change', e => { state.tucked = e.target.checked; update(); });
 
+$('#tbUndress').addEventListener('click', () => { for (const k of Object.keys(state.outfit)) state.outfit[k] = null; update(true); toast(`${starletName()} is back in her underwear`); });
+$('#tbRandom').addEventListener('click', randomize);
+$('#tbLayers').addEventListener('click', () => { const p = $('#layersPop'); p.hidden = !p.hidden; $('#tbLayers').classList.toggle('on', !p.hidden); });
+$('#tbUndo').addEventListener('click', undo);
+$('#tbSave').addEventListener('click', openSave);
+$('#btnSave').addEventListener('click', openSave);
+$('#btnPick').addEventListener('click', openPicker);
+$('#btnHelp').addEventListener('click', () => { setView('suite'); openGuide(0); });
+$('#pickerGo').addEventListener('click', () => closePicker(true));
+$('#guideNext').addEventListener('click', () => { if (guideStep < GUIDE.length - 1) { guideStep++; renderGuide(); } else closeGuide(); });
+$('#guideBack').addEventListener('click', () => { if (guideStep > 0) { guideStep--; renderGuide(); } });
+$('#guideSkip').addEventListener('click', closeGuide);
+$('#cancelSave').addEventListener('click', closeSave);
+$('#confirmSave').addEventListener('click', confirmSave);
+$('#downloadNow').addEventListener('click', () => download(state, $('#lookName').value.trim() || 'My Look'));
+$('#lookName').addEventListener('keydown', e => { if (e.key === 'Enter') confirmSave(); });
+$('#saveModal').addEventListener('click', e => { if (e.target.id === 'saveModal') closeSave(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if ($('#saveModal').classList.contains('on')) closeSave();
+  else if (!$('#picker').hidden && state.starlet) closePicker(false);
+  else if (drawer) openDrawer(null);
+});
+let resizeT;
+window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => renderSuite(), 120); });
+document.addEventListener('fullscreenchange', () => setTimeout(() => renderSuite(), 50));
+
 // ---------- drag & drop (pointer based) ----------
-// Drag a card onto the doll to wear it; drag a worn piece off the doll to take it off.
+// Wardrobe card -> onto the doll to wear it; worn piece -> off the doll to remove it;
+// in decorating mode, furniture and the starlet herself move around the room.
 let drag = null, suppressClick = false;
-const stageEl = $('#stage');
-const overStage = (x, y) => { const r = stageEl.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+const stageEl = $('#suiteStage');
+const svgPt = (x, y) => { const svg = stageEl.querySelector('svg.suite-room'); const p = svg.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+function overDoll(x, y) {
+  const d = stageEl.querySelector('[data-doll] > svg'); if (!d) return false;
+  const r = d.getBoundingClientRect();
+  return x >= r.left + r.width * 0.15 && x <= r.right - r.width * 0.15 && y >= r.top && y <= r.bottom;
+}
 document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
+  if (decorMode) {
+    const g = e.target.closest('#suiteStage [data-furn], #suiteStage [data-doll]');
+    if (!g) return;
+    const ref = g.hasAttribute('data-doll') ? state.room.doll : state.room.items.find(i => i.id === g.dataset.furn);
+    if (!ref) return;
+    const p = svgPt(e.clientX, e.clientY);
+    const layer = g.hasAttribute('data-doll') ? 'doll' : FURN[ref.k].layer;
+    drag = { kind: 'move', g, ref, layer, px: p.x, py: p.y, ox: ref.x, oy: ref.y, moved: false };
+    e.preventDefault();
+    return;
+  }
   const card = e.target.closest('[data-item]');
-  const piece = !card && e.target.closest('#stage [data-slot]');
+  const piece = !card && e.target.closest('#suiteStage [data-slot]');
   if (!card && !piece) return;
   const id = card ? card.dataset.item : state.outfit[piece.dataset.slot];
   if (!id) return;
-  drag = { id, slot: piece ? piece.dataset.slot : null, x: e.clientX, y: e.clientY, started: false, ghost: null };
+  drag = { kind: 'cloth', id, slot: piece ? piece.dataset.slot : null, x: e.clientX, y: e.clientY, started: false, ghost: null };
 });
 document.addEventListener('pointermove', e => {
   if (!drag) return;
+  if (drag.kind === 'move') {
+    const p = svgPt(e.clientX, e.clientY), r = drag.ref;
+    const lim = { wall: [70, 360], rug: [FLOOR_Y + 40, ROOM_H - 20], floor: [FLOOR_Y + 24, ROOM_H - 4], doll: [FLOOR_Y + 34, ROOM_H - 6] }[drag.layer];
+    r.x = clamp(drag.ox + p.x - drag.px, 40, 960);
+    r.y = clamp(drag.oy + p.y - drag.py, lim[0], lim[1]);
+    drag.moved = true;
+    const sc = drag.layer === 'wall' ? 1 : depth(r.y);
+    drag.g.setAttribute('transform', `translate(${r.x.toFixed(1)},${r.y.toFixed(1)}) scale(${sc.toFixed(3)})`);
+    return;
+  }
   if (!drag.started) {
     if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
     drag.started = true;
     const g = document.createElement('div');
     g.className = 'drag-ghost';
-    PFX = 'g'; g.innerHTML = itemThumb(ITEM[drag.id], colOf(drag.id)); PFX = '';
+    g.innerHTML = scope(itemThumb(ITEM[drag.id], colOf(drag.id)), 'G');
     document.body.appendChild(g);
     drag.ghost = g;
     document.body.classList.add('dragging');
-    if (drag.slot) { state.outfit[drag.slot] = null; UID = 0; renderStage(); }
+    if (drag.slot) { state.outfit[drag.slot] = null; UID = 0; renderSuite(); }
   }
   e.preventDefault();
   drag.ghost.style.left = e.clientX + 'px';
   drag.ghost.style.top = e.clientY + 'px';
-  const over = overStage(e.clientX, e.clientY);
+  const over = overDoll(e.clientX, e.clientY);
   stageEl.classList.toggle('drag-over', over && !drag.slot);
   drag.ghost.classList.toggle('over', over);
 });
 function endDrag(e, cancelled) {
   if (!drag) return;
   const d = drag; drag = null;
+  if (d.kind === 'move') { if (d.moved) { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); update(); } return; }
   if (!d.started) return;
   d.ghost.remove();
   stageEl.classList.remove('drag-over');
   document.body.classList.remove('dragging');
   suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
-  const it = ITEM[d.id], over = !cancelled && overStage(e.clientX, e.clientY);
+  const it = ITEM[d.id], over = !cancelled && overDoll(e.clientX, e.clientY);
   if (d.slot) {
     if (over || cancelled) { state.outfit[d.slot] = d.id; update(); }
     else { update(true); toast(`Took off ${it.name}`); }
@@ -1721,27 +2332,14 @@ function endDrag(e, cancelled) {
 }
 document.addEventListener('pointerup', e => endDrag(e, false));
 document.addEventListener('pointercancel', e => endDrag(e, true));
-document.addEventListener('dragstart', e => { if (e.target.closest?.('[data-item], #stage')) e.preventDefault(); });
-
-$('#btnUndress').addEventListener('click', () => {
-  for (const k of Object.keys(state.outfit)) state.outfit[k] = null;
-  update(true); toast(`${starletName()} is back in her underwear`);
-});
-$('#btnSave').addEventListener('click', openSave);
-$('#cancelSave').addEventListener('click', closeSave);
-$('#confirmSave').addEventListener('click', confirmSave);
-$('#downloadNow').addEventListener('click', () => download(state, $('#lookName').value.trim() || 'My Look'));
-$('#lookName').addEventListener('keydown', e => { if (e.key === 'Enter') confirmSave(); });
-$('#saveModal').addEventListener('click', e => { if (e.target.id === 'saveModal') closeSave(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSave(); });
-$('#btnRandom').addEventListener('click', randomize);
-$('#btnReset').addEventListener('click', () => applyStarlet(state.starlet || 'aria'));
+document.addEventListener('dragstart', e => { if (e.target.closest?.('[data-item], #suiteStage')) e.preventDefault(); });
 
 // ---------- boot ----------
 buildUI();
-renderStarlets();
 update();
+lastSnap = JSON.stringify(state); undoStack = []; $('#tbUndo').disabled = true;
 renderLookbook();
+if (!lsGet(LS_CUR, null) || !lsGet('starlife.guide.v1', false)) openPicker();
 </script>
 </body>
 </html>

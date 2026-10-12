@@ -1,6 +1,6 @@
-# Starlife Atelier
+# Starlife
 
-A browser dress-up and makeup game inspired by classic virtual doll games. The whole game is one file, `index.html`. There is no build step and nothing to install.
+A dress-up, makeup and room-decorating game in the spirit of the classic Stardoll suite. The whole game is one file, `index.html`. There is no build step and nothing to install.
 
 ## Run it
 
@@ -8,20 +8,25 @@ A browser dress-up and makeup game inspired by classic virtual doll games. The w
 - **Local server (optional):** `python3 -m http.server`, then open http://localhost:8000.
 - **GitHub Pages:** in the repo go to *Settings → Pages*, pick *Deploy from a branch*, choose your branch and the `/ (root)` folder, and save. The game will be live at `https://<user>.github.io/starlife/`.
 
-## Features
+## How it plays
 
-- **Starlets:** six made-up celebrities (pop star, supermodel, idol, actress, film star, designer). Like on Stardoll, each one starts out in her underwear and you dress her up. Pick one from the row above the doll.
+- **Pick your starlet:** choose one of six made-up celebrities from the carousel. She moves into your suite in her underwear.
+- **Your suite:** a furnished room with a wall, a wood floor, a city window, art and furniture. Furniture nearer the front overlaps her, so she can stand behind a table.
+- **Guide:** Stella, your stylist, walks you through the basics in a speech bubble. Press **?** to see the tips again.
+- **Wardrobe:** opens from the side menu. Drag clothes onto her, or tap to wear them. Drag a piece off her to take it off. Recolour anything she's wearing.
+  - Layering is handled for you:
+    - A dress replaces the top and bottom.
+    - Jackets go over everything.
+    - Boots go over trousers.
+    - A "Tuck top in" toggle sets whether the top or the bottom is on top.
+- **My Suite (decorating):**
+  - Change the wall colour and the floor.
+  - Add furniture: sofa, armchair, rocker, lamp table, monstera, glass table, rug, arc lamp, gift box, moving box, window, prints and a mirror.
+  - Drag furniture and your starlet around the room. Things farther back get smaller.
+- **Beauty Parlor:** a mirror with face and full-body views.
+  - **Avatar:** skin tone, eye shape and colour, eyebrows, eight hairstyles, hair colour and underwear colour.
+  - **Makeup Studio:** eyeshadow, eyeliner, mascara, coloured contacts, lipstick (matte, gloss or metallic) with lip liner, blush, highlighter and contour. One-click presets too.
+- **Camera & My Album:** take a photo of the room and save it with a name. From My Album you can wear a look again, download it as a PNG, or delete it.
+- **Toolbar:** Undress, Surprise me, what she's wearing (layer order), Undo, and Save.
 
-- **A more lifelike doll:** shaded skin, a shaped figure with collarbones, elbows, knees and hands, a realistic nose and lips, eyebrows drawn as individual hairs, and textured hair.
-- **Avatar:** skin tone (presets plus a custom colour picker), 4 eye shapes, eye colour, 6 brow styles with brow colour, 8 hairstyles, and hair colour.
-- **Makeup Studio:**
-  - Eyes: eyeshadow (5 styles, any colour, opacity), eyeliner (tightline, classic, winged, cat-eye, smudged) in any colour, mascara levels, and coloured contacts.
-  - Lips: lipstick shade with matte, gloss or metallic finish and an intensity slider, plus lip liner.
-  - Face: blush (colour, placement, intensity), highlighter (shade, glow) and contour.
-  - One-click presets: Bare, Natural, Soft Glam, Night Out, Editorial.
-- **Wardrobe in the room:** an open closet stands in the room next to your starlet, with clothes hanging on its rail. It has tops, bottoms, dresses, outerwear, shoes and accessories (bags, necklaces, earrings, glasses, hats). Clothes hang on a rail. Drag them onto the doll, or tap to wear them. Drag a piece off the doll to take it off, or use "Undress" to go back to underwear. You can recolour anything she's wearing. Layering is handled for you:
-  - A dress replaces the top and bottom.
-  - Jackets go over everything.
-  - Boots go over trousers.
-  - A "Tuck top in" toggle sets whether the top or the bottom is on top.
-- **Save & Showcase:** name a look and save it to the Lookbook. From there you can wear it again, download it as a PNG with a caption, or delete it. Your current look and your Lookbook are kept in the browser's localStorage.
+Your current suite and your album are kept in the browser's localStorage.
