@@ -1343,9 +1343,18 @@ async function download(s, name) {
   try {
     if (document.fonts?.ready) await document.fonts.ready;
     const data = await snapshot(s, { scale: 2, caption: name || 'My Look' });
+    const filename = (name || 'my-look').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+    // When hosted as a Claude artifact, saving goes through the viewer's downloads capability.
+    const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;
+    if (dl) {
+      const blob = await (await fetch(data)).blob();
+      try { await dl.save({ filename, data: blob }); toast('Snapshot saved ✦'); }
+      catch (err) { if (err?.code !== 'declined') toast('Downloads are not available here'); }
+      return;
+    }
     const a = document.createElement('a');
     a.href = data;
-    a.download = (name || 'my-look').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+    a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     toast('Snapshot downloaded ✦');
   } catch (e) { console.error(e); toast('Could not create the image in this browser'); }
