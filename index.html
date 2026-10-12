@@ -1458,7 +1458,10 @@ document.addEventListener('click', e => {
     if (!look) return;
     if (act.dataset.act === 'wear') { state = sanitize(merge(clone(DEFAULT), clone(look.state))); hairSig = ''; update(true); window.scrollTo({ top: 0, behavior: 'smooth' }); toast(`Wearing “${look.name}”`); }
     if (act.dataset.act === 'dl') download(look.state, look.name);
-    if (act.dataset.act === 'del' && confirm(`Delete “${look.name}” from your lookbook?`)) { lookbook = lookbook.filter(l => l.id !== id); lsSet(LS_BOOK, lookbook); renderLookbook(); }
+    if (act.dataset.act === 'del') {
+      if (!act.dataset.armed) { act.dataset.armed = '1'; act.textContent = 'Sure?'; setTimeout(() => { if (act.isConnected) { delete act.dataset.armed; act.textContent = '✕'; } }, 2500); return; }
+      lookbook = lookbook.filter(l => l.id !== id); lsSet(LS_BOOK, lookbook); renderLookbook(); toast(`Deleted “${look.name}”`);
+    }
   }
 });
 document.addEventListener('input', e => {
