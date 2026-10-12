@@ -32,6 +32,15 @@ A dress-up, makeup and room-decorating game in the spirit of the classic Stardol
   - **Avatar:** skin tone, eye shape and colour, eyebrows, eight hairstyles, hair colour and underwear colour.
   - **Makeup Studio:** eyeshadow, eyeliner, mascara, coloured contacts, lipstick (matte, gloss or metallic) with lip liner, blush, highlighter and contour. One-click presets too.
 - **Camera & My Album:** take a photo of the room and save it with a name. From My Album you can wear a look again, download it as a PNG, or delete it.
+- **Events (social life):** RSVP to invitations at eleven venues:
+  - Book Club Reading, Coffee Date, Rooftop Lounge, Club Night, House Party, Garden Party, Masquerade Ball, Charity Banquet, The Grand Gala, the Starlife Awards red carpet, and a Fashion Week show.
+  - Each has its own illustrated scene, a dress code and guests from the other starlets.
+  - Get ready in your wardrobe, then play three story moments where you choose what she does.
+  - You're rated on your outfit and earn a title, coins and fame. You can snap the scene for your album.
+  - House parties take place in your own suite, and your decorating counts.
+- **Chat:**
+  - **Starlets and Stella:** private chats with the starlets and your stylist. They also message you after events. When the game is hosted as a Claude artifact, their replies are written by Claude in character. Otherwise they use built-in replies.
+  - **The Lounge:** a live chat room for everyone who has the hosted page open at the same time. Lounge messages aren't saved.
 - **Toolbar:** Undress, Surprise me, what she's wearing (layer order), Undo, and Save.
 
 Your current suite, your album and your coins are kept in the browser's localStorage.

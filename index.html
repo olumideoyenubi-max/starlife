@@ -844,6 +844,80 @@
   .continue:hover { background: #33275c; filter: none; }
   .toast { background: var(--ink); }
   @media (max-width: 860px) { .mainnav { padding: 8px; } .mainnav button { padding: 8px 12px; font-size: 13.5px; } .topbar .wordmark { font-size: 22px; } .topbar .wordmark i { width: 26px; height: 26px; font-size: 14px; } .hero-strip h1 { font-size: 24px; } }
+  /* events */
+  .invite-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 14px; }
+  .invite { border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: #fff; display: flex; flex-direction: column; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+  .invite:hover { transform: translateY(-3px); box-shadow: 0 18px 30px -20px rgba(35, 25, 66, .5); }
+  .invite-art { aspect-ratio: 1000 / 520; background: var(--haze); overflow: hidden; }
+  .invite-art > svg { width: 100%; height: 100%; display: block; }
+  .invite-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .invite-body small { color: var(--hot-deep); font-weight: 700; letter-spacing: .5px; text-transform: uppercase; font-size: 11px; }
+  .invite-body b { font-family: var(--serif); font-size: 21px; font-weight: 600; line-height: 1.15; }
+  .invite-body p { margin: 0; font-size: 13px; color: var(--muted-ink); flex: 1; }
+  .invite-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+  .muted { color: var(--muted-ink); font-size: 12.5px; }
+  .ev-detail { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 22px; margin-top: 12px; align-items: start; }
+  .ev-scene, .ev-play-scene { border-radius: 20px; overflow: hidden; aspect-ratio: 1000 / 620; background: var(--haze); }
+  .ev-scene > svg, .ev-play-scene > svg { width: 100%; height: 100%; display: block; }
+  .ev-title { margin: 4px 0 6px; font-family: var(--serif); font-size: 34px; font-weight: 600; font-style: italic; line-height: 1.1; }
+  .ev-detail p { color: var(--muted-ink); }
+  .brief .shop-tags { margin-bottom: 10px; }
+  .ev-stage { position: relative; }
+  .ev-dialog {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
+    background: rgba(255, 255, 255, .96); backdrop-filter: blur(10px); border-radius: 22px; padding: 16px 20px; box-shadow: 0 20px 40px -18px rgba(35, 25, 66, .6); animation: fade .3s ease;
+  }
+  .ev-dialog small { color: var(--hot-deep); font-weight: 700; text-transform: uppercase; letter-spacing: .6px; font-size: 11px; }
+  .ev-dialog p { margin: 6px 0 10px; font-size: 16px; }
+  .ev-dialog .reaction { font-family: var(--serif); font-style: italic; color: var(--hot-deep); font-size: 18px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ev-result { display: flex; align-items: center; gap: 16px; margin: 8px 0 12px; }
+  .ev-result h3 { margin: 0; font-family: var(--serif); font-style: italic; font-size: 24px; }
+  .ev-result p { margin: 4px 0 0; font-size: 14px; }
+  .prep-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--blush); border: 1px solid #ffc2d8; border-radius: 16px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; }
+  .prep-bar span { flex: 1; min-width: 200px; }
+  /* chat */
+  .chat { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: min(72vh, 680px); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: #fff; }
+  .chat-list { border-right: 1px solid var(--line); overflow-y: auto; padding: 8px; background: var(--paper); }
+  .chat-item { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 8px; border-radius: 14px; text-align: left; position: relative; }
+  .chat-item:hover { background: var(--haze); }
+  .chat-item.on { background: var(--blush); }
+  .chat-face { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: var(--blush); display: grid; place-items: center; }
+  .chat-face svg { width: 100%; height: 100%; }
+  .chat-face.lounge { background: var(--ink); color: var(--butter); font-size: 20px; }
+  .chat-face.tiny { width: 20px; height: 20px; display: inline-grid; vertical-align: middle; margin-right: 4px; }
+  .chat-meta { display: flex; flex-direction: column; min-width: 0; }
+  .chat-meta b { font-size: 14px; }
+  .chat-meta small { color: var(--muted-ink); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-item .dot { margin-left: auto; font-style: normal; background: var(--hot); color: #fff; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; border-radius: 99px; display: grid; place-items: center; padding: 0 5px; }
+  .chat-main { display: flex; flex-direction: column; min-width: 0; }
+  .chat-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .chat-head b { display: block; font-family: var(--serif); font-size: 18px; }
+  .chat-head small { color: var(--muted-ink); font-size: 12px; }
+  .chat-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; background: linear-gradient(#fff, var(--paper)); }
+  .msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 78%; }
+  .msg.me { align-self: flex-end; align-items: flex-end; }
+  .msg p { margin: 0; padding: 9px 14px; border-radius: 18px 18px 18px 6px; background: var(--haze); font-size: 14.5px; line-height: 1.4; overflow-wrap: anywhere; }
+  .msg.me p { background: var(--hot); color: #fff; border-radius: 18px 18px 6px 18px; }
+  .msg-who { font-size: 11.5px; color: var(--muted-ink); margin: 0 0 2px 6px; }
+  .typing { display: flex; gap: 4px; } .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted-ink); animation: blink 1s infinite; } .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .chat-empty { margin: auto; text-align: center; max-width: 380px; color: var(--muted-ink); }
+  .chat-empty b { color: var(--ink); font-family: var(--serif); font-size: 18px; }
+  .chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+  .chat-form input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; font: inherit; background: var(--paper); }
+  .chat-form input:focus { outline: 2px solid #ffb3cd; }
+  .navbadge { font-style: normal; background: var(--hot); color: #fff; font-size: 10.5px; border-radius: 99px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px; }
+  @media (max-width: 860px) {
+    .ev-detail { grid-template-columns: 1fr; }
+    .ev-stage { display: flex; flex-direction: column; }
+    .ev-dialog { position: relative; left: 0; bottom: 0; transform: none; width: auto; margin-top: -30px; }
+    .chat { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); height: 78vh; }
+    .chat-list { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 6px; }
+    .chat-item { flex: 0 0 auto; width: auto; flex-direction: column; gap: 2px; padding: 6px; }
+    .chat-meta small { display: none; } .chat-meta b { font-size: 11px; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-item .dot { position: absolute; top: 2px; right: 2px; }
+  }
 </style>
 </head>
 <body>
@@ -869,6 +943,8 @@
     <button data-view="parlor">Beauty parlor</button>
     <button data-view="shop">Shop</button>
     <button data-view="contests">Contests</button>
+    <button data-view="events">Events</button>
+    <button data-view="chat">Chat<i class="navbadge" id="chatBadge" hidden>0</i></button>
     <button data-view="album">My album</button>
   </nav>
 
@@ -891,6 +967,7 @@
         <div class="people" id="people"></div>
       </div>
       <aside class="promos">
+        <button class="promo" data-view="events"><div class="promo-art" id="promoEvents"></div><span>Events ›</span></button>
         <button class="promo" data-view="shop"><div class="promo-art" id="promoShop"></div><span>Shop ›</span></button>
         <button class="promo" data-view="contests"><div class="promo-art" id="promoContest"></div><span>Contests ›</span></button>
         <button class="promo" data-view="album"><div class="promo-art" id="promoAlbum" style="background:#f4eefb"></div><span>My Album ›</span></button>
@@ -939,6 +1016,7 @@
 
   <!-- ============ SUITE ============ -->
   <section class="view" data-viewpane="suite">
+    <div class="prep-bar" id="prepBar" hidden></div>
     <div class="suite">
       <div class="suite-stage" id="suiteStage">
         <div class="stage-name" id="stageName"></div>
@@ -1098,6 +1176,48 @@
 
   </section>
 
+    </div>
+  </section>
+
+  <!-- ============ EVENTS ============ -->
+  <section class="view" data-viewpane="events">
+    <div id="evList">
+      <div class="shop-head"><h2>Events</h2><span>Your invitations this week. RSVP, dress for the code and enjoy the night.</span></div>
+      <div class="invite-grid" id="evGrid"></div>
+    </div>
+    <div id="evDetail" hidden>
+      <button class="btn small" data-evback>‹ All invitations</button>
+      <div class="ev-detail">
+        <div class="ev-scene" id="evScene"></div>
+        <div>
+          <small class="muted" id="evWhen"></small>
+          <h2 class="ev-title" id="evTitle"></h2>
+          <p id="evDesc"></p>
+          <div class="card brief" id="evBrief"></div>
+          <div class="contest-actions">
+            <button class="btn big" data-evprep>Get ready first</button>
+            <button class="continue small" data-evgo>Go to the event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="evPlay" hidden>
+      <div class="ev-stage">
+        <div class="ev-play-scene" id="evPlayScene"></div>
+        <div class="ev-dialog" id="evDialog"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHAT ============ -->
+  <section class="view" data-viewpane="chat">
+    <div class="chat">
+      <aside class="chat-list" id="chatList"></aside>
+      <div class="chat-main">
+        <header class="chat-head" id="chatHead"></header>
+        <div class="chat-log" id="chatLog" aria-live="polite"></div>
+        <form class="chat-form" id="chatForm"><input id="chatInput" maxlength="280" autocomplete="off" aria-label="Message"><button class="btn primary" id="chatSend">Send</button></form>
+      </div>
     </div>
   </section>
 
@@ -2038,7 +2158,7 @@ const FURN = {
      <circle cx="38" cy="-90" r="8" fill="#5ee0c4"/>` },
 };
 
-function roomSVG(s, { vb = `0 0 ${ROOM_W} ${ROOM_H}`, standalone = false, scale = 1, aspect = 'xMidYMax slice' } = {}) {
+function roomSVG(s, { vb = `0 0 ${ROOM_W} ${ROOM_H}`, standalone = false, scale = 1, aspect = 'xMidYMax slice', guests = [] } = {}) {
   const r = s.room, wall = r.wall, fl = (FLOORS[r.floor] || FLOORS.oak).c;
   let o = `<defs>${baseDefs()}
     <linearGradient id="wallG" x1="0" x2="1"><stop offset="0" stop-color="${shade(wall, -0.14)}"/><stop offset=".28" stop-color="${wall}"/><stop offset=".78" stop-color="${wall}"/><stop offset="1" stop-color="${shade(wall, -0.08)}"/></linearGradient>
@@ -2066,6 +2186,7 @@ function roomSVG(s, { vb = `0 0 ${ROOM_W} ${ROOM_H}`, standalone = false, scale 
   const floor = r.items.filter(i => FURN[i.k]?.layer === 'floor').map(i => ({ y: i.y, svg: place(i, `<ellipse cx="0" cy="0" rx="${(FURN[i.k].w || 150) * 0.46}" ry="10" fill="#000" opacity=".13" filter="url(#fShadow)"/>` + FURN[i.k].draw()) }));
   const d = r.doll, sc = depth(d.y), dw = DOLL_H * 400 / 820;
   floor.push({ y: d.y, svg: `<g data-doll="1" transform="translate(${d.x.toFixed(1)},${d.y.toFixed(1)}) scale(${sc.toFixed(3)})"><svg x="${(-dw / 2).toFixed(1)}" y="${(-DOLL_H * 802 / 820).toFixed(1)}" width="${dw.toFixed(1)}" height="${DOLL_H}" viewBox="0 0 400 820" overflow="visible">${renderDoll(s, { inner: true })}</svg></g>` });
+  guests.forEach((g, i) => floor.push({ y: g.y, svg: dollAt(g.s, g.x, g.y, `gu${i}-`) }));
   floor.sort((a, b) => a.y - b.y).forEach(f => { o += f.svg; });
   const size = standalone ? ` width="${ROOM_W * scale}" height="${ROOM_H * scale}"` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" class="suite-room" viewBox="${vb}"${size} preserveAspectRatio="${aspect}">${o}</svg>`;
@@ -2263,6 +2384,8 @@ function update(pop = false) {
   renderTopbar();
   if (view === 'shop') renderShop();
   if (view === 'contests') renderContests();
+  if (view === 'events' && evMode === 'detail') renderEvents();
+  if (preparing) renderPrepBar();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => lsSet(LS_CUR, state), 250);
 }
@@ -2277,6 +2400,8 @@ function setView(v) {
   if (v === 'home') renderHome();
   if (v === 'shop') renderShop();
   if (v === 'contests') renderContests();
+  if (v === 'events') { if (evMode === 'play' && !evSel) evMode = 'list'; renderEvents(); if (evMode === 'play') renderPlay(); }
+  if (v === 'chat') { renderChat(); Promise.all([ensureRoom(), ensureSample()]).then(() => { if (view === 'chat') renderChat(); }); }
   window.scrollTo({ top: 0 });
   refreshUI();
 }
@@ -2352,9 +2477,9 @@ function applyPreset(name, doUpdate = true) {
 
 
 // ---------- snapshots ----------
-async function snapshot(s, { scale = 1.6, caption = '', type = 'image/png', quality = 0.9 } = {}) {
+async function snapshot(s, { scale = 1.6, caption = '', type = 'image/png', quality = 0.9, svg: sceneSvg = null } = {}) {
   UID = 0;
-  const svg = roomSVG(s, { standalone: true, scale: 1 });
+  const svg = sceneSvg || roomSVG(s, { standalone: true, scale: 1 });
   const img = new Image();
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
   try {
@@ -2478,6 +2603,7 @@ const GUIDE = [
   () => `Head to the <b>Beauty Parlor</b> to change her hair, eyes and makeup.`,
   () => `Click <b>My Suite</b> to decorate. Drag the furniture and your starlet around, and pick a wall colour.`,
   () => `Win coins and fame in <b>Contests</b>, then spend your coins in the <b>Shop</b> on new clothes for her wardrobe.`,
+  () => `Check <b>Events</b> for invitations: book club, coffee dates, balls, the Grand Gala and more. Your friends text you in <b>Chat</b>.`,
   () => `Love the look? Use the <b>Camera</b> to save a photo to My Album. Make yourself at home, see you soon!`,
 ];
 let guideStep = 0;
@@ -2596,7 +2722,7 @@ function heroSVG() {
   let dolls = '';
   order.forEach((id, i) => {
     const cx = 120 + i * 192, y = 26 + (i % 2) * 14;
-    dolls += `<svg x="${cx - W / 2}" y="${y}" width="${W}" height="${H}" viewBox="0 0 400 820">${renderDoll(signatureState(id), { inner: true })}</svg>`;
+    dolls += `<svg x="${cx - W / 2}" y="${y}" width="${W}" height="${H}" viewBox="0 0 400 820">${scope(renderDoll(signatureState(id), { inner: true }), 'h' + i + '-')}</svg>`;
   });
   heroCache = scope(`<svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><defs>
     <linearGradient id="hs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3f3"/><stop offset="1" stop-color="#eaf6fb"/></linearGradient>
@@ -2788,6 +2914,466 @@ function showResult(res, animate) {
   }
 }
 
+// =====================================================================
+// Social life: events at venues around Starlife
+// =====================================================================
+// a doll placed in a scene; each one gets its own id namespace so several can share an SVG
+function dollAt(s, x, y, pfx, attrs = '') {
+  const sc = depth(y), dw = DOLL_H * 400 / 820;
+  return `<g ${attrs} transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${sc.toFixed(3)})"><svg x="${(-dw / 2).toFixed(1)}" y="${(-DOLL_H * 802 / 820).toFixed(1)}" width="${dw.toFixed(1)}" height="${DOLL_H}" viewBox="0 0 400 820" overflow="visible">${scope(renderDoll(s, { inner: true }), pfx)}</svg></g>`;
+}
+function floorBoards(c1, c2, y0 = FLOOR_Y) {
+  const rr = rng(31); let p = '';
+  for (let k = 1; k <= 12; k++) {
+    const y = y0 + (ROOM_H - y0) * Math.pow(k / 12, 1.45), prev = y0 + (ROOM_H - y0) * Math.pow((k - 1) / 12, 1.45);
+    p += `<path d="M0,${y.toFixed(1)} H1000" stroke="#000" stroke-opacity=".1"/>`;
+    for (let x = rr() * 200; x < 1000; x += 160 + rr() * 140) p += `<path d="M${x.toFixed(0)},${prev.toFixed(1)} V${y.toFixed(1)}" stroke="#000" stroke-opacity=".08"/>`;
+  }
+  return `<rect y="${y0}" width="1000" height="${ROOM_H - y0}" fill="url(#evFloor)"/><linearGradient id="evFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c2}"/><stop offset="1" stop-color="${c1}"/></linearGradient>${p}`;
+}
+function checker(a, b, y0 = FLOOR_Y) {
+  let t = `<rect y="${y0}" width="1000" height="${ROOM_H - y0}" fill="${a}"/>`;
+  for (let r = 0; r < 6; r++) {
+    const y1 = y0 + (ROOM_H - y0) * Math.pow(r / 6, 1.3), y2 = y0 + (ROOM_H - y0) * Math.pow((r + 1) / 6, 1.3);
+    for (let c = -8; c < 9; c++) {
+      if ((r + c) % 2) continue;
+      const k1 = 0.55 + r * 0.075, k2 = 0.55 + (r + 1) * 0.075, w = 80;
+      t += `<path d="M${500 + c * w * k1},${y1.toFixed(1)} L${500 + (c + 1) * w * k1},${y1.toFixed(1)} L${500 + (c + 1) * w * k2},${y2.toFixed(1)} L${500 + c * w * k2},${y2.toFixed(1)} Z" fill="${b}"/>`;
+    }
+  }
+  return t;
+}
+const sky = (a, b, c) => `<linearGradient id="evSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".6" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient><rect width="1000" height="${FLOOR_Y}" fill="url(#evSky)"/>`;
+const skyline = (col, base = 444, seed = 3) => { const r = rng(seed); let s = ''; for (let x = 0; x < 1000;) { const w = 30 + r() * 60, h = 60 + r() * 180; s += `<rect x="${x.toFixed(0)}" y="${(base - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${col}"/>`; for (let y = base - h + 8; y < base - 10; y += 16) if (r() > .45) s += `<rect x="${(x + 6).toFixed(0)}" y="${y.toFixed(0)}" width="5" height="6" fill="#ffe7a3" opacity=".8"/>`; x += w + 2; } return s; };
+const fairy = (y, sag, col = '#ffe39a') => { let s = `<path d="M0,${y} Q250,${y + sag} 500,${y} Q750,${y + sag} 1000,${y}" fill="none" stroke="#333" stroke-width="1.2" opacity=".5"/>`; for (let i = 0; i <= 40; i++) { const x = i * 25, t = (x % 500) / 500, yy = y + sag * 2 * t * (1 - t) * 1; s += `<circle cx="${x}" cy="${(yy + 4).toFixed(1)}" r="4" fill="${col}"/><circle cx="${x}" cy="${(yy + 4).toFixed(1)}" r="9" fill="${col}" opacity=".25"/>`; } return s; };
+const chandelier = (x, y, s = 1) => `<g transform="translate(${x},${y}) scale(${s})"><path d="M0,-${y / s} V0" stroke="#c9a24a" stroke-width="2"/><path d="M-70,10 Q0,50 70,10 M-46,0 Q0,30 46,0" fill="none" stroke="#c9a24a" stroke-width="4"/>${[-70, -46, -22, 0, 22, 46, 70].map((cx, i) => `<path d="M${cx},${i % 2 ? 0 : 10} v18" stroke="#c9a24a" stroke-width="2"/><circle cx="${cx}" cy="${(i % 2 ? 0 : 10) + 22}" r="5" fill="#fff7d6"/><circle cx="${cx}" cy="${(i % 2 ? 0 : 10) + 22}" r="14" fill="#fff3b0" opacity=".3"/>`).join('')}</g>`;
+
+// props that only appear at venues (anchor bottom-centre, like furniture)
+const PROPS = {
+  bistro: { w: 150, draw: () => `<path d="M-60,0 L-52,-60 M-30,0 L-38,-60" stroke="#2b2b2b" stroke-width="3"/><path d="M-66,-62 h44 M-58,-62 v-46 h28 v46" fill="none" stroke="#2b2b2b" stroke-width="3"/>
+      <rect x="-3" y="-80" width="6" height="80" fill="#2b2b2b"/><ellipse cx="0" cy="-2" rx="22" ry="5" fill="#2b2b2b"/><ellipse cx="0" cy="-82" rx="46" ry="10" fill="#f2efe9" stroke="#bdb6aa"/>
+      <path d="M-14,-92 h14 v-12 h-14 z" fill="#fff" stroke="#c9c0b2"/><path d="M10,-90 q6,-14 12,0 z" fill="#d38b5d"/><path d="M60,0 L52,-60 M30,0 L38,-60" stroke="#2b2b2b" stroke-width="3"/>` },
+  bar: { w: 380, draw: () => `<rect x="-190" y="-120" width="380" height="120" fill="#3b2a4a"/><rect x="-200" y="-132" width="400" height="14" rx="4" fill="#e9d8f5"/>
+      ${[-150, -70, 10, 90, 160].map(x => `<path d="M${x},-132 l-6,-24 h18 l-6,24 z" fill="${['#ff9ec4', '#9ee6d5', '#ffd166', '#c8a6ff', '#ff9ec4'][(x + 150) / 80 | 0] || '#ffd166'}" opacity=".9"/><circle cx="${x + 4}" cy="-158" r="3" fill="#ff4f8b"/>`).join('')}
+      <rect x="-190" y="-60" width="380" height="4" fill="#ffd166" opacity=".7"/>` },
+  dj: { w: 300, draw: () => `<rect x="-150" y="-110" width="300" height="110" rx="6" fill="#1d1730"/><rect x="-150" y="-110" width="300" height="10" fill="#ff4f8b"/>
+      <circle cx="-70" cy="-112" r="26" fill="#2c2440" stroke="#555"/><circle cx="70" cy="-112" r="26" fill="#2c2440" stroke="#555"/>
+      <text x="0" y="-50" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" font-size="22" fill="#5ee0c4">DJ STELLA</text>` },
+  speaker: { w: 90, draw: () => `<rect x="-40" y="-190" width="80" height="190" rx="6" fill="#141018"/><circle cx="0" cy="-140" r="22" fill="#2a2333" stroke="#444"/><circle cx="0" cy="-60" r="30" fill="#2a2333" stroke="#444"/>` },
+  longtable: { w: 760, draw: () => `<rect x="-380" y="-96" width="760" height="96" fill="#fbf8f2"/><path d="M-380,-96 h760 l14,14 h-788 z" fill="#fff"/>
+      ${Array.from({ length: 9 }, (_, i) => `<ellipse cx="${-320 + i * 80}" cy="-100" rx="22" ry="5" fill="#fff" stroke="#d9cfbd"/>`).join('')}
+      ${Array.from({ length: 5 }, (_, i) => `<rect x="${-284 + i * 140}" y="-150" width="6" height="50" fill="#f3e6c4"/><path d="M${-281 + i * 140},-162 q5,8 0,12 q-5,-4 0,-12 z" fill="#ffb347"/><circle cx="${-281 + i * 140}" cy="-156" r="12" fill="#ffd27a" opacity=".3"/>`).join('')}
+      <path d="M-380,-60 h760" stroke="#e8dfcc" stroke-width="2"/>` },
+  bush: { w: 140, draw: () => `<ellipse cx="0" cy="-40" rx="70" ry="44" fill="#3f8a4a"/><ellipse cx="-30" cy="-60" rx="40" ry="32" fill="#4f9c57"/><ellipse cx="30" cy="-56" rx="42" ry="30" fill="#4a9552"/>
+      ${[[-40, -70], [-10, -82], [26, -74], [48, -46], [-56, -40], [8, -46], [-24, -30], [36, -24]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="7" fill="${['#ffb3cd', '#fff', '#ffd166', '#ff8fb3'][i % 4]}"/>`).join('')}` },
+  urn: { w: 110, draw: () => `<path d="M-30,0 L-24,-20 Q-50,-60 -30,-90 L30,-90 Q50,-60 24,-20 L30,0 Z" fill="#efe8d8" stroke="#c9bfa8"/><ellipse cx="0" cy="-120" rx="52" ry="40" fill="#3d7a46"/><ellipse cx="-20" cy="-140" rx="30" ry="24" fill="#4f9c57"/>` },
+  rope: { w: 260, draw: () => `<rect x="-130" y="-90" width="8" height="90" fill="#c9a24a"/><rect x="122" y="-90" width="8" height="90" fill="#c9a24a"/><circle cx="-126" cy="-94" r="9" fill="#e2c46a"/><circle cx="126" cy="-94" r="9" fill="#e2c46a"/><path d="M-120,-84 Q0,-30 120,-84" fill="none" stroke="#a5162f" stroke-width="8" stroke-linecap="round"/>` },
+  photog: { w: 120, draw: () => `<path d="M-30,0 L-26,-90 Q-30,-150 0,-150 Q30,-150 26,-90 L30,0 Z" fill="#20202a"/><circle cx="0" cy="-170" r="22" fill="#2c2c36"/>
+      <rect x="10" y="-170" width="40" height="28" rx="4" fill="#3a3a44"/><circle cx="34" cy="-156" r="9" fill="#111" stroke="#666"/><path d="M50,-182 l14,-14 M56,-170 h20 M50,-160 l14,10" stroke="#fff6c9" stroke-width="3"/><circle cx="58" cy="-176" r="16" fill="#fff" opacity=".55"/>` },
+  crowd: { w: 1000, draw: () => { const r = rng(12); let s = ''; for (let row = 0; row < 3; row++) for (let i = 0; i < 26; i++) { const x = -500 + i * 40 + r() * 10, y = -row * 26; s += `<circle cx="${x.toFixed(0)}" cy="${(y - 36).toFixed(0)}" r="13" fill="${['#2a2338', '#3a3049', '#241e30'][row]}"/><rect x="${(x - 16).toFixed(0)}" y="${(y - 24).toFixed(0)}" width="32" height="40" rx="12" fill="${['#2a2338', '#3a3049', '#241e30'][row]}"/>`; } return s; } },
+};
+const propDraw = k => (PROPS[k] || FURN[k]).draw();
+const propW = k => (PROPS[k] || FURN[k]).w || 150;
+
+// each venue: a backdrop, plus props that get depth-sorted with the people
+const VENUES = {
+  bookshop: { bg: () => {
+      let s = `<linearGradient id="vw" x1="0" x2="1"><stop offset="0" stop-color="#6b4230"/><stop offset=".5" stop-color="#8a5a43"/><stop offset="1" stop-color="#6b4230"/></linearGradient><rect width="1000" height="${FLOOR_Y}" fill="url(#vw)"/>`;
+      const r = rng(8);
+      for (let u = 0; u < 4; u++) {
+        const x0 = 22 + u * 245;
+        s += `<rect x="${x0}" y="36" width="224" height="408" fill="#4a2a1d"/>`;
+        for (let sh = 0; sh < 5; sh++) {
+          const base = 112 + sh * 72;
+          for (let x = x0 + 10; x < x0 + 210;) { const w = 9 + r() * 9, h = 40 + r() * 22; s += `<rect x="${x.toFixed(0)}" y="${(base - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${['#c94f5c', '#e9b44c', '#4f7a9c', '#5e9c76', '#f2e3c6', '#9b5de5', '#2b3a67'][Math.floor(r() * 7)]}"/>`; x += w + 1; }
+          s += `<rect x="${x0}" y="${base}" width="224" height="8" fill="#5f3826"/>`;
+        }
+      }
+      return s + `<rect y="${WALL_Y}" width="1000" height="14" fill="#4a2a1d"/>` + floorBoards('#9b6b4a', '#7a5038');
+    }, props: [['rug', 500, 575], ['armchair', 160, 602], ['floorlamp', 70, 600], ['plant', 930, 596]] },
+  cafe: { bg: () => {
+      let s = `<rect width="1000" height="${FLOOR_Y}" fill="#f4e7d4"/><rect y="290" width="1000" height="154" fill="#86a89a"/>${Array.from({ length: 34 }, (_, i) => `<path d="M${i * 30},290 V444" stroke="#6f9384"/>`).join('')}
+        <rect x="80" y="60" width="270" height="180" rx="6" fill="#2f3a35" stroke="#a0714f" stroke-width="10"/>
+        <text x="215" y="102" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-size="28" fill="#fff">Menu</text>
+        ${['Latte ........ 4', 'Matcha ...... 5', 'Hot cocoa ... 4', 'Croissant .... 3'].map((t, i) => `<text x="110" y="${138 + i * 26}" font-family="DM Sans,sans-serif" font-size="17" fill="#f4efe6">${t}</text>`).join('')}
+        <rect x="600" y="50" width="320" height="220" fill="#fff" stroke="#e2dfda" stroke-width="8"/><rect x="608" y="58" width="304" height="204" fill="url(#skyG)"/>${skyline('#c7c1d6', 262, 9)}
+        <rect x="604" y="150" width="312" height="6" fill="#fff"/><rect x="756" y="54" width="6" height="212" fill="#fff"/>
+        ${[200, 500, 800].map(x => `<path d="M${x},0 V70" stroke="#333"/><path d="M${x - 30},100 Q${x},50 ${x + 30},100 Z" fill="#2f3a35"/><ellipse cx="${x}" cy="100" rx="30" ry="5" fill="#ffe39a"/><ellipse cx="${x}" cy="130" rx="60" ry="40" fill="#fff3c4" opacity=".18"/>`).join('')}`;
+      s += `<rect x="40" y="330" width="380" height="114" fill="#a0714f"/><rect x="30" y="318" width="400" height="16" rx="4" fill="#ece5da"/><rect x="300" y="262" width="80" height="56" rx="6" fill="#c9ccd1"/><rect x="320" y="282" width="40" height="8" fill="#555"/><path d="M90,318 v-20 h22 v20" fill="#fff" stroke="#ccc"/><path d="M130,318 v-26 h22 v26" fill="#fff" stroke="#ccc"/>`;
+      return s + checker('#f7f4ee', '#2f3a35');
+    }, props: [['bistro', 220, 598], ['bistro', 760, 590], ['plant', 940, 600]] },
+  rooftop: { bg: () => sky('#8f6bd9', '#ff9a8b', '#ffd59a') + `<circle cx="760" cy="300" r="70" fill="#ffe2a8" opacity=".9"/>` + skyline('#4b3a6b', 420, 5) + skyline('#3a2c55', 444, 6) + fairy(60, 70) + fairy(140, 50, '#fff') +
+      `<rect y="372" width="1000" height="72" fill="#cfe8f2" opacity=".35"/>${Array.from({ length: 11 }, (_, i) => `<rect x="${i * 100}" y="368" width="6" height="76" fill="#8a7fa0"/>`).join('')}<rect y="364" width="1000" height="8" fill="#8a7fa0"/>` + floorBoards('#b98f6a', '#8e6a4c'),
+    props: [['bar', 210, 560], ['sofa', 800, 600], ['plant', 960, 598]] },
+  club: { bg: () => `<rect width="1000" height="${FLOOR_Y}" fill="#140d24"/>
+      ${[[150, '#ff4f8b'], [380, '#5ee0c4'], [620, '#ffd166'], [850, '#9b6bf2']].map(([x, c]) => `<path d="M${x},0 L${x - 160},${FLOOR_Y} L${x + 60},${FLOOR_Y} Z" fill="${c}" opacity=".16"/>`).join('')}
+      <text x="500" y="150" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-weight="700" font-size="74" fill="none" stroke="#ff4f8b" stroke-width="4">Starlife</text>
+      <text x="500" y="150" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-weight="700" font-size="74" fill="none" stroke="#ff4f8b" stroke-width="14" opacity=".25"/>
+      <path d="M500,0 V40" stroke="#888"/><circle cx="500" cy="70" r="34" fill="#c0c5d6"/>${Array.from({ length: 6 }, (_, i) => `<path d="M466,${46 + i * 10} H534 M${472 + i * 11},38 V102" stroke="#fff" stroke-width=".8" opacity=".6"/>`).join('')}
+      ${(() => { let t = ''; const cols = ['#ff4f8b', '#5ee0c4', '#ffd166', '#9b6bf2']; for (let r = 0; r < 5; r++) for (let c = 0; c < 12; c++) { const y1 = FLOOR_Y + r * 36, x1 = c * 84 - r * 4; t += `<rect x="${x1}" y="${y1}" width="82" height="34" fill="${cols[(r + c) % 4]}" opacity="${((r * 7 + c * 3) % 5) / 10 + 0.2}"/>`; } return `<rect y="${FLOOR_Y}" width="1000" height="176" fill="#1d1430"/>` + t; })()}`,
+    props: [['dj', 500, 470], ['speaker', 120, 520], ['speaker', 880, 520]] },
+  ballroom: { bg: () => `<linearGradient id="vw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6ecd2"/><stop offset="1" stop-color="#e6d3a6"/></linearGradient><rect width="1000" height="${FLOOR_Y}" fill="url(#vw)"/>
+      ${[120, 380, 620, 880].map(x => `<path d="M${x - 70},400 V170 A70,70 0 0 1 ${x + 70},170 V400 Z" fill="#26305a"/><path d="M${x - 70},400 V170 A70,70 0 0 1 ${x + 70},170 V400 Z" fill="none" stroke="#c9a24a" stroke-width="6"/><circle cx="${x - 30}" cy="200" r="2" fill="#fff"/><circle cx="${x + 20}" cy="250" r="1.5" fill="#fff"/><path d="M${x},100 V400" stroke="#c9a24a" stroke-width="3"/>`).join('')}
+      ${[0, 250, 500, 750, 1000].map(x => `<rect x="${x - 18}" y="40" width="36" height="404" fill="#fbf4e2" stroke="#d9c38a"/>`).join('')}
+      ${chandelier(250, 70)}${chandelier(750, 70)}${chandelier(500, 110, 1.3)}` + checker('#f7f1e3', '#d6c7a3'),
+    props: [['urn', 60, 590], ['urn', 940, 590]] },
+  banquet: { bg: () => `<rect width="1000" height="${FLOOR_Y}" fill="#5a1726"/>${Array.from({ length: 25 }, (_, i) => `<rect x="${i * 40}" width="20" height="${FLOOR_Y}" fill="#7a2234" opacity=".7"/>`).join('')}
+      <path d="M0,0 Q250,120 500,0 Q750,120 1000,0 V30 Q750,150 500,30 Q250,150 0,30 Z" fill="#8f2a3e"/>${chandelier(300, 80)}${chandelier(700, 80)}` + floorBoards('#5e3a2b', '#3d241a'),
+    props: [['longtable', 500, 470], ['urn', 50, 600], ['urn', 950, 600]] },
+  garden: { bg: () => sky('#7ec2f0', '#bfe3fb', '#e9f6ff') + `${[80, 230, 420, 610, 790, 940].map((x, i) => `<circle cx="${x}" cy="${260 - (i % 2) * 30}" r="${90 + (i % 3) * 20}" fill="${i % 2 ? '#5a9a5f' : '#4a8a50'}"/>`).join('')}
+      <path d="M380,330 L500,250 L620,330 Z" fill="#fff"/><rect x="390" y="330" width="220" height="114" fill="#fffaf2"/><path d="M390,330 Q445,360 500,330 Q555,360 610,330" fill="none" stroke="#e7dccb" stroke-width="3"/>
+      <rect y="360" width="1000" height="84" fill="#3f7a46"/>${Array.from({ length: 50 }, (_, i) => `<circle cx="${i * 20 + 10}" cy="362" r="14" fill="#4a8a50"/>`).join('')}` + fairy(40, 90) +
+      `<linearGradient id="evFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cbf6e"/><stop offset="1" stop-color="#5fa356"/></linearGradient><rect y="${FLOOR_Y}" width="1000" height="${ROOM_H - FLOOR_Y}" fill="url(#evFloor)"/>${Array.from({ length: 10 }, (_, i) => `<rect x="${i * 100}" y="${FLOOR_Y}" width="50" height="${ROOM_H - FLOOR_Y}" fill="#fff" opacity=".06"/>`).join('')}`,
+    props: [['bush', 90, 580], ['bush', 910, 586], ['sidetable', 300, 560]] },
+  gala: { bg: () => `<linearGradient id="vw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e7e2da"/><stop offset="1" stop-color="#cfc6b8"/></linearGradient><rect width="1000" height="${FLOOR_Y}" fill="url(#vw)"/>
+      <path d="M330,444 L380,200 L620,200 L670,444 Z" fill="#f2ede4"/>${Array.from({ length: 12 }, (_, i) => `<path d="M${330 + i * 4.2},${444 - i * 20.3} H${670 - i * 4.2}" stroke="#d6cdbf" stroke-width="2"/>`).join('')}<path d="M440,444 L470,200 L530,200 L560,444 Z" fill="#a5162f"/>
+      <rect x="60" y="80" width="180" height="230" fill="#c9a24a"/><rect x="74" y="94" width="152" height="202" fill="#2b3a67"/><circle cx="150" cy="170" r="44" fill="#ffd166"/><path d="M90,296 Q150,200 210,296 Z" fill="#ff4f8b"/>
+      <rect x="760" y="80" width="180" height="230" fill="#c9a24a"/><rect x="774" y="94" width="152" height="202" fill="#3f7a6b"/><path d="M790,280 L850,120 L910,280 Z" fill="#f2e3c6"/><circle cx="850" cy="200" r="20" fill="#c94f5c"/>
+      ${[290, 710].map(x => `<rect x="${x - 22}" y="20" width="44" height="424" fill="#f7f2e9" stroke="#d6cdbf"/>`).join('')}
+      <text x="500" y="160" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-size="34" fill="#5a4a3a">The Grand Gala</text>` + checker('#f4efe6', '#d8cfbf'),
+    props: [['rope', 230, 560], ['rope', 770, 560], ['urn', 50, 600], ['urn', 950, 600]] },
+  awards: { bg: () => {
+      let s = `<rect width="1000" height="${FLOOR_Y}" fill="#1f1b2e"/>`;
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) s += `<g transform="translate(${c * 180 + (r % 2) * 90 - 20},${50 + r * 66})"><circle r="16" fill="#ff4f8b"/><path d="M0,-9 l2.6,5.4 5.9.8-4.3,4.1 1,5.9L0,9.4l-5.2,2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/><text x="24" y="6" font-family="DM Sans,sans-serif" font-weight="700" font-size="15" fill="#fff" opacity=".85">STARLIFE AWARDS</text></g>`;
+      return s + `<rect y="${FLOOR_Y}" width="1000" height="${ROOM_H - FLOOR_Y}" fill="#2a2433"/><path d="M380,${FLOOR_Y} L620,${FLOOR_Y} L760,620 L240,620 Z" fill="#b3132c"/><path d="M380,${FLOOR_Y} L620,${FLOOR_Y} L630,460 L370,460 Z" fill="#8e0f24"/>`;
+    }, props: [['photog', 90, 610], ['photog', 900, 612], ['rope', 230, 560], ['rope', 770, 560]] },
+  runway: { bg: () => `<rect width="1000" height="${FLOOR_Y}" fill="#18141f"/>${[200, 500, 800].map(x => `<path d="M${x},0 L${x - 120},${FLOOR_Y} L${x + 120},${FLOOR_Y} Z" fill="#fff" opacity=".06"/>`).join('')}
+      <rect x="350" y="120" width="300" height="324" fill="#26212f"/><text x="500" y="200" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-weight="700" font-size="48" fill="#fff">SLFW</text><text x="500" y="232" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="15" letter-spacing="4" fill="#ff8fb3">STARLIFE FASHION WEEK</text>
+      <rect y="${FLOOR_Y}" width="1000" height="${ROOM_H - FLOOR_Y}" fill="#221c2b"/><path d="M420,${FLOOR_Y} L580,${FLOOR_Y} L700,620 L300,620 Z" fill="#f2eef6"/>`,
+    props: [['crowd', 170, 470], ['crowd', 830, 470]] },
+};
+
+const LOOKS = {
+  casual: [{ top: 'tee', bottom: 'jeans', shoes: 'sneakers' }, { top: 'breton', bottom: 'shorts', shoes: 'flats' }, { dress: 'sundress', shoes: 'sandals' }, { top: 'turtle', bottom: 'pleated', shoes: 'flats' }],
+  night: [{ dress: 'sequin', shoes: 'pumps', earrings: 'drops' }, { top: 'corset', bottom: 'jeans', shoes: 'ankleboots', outer: 'biker' }, { dress: 'slip', shoes: 'pumps' }, { top: 'cami', bottom: 'mini', shoes: 'kneeboots', necklace: 'choker' }],
+  formal: [{ dress: 'gown', hat: 'tiara' }, { dress: 'lbd', shoes: 'pumps', necklace: 'pearls' }, { dress: 'slip', shoes: 'pumps', earrings: 'drops' }, { dress: 'sequin', shoes: 'pumps', bag: 'clutch' }],
+  chic: [{ top: 'blouse', bottom: 'wide', shoes: 'pumps' }, { dress: 'wrap', shoes: 'flats' }, { top: 'turtle', bottom: 'pencil', outer: 'trench', shoes: 'ankleboots' }, { top: 'breton', bottom: 'pleated', shoes: 'flats', hat: 'beret' }],
+};
+const mk = {
+  natural: m => (m.shadow.style === 'none' || m.shadow.opacity < 0.5 ? 7 : 0) + (m.lips.finish !== 'metallic' ? 4 : 0) + (m.blush.color !== 'none' ? 4 : 0),
+  glam: m => (m.lips.color !== 'none' && m.lips.opacity >= 0.7 ? 7 : 0) + (['volume', 'dramatic'].includes(m.mascara) ? 4 : 0) + (m.highlight.opacity >= 0.4 ? 4 : 0),
+  night: m => (['smoky', 'winged', 'halo'].includes(m.shadow.style) ? 7 : 0) + (['winged', 'cat', 'smudged'].includes(m.liner.style) ? 5 : 0) + (m.mascara !== 'none' ? 3 : 0),
+  editorial: m => (m.lips.finish === 'metallic' || m.shadow.style === 'halo' ? 8 : 0) + (m.highlight.opacity >= 0.5 ? 4 : 0) + (m.contour.opacity >= 0.3 ? 3 : 0),
+};
+const ch = (l, fame, say) => ({ l, fame, say });
+const EVENTS = [
+  { id: 'bookclub', name: 'Book Club Reading', venue: 'bookshop', when: 'Mon · 6pm', vibe: 'casual', tags: ['chic', 'casual'], tip: 'Soft, natural makeup', makeup: mk.natural, title: 'Bookworm Chic', host: 'Noor',
+    desc: 'Tea, cushions and this month\'s mystery novel at The Turning Page bookshop.', guests: ['noor', 'mina', 'ivy'],
+    moments: [
+      { text: 'Noor taps her cup. "So… who guessed the twist before the last chapter?"', choices: [ch('"I did, the gardener!"', 8, 'Everyone gasps. You were right!'), ch('Read your favourite quote aloud', 6, 'Mina writes it in her notebook.'), ch('Admit you skipped to the end', 4, 'Ivy laughs: "Me too, honestly."')] },
+      { text: 'A cat jumps onto the shelf and books start to wobble.', choices: [ch('Catch the falling books', 7, 'Saved! The shopkeeper gives you a bookmark.'), ch('Scoop up the cat for cuddles', 6, 'It purrs and naps on your lap.'), ch('Snap a photo for later', 4, 'A very cute picture.')] },
+      { text: 'Time to pick next month\'s book.', choices: [ch('Suggest a fashion biography', 6, 'Ivy approves loudly.'), ch('Suggest a fairy tale retelling', 7, 'The vote is unanimous.'), ch('Let Noor choose', 5, 'Noor beams and picks a classic.')] }] },
+  { id: 'coffee', name: 'Coffee Date', venue: 'cafe', when: 'Tue · 10am', vibe: 'casual', tags: ['casual', 'summer'], tip: 'Fresh face and rosy cheeks', makeup: mk.natural, title: 'Café Darling', host: 'Mina',
+    desc: 'Catch up with Mina over lattes and croissants at Bean & Bloom.', guests: ['mina', 'aria'],
+    moments: [
+      { text: 'The barista asks for your order.', choices: [ch('Matcha latte with oat milk', 6, 'Very green, very good.'), ch('Hot cocoa with extra marshmallows', 7, 'Mina orders the same.'), ch('Surprise me!', 5, 'You get a lavender honey latte.')] },
+      { text: 'Mina shows you dance practice videos on her phone.', choices: [ch('Learn the chorus move', 8, 'You nail it on the second try.'), ch('Hype her up', 6, '"You\'re the best!" she squeals.'), ch('Suggest matching outfits for her show', 7, 'She is SO in.')] },
+      { text: 'Last croissant on the plate…', choices: [ch('Split it in half', 7, 'Friendship goals.'), ch('Let Mina have it', 6, 'She saves you the flaky top.'), ch('Order two more', 5, 'The best kind of problem.')] }] },
+  { id: 'rooftop', name: 'Rooftop Lounge', venue: 'rooftop', when: 'Wed · 7pm', vibe: 'chic', tags: ['night', 'chic'], tip: 'A winged eye', makeup: mk.night, title: 'Sunset Icon', host: 'Luz',
+    desc: 'Sunset mocktails and city views at the Skyline Terrace.', guests: ['luz', 'zuri', 'ivy'],
+    moments: [
+      { text: 'The bartender slides over the mocktail menu.', choices: [ch('Pink lemonade fizz', 6, 'It sparkles in the sunset.'), ch('Mango passion spritz', 6, 'Tropical and delicious.'), ch('Ask for the secret special', 8, 'It changes colour when you stir it!')] },
+      { text: 'Luz says the sunset would make a perfect movie scene.', choices: [ch('Act out a dramatic scene together', 8, 'Strangers applaud.'), ch('Take a golden-hour photo', 7, 'The lighting is unreal.'), ch('Just enjoy the view', 5, 'Peaceful and pretty.')] },
+      { text: 'The string lights flicker on as the music starts.', choices: [ch('Start a slow dance', 7, 'Zuri joins in.'), ch('Request your favourite song', 6, 'The DJ plays it next.'), ch('Make a wish on the first star', 6, 'Shh, it\'s a secret.')] }] },
+  { id: 'club', name: 'Club Night', venue: 'club', when: 'Fri · 9pm', vibe: 'night', tags: ['night', 'edgy', 'glam'], tip: 'Smoky eyes and bold liner', makeup: mk.night, title: 'Queen of the Dance Floor', host: 'Zuri',
+    desc: 'DJ Stella is spinning all night at Neon Garden. Bring your best moves.', guests: ['zuri', 'luz', 'aria'],
+    moments: [
+      { text: 'The beat drops and the floor lights up.', choices: [ch('Hit the dance floor first', 8, 'Everyone follows your lead.'), ch('Start a dance circle', 7, 'Aria does a spin in the middle.'), ch('Wave to DJ Stella', 5, 'She gives you a shout-out!')] },
+      { text: 'Aria wants a dance battle.', choices: [ch('Accept, show off your best move', 8, 'The crowd goes wild.'), ch('Team up instead', 7, 'A perfectly synced duo.'), ch('Be the judge', 5, 'You call it a tie.')] },
+      { text: 'Last song of the night!', choices: [ch('Group photo under the disco ball', 7, 'Sparkles everywhere.'), ch('Dance until the lights come up', 8, 'Legendary.'), ch('Grab a lemonade and cool down', 5, 'Refreshing.')] }] },
+  { id: 'house', name: 'House Party', venue: 'house', when: 'Sat · 8pm', vibe: 'casual', tags: ['casual', 'night'], tip: 'Fun, glowy makeup', makeup: mk.glam, title: 'Hostess with the Mostest', host: 'You',
+    desc: 'You\'re hosting! Your friends come over to your suite. Decorate it first, it counts.', guests: ['aria', 'zuri', 'mina', 'noor'],
+    moments: [
+      { text: 'Ding dong! Your friends arrive at the door.', choices: [ch('Give the grand tour', 7, '"Your suite is gorgeous!"'), ch('Put on a playlist', 6, 'Instant party mood.'), ch('Bring out snacks', 7, 'The popcorn is gone in minutes.')] },
+      { text: 'Zuri suggests a game.', choices: [ch('Karaoke!', 8, 'Aria hits the high note.'), ch('Fashion show in the living room', 8, 'The rug becomes a runway.'), ch('Charades', 6, 'Mina wins with a perfect penguin.')] },
+      { text: 'It\'s getting late.', choices: [ch('Movie night with blankets', 7, 'Everyone falls asleep halfway through.'), ch('Make friendship bracelets', 7, 'You trade them before saying goodbye.'), ch('Plan the next party', 6, 'Same time next week?')] }] },
+  { id: 'garden', name: 'Garden Party', venue: 'garden', when: 'Sun · 2pm', vibe: 'chic', tags: ['summer', 'chic'], tip: 'Glossy lips and a soft flush', makeup: mk.natural, title: 'Garden Party Darling', host: 'Noor',
+    desc: 'Lemonade, flower crowns and croquet on the lawn.', guests: ['noor', 'ivy', 'mina'],
+    moments: [
+      { text: 'There\'s a table of flowers for making crowns.', choices: [ch('Weave a daisy crown', 7, 'Pretty and perfect.'), ch('Make one for Noor', 8, 'She wears it all day.'), ch('Add roses to your bag', 5, 'Smells lovely.')] },
+      { text: 'A croquet match begins.', choices: [ch('Play to win', 7, 'Victory on the last hit!'), ch('Cheer from the sidelines', 5, 'The loudest fan.'), ch('Invent new rules', 6, 'Nobody understands them, but it\'s fun.')] },
+      { text: 'A breeze sends hats flying!', choices: [ch('Chase them down', 7, 'You return every one.'), ch('Laugh and let them fly', 5, 'One lands on a statue.'), ch('Lend Ivy your scarf', 6, 'She ties it like a pro.')] }] },
+  { id: 'ball', name: 'Masquerade Ball', venue: 'ballroom', when: 'Sat · 9pm', vibe: 'formal', tags: ['glam', 'redcarpet'], tip: 'Full glam: bold lips and lashes', makeup: mk.glam, title: 'Belle of the Ball', host: 'Aria',
+    desc: 'Masks, chandeliers and a string quartet in the Crystal Ballroom.', guests: ['aria', 'luz', 'zuri'],
+    moments: [
+      { text: 'The herald announces your arrival.', choices: [ch('Sweep down the stairs gracefully', 8, 'Heads turn.'), ch('Curtsy to the room', 7, 'Very royal.'), ch('Wave like a pop star', 5, 'Aria waves back.')] },
+      { text: 'A masked stranger asks you to waltz.', choices: [ch('Accept and twirl', 8, 'It\'s Luz! She\'s a great dancer.'), ch('Teach them a new step', 7, 'The whole room copies you.'), ch('Politely decline and chat', 5, 'You make a new friend.')] },
+      { text: 'At midnight everyone unmasks.', choices: [ch('Reveal with a dramatic flourish', 8, 'Gasps all round.'), ch('Swap masks with Zuri', 6, 'Twinning.'), ch('Keep yours on, mysterious', 6, 'Everyone wonders who you are.')] }] },
+  { id: 'banquet', name: 'Charity Banquet', venue: 'banquet', when: 'Thu · 7pm', vibe: 'formal', tags: ['chic', 'redcarpet'], tip: 'Polished, elegant makeup', makeup: mk.glam, title: 'Gracious Guest of Honour', host: 'Ivy',
+    desc: 'A candlelit dinner raising money for the animal shelter.', guests: ['ivy', 'noor', 'luz'],
+    moments: [
+      { text: 'You\'re seated next to the guest of honour.', choices: [ch('Ask about the shelter', 8, 'She tells you about a puppy named Biscuit.'), ch('Compliment her brooch', 6, 'It was her grandmother\'s.'), ch('Pass the bread rolls', 5, 'Always appreciated.')] },
+      { text: 'The auction begins: a painting of kittens.', choices: [ch('Bid generously', 8, 'You win, all for a good cause!'), ch('Cheer on Noor\'s bid', 6, 'She wins it!'), ch('Donate your bracelet', 7, 'A very kind gesture.')] },
+      { text: 'You\'re asked to say a few words.', choices: [ch('Give a heartfelt toast', 8, 'Standing ovation.'), ch('Thank the volunteers', 7, 'They wave from the back.'), ch('Keep it short and sweet', 6, 'Perfect timing.')] }] },
+  { id: 'gala', name: 'The Grand Gala', venue: 'gala', when: 'First Monday · 8pm', vibe: 'formal', tags: ['glam', 'redcarpet'], tip: 'Editorial: metallic or halo eyes', makeup: mk.editorial, title: 'Gala Showstopper', host: 'Ivy',
+    desc: 'Fashion\'s biggest night at the museum. This year\'s theme: "Stars & Dreams". Go dramatic.', guests: ['ivy', 'zuri', 'luz', 'aria'],
+    moments: [
+      { text: 'You reach the bottom of the famous museum staircase.', choices: [ch('Strike a pose on every step', 8, 'The photographers love it.'), ch('Twirl to show off the outfit', 8, 'Pure drama.'), ch('Walk up hand in hand with Zuri', 7, 'Iconic duo.')] },
+      { text: 'A reporter asks: "Who are you wearing?"', choices: [ch('"A Starlife original!"', 7, 'Ivy blushes with pride.'), ch('"Something I designed myself"', 8, 'The reporter is impressed.'), ch('Explain how it fits the theme', 7, 'Very thoughtful.')] },
+      { text: 'Inside, there\'s a surprise performance.', choices: [ch('Dance in front of the stage', 7, 'Aria spots you and waves.'), ch('Find the dessert table', 5, 'Tiny cakes everywhere!'), ch('Explore the art', 6, 'You find a painting that matches your look.')] }] },
+  { id: 'awards', name: 'Starlife Awards', venue: 'awards', when: 'Sun · 7pm', vibe: 'formal', tags: ['redcarpet', 'glam'], tip: 'Red carpet glam', makeup: mk.glam, title: 'Best Dressed on the Carpet', host: 'Luz',
+    desc: 'The red carpet for Starlife\'s award show. Luz is nominated for Best Actress!', guests: ['luz', 'zuri', 'aria'],
+    moments: [
+      { text: 'Flash! Flash! The photographers call your name.', choices: [ch('Over-the-shoulder pose', 8, 'Front-page shot.'), ch('Blow a kiss to the cameras', 7, 'Very glamorous.'), ch('Pose with Luz', 7, 'Best-friend energy.')] },
+      { text: 'An interviewer asks for your prediction.', choices: [ch('"Luz is taking it home!"', 8, 'Luz squeezes your hand.'), ch('"Everyone\'s a winner tonight"', 6, 'So diplomatic.'), ch('"Wait and see…"', 5, 'Ooh, mysterious.')] },
+      { text: '"And the award goes to… Luz Ortega!"', choices: [ch('Cheer the loudest', 8, 'She points at you from the stage.'), ch('Happy tears', 7, 'Waterproof mascara saves the day.'), ch('Start a standing ovation', 8, 'The whole room joins.')] }] },
+  { id: 'fashionweek', name: 'Fashion Week Show', venue: 'runway', when: 'Fri · 5pm', vibe: 'chic', tags: ['chic', 'edgy'], tip: 'Editorial makeup', makeup: mk.editorial, title: 'Front Row Favourite', host: 'Zuri',
+    desc: 'Front-row seats at Starlife Fashion Week. Zuri walks the finale.', guests: ['zuri', 'ivy'],
+    moments: [
+      { text: 'You find your name card in the front row.', choices: [ch('Snap a selfie with it', 6, 'Proof!'), ch('Chat with the designer', 8, 'Ivy introduces you.'), ch('Sketch outfits while you wait', 7, 'Your sketchbook is filling up.')] },
+      { text: 'Zuri struts out for the finale.', choices: [ch('Cheer her name', 7, 'She winks mid-walk.'), ch('Film the whole walk', 6, 'Already trending.'), ch('Take notes on the looks', 6, 'You spot next season\'s trend.')] },
+      { text: 'Backstage after the show.', choices: [ch('Congratulate the models', 7, 'Everyone hugs.'), ch('Ask to try on a look', 8, 'It fits perfectly!'), ch('Plan a collab with Ivy', 8, 'Watch this space.')] }] },
+];
+const STARLET_BY = Object.fromEntries(STARLETS.map(x => [x.id, x]));
+function guestState(id, ev, i) {
+  const s = starletState(id), look = LOOKS[ev.vibe][(i + ev.id.length) % LOOKS[ev.vibe].length];
+  Object.assign(s.outfit, look);
+  if (look.dress === 'gown') s.colors.gown = ['#e8b4c4', '#b18be0', '#d6b25e', '#a9c6ef'][i % 4];
+  s.tucked = true;
+  return s;
+}
+const SPOTS = [[205, 584], [760, 590], [890, 566], [330, 560]];
+function eventGuests(ev) { return ev.guests.filter(g => g !== state.starlet).slice(0, 3); }
+function eventSVG(s, ev, { standalone = false, scale = 1, aspect = 'xMidYMax slice' } = {}) {
+  const guests = eventGuests(ev);
+  if (ev.venue === 'house') {
+    const room = clone(s.room);
+    return roomSVG({ ...s, room }, { standalone, scale, aspect, guests: guests.map((g, i) => ({ s: guestState(g, ev, i), x: [180, 820, 700, 380][i], y: [590, 596, 566, 570][i] })) });
+  }
+  const V = VENUES[ev.venue];
+  const items = V.props.map(([k, x, y]) => ({ y, svg: `<g transform="translate(${x},${y}) scale(${k === 'crowd' ? 1 : depth(y).toFixed(3)})">${k === 'rug' || k === 'crowd' ? '' : `<ellipse rx="${propW(k) * 0.46}" ry="10" fill="#000" opacity=".15" filter="url(#fShadow)"/>`}${propDraw(k)}</g>`, rug: k === 'rug' }));
+  guests.forEach((g, i) => items.push({ y: SPOTS[i][1], svg: dollAt(guestState(g, ev, i), SPOTS[i][0], SPOTS[i][1], `g${i}-`) }));
+  items.push({ y: 602, svg: dollAt(s, 480, 602, 'me-') });
+  let o = `<defs>${baseDefs()}<filter id="fShadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter><linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fc6ef"/><stop offset="1" stop-color="#e8f4fb"/></linearGradient></defs>` + V.bg();
+  items.filter(i => i.rug).forEach(i => { o += i.svg; });
+  items.filter(i => !i.rug).sort((a, b) => a.y - b.y).forEach(i => { o += i.svg; });
+  const size = standalone ? ` width="${ROOM_W * scale}" height="${ROOM_H * scale}"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ROOM_W} ${ROOM_H}"${size} preserveAspectRatio="${aspect}">${o}</svg>`;
+}
+
+// ---------- events UI ----------
+let evSel = null, evMode = 'list', evStep = 0, evPicked = [], preparing = null;
+const evById = id => EVENTS.find(e => e.id === id);
+function decorBonus() { return Math.min(state.room.items.length, 8) * 2; }
+function renderEvents() {
+  $('#evList').hidden = evMode !== 'list'; $('#evDetail').hidden = evMode !== 'detail'; $('#evPlay').hidden = evMode !== 'play';
+  if (evMode === 'list') {
+    $('#evGrid').innerHTML = EVENTS.map(ev => {
+      const rec = profile.events?.[ev.id];
+      return `<article class="invite" data-event="${ev.id}">
+        <div class="invite-art" data-evart="${ev.id}"></div>
+        <div class="invite-body"><small>${ev.when}</small><b>${ev.name}</b><p>${ev.desc}</p>
+        <div class="shop-tags">${ev.tags.map(t => `<span>${TAG_LABEL[t]}</span>`).join('')}</div>
+        <div class="invite-foot">${rec && rec.date === today() ? `<span class="owned-tag">Went today · ${rec.title}</span>` : `<span class="muted">Hosted by ${ev.host}</span>`}<button class="btn small primary" data-event="${ev.id}">RSVP</button></div></div></article>`;
+    }).join('');
+    // venue thumbnails are drawn lazily so the list stays quick
+    requestAnimationFrame(() => $$('[data-evart]').forEach(el => { if (!el.firstChild) el.innerHTML = scope(venueThumb(evById(el.dataset.evart)), 'V' + el.dataset.evart + '-'); }));
+  }
+  if (evMode === 'detail') {
+    const ev = evById(evSel), r = scoreLook(state, ev);
+    UID = 0;
+    $('#evScene').innerHTML = scope(eventSVG(state, ev), 'E');
+    $('#evTitle').textContent = ev.name;
+    $('#evWhen').textContent = `${ev.when} · hosted by ${ev.host}`;
+    $('#evDesc').textContent = ev.desc;
+    const line = (ok, t) => `<li class="${ok ? 'ok' : ''}">${ok ? '✓' : '○'} ${t}</li>`;
+    $('#evBrief').innerHTML = `<h3>Dress code</h3><div class="shop-tags">${ev.tags.map(t => `<span>${TAG_LABEL[t]}</span>`).join('')}<span>${ev.tip}</span></div><ul>
+      ${line(r.base, 'A full outfit')}${line(r.shoes, 'Shoes')}${line(r.match.length >= 3, `Pieces that match the dress code: ${r.match.length}`)}
+      ${line(!r.off.length, r.off.length ? `Not quite right: ${r.off.map(i => i.name).join(', ')}` : 'Nothing off-code')}${line(r.mk >= 10, ev.tip)}
+      ${ev.venue === 'house' ? line(state.room.items.length >= 6, `Suite decorated: ${state.room.items.length} pieces (6+ impresses guests)`) : ''}</ul>
+      <p class="muted">Going with ${eventGuests(ev).map(g => STARLET_BY[g].name.split(' ')[0]).join(', ') || 'new friends'}.</p>`;
+  }
+}
+function venueThumb(ev) {
+  if (ev.venue === 'house') return roomSVG(state, { aspect: 'xMidYMid slice' }).replace(/<g data-doll[\s\S]*?<\/svg><\/g>/, '');
+  const V = VENUES[ev.venue];
+  return `<svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid slice"><defs>${baseDefs()}<filter id="fShadow"><feGaussianBlur stdDeviation="8"/></filter><linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fc6ef"/><stop offset="1" stop-color="#e8f4fb"/></linearGradient></defs>${V.bg()}${V.props.map(([k, x, y]) => `<g transform="translate(${x},${y}) scale(${k === 'crowd' ? 1 : depth(y).toFixed(3)})">${propDraw(k)}</g>`).join('')}</svg>`;
+}
+function openEvent(id) { evSel = id; evMode = 'detail'; renderEvents(); window.scrollTo({ top: 0 }); }
+function startEvent() { evMode = 'play'; evStep = 0; evPicked = []; preparing = null; renderPrepBar(); renderEvents(); renderPlay(); }
+function renderPlay() {
+  const ev = evById(evSel);
+  UID = 0;
+  $('#evPlayScene').innerHTML = scope(eventSVG(state, ev), 'EP');
+  const box = $('#evDialog');
+  if (evStep === 0) {
+    box.innerHTML = `<small>${ev.name}</small><p>You arrive at the ${ev.venue === 'house' ? 'door of your suite' : ev.name.toLowerCase()} looking amazing. ${ev.venue === 'house' ? 'Your guests are on their way!' : `${ev.host} spots you and waves.`}</p><div class="choices"><button class="btn primary" data-evnext>Let's go ›</button></div>`;
+    return;
+  }
+  const m = ev.moments[evStep - 1];
+  if (!m) { finishEvent(); return; }
+  const picked = evPicked[evStep - 1];
+  box.innerHTML = `<small>Moment ${evStep} of ${ev.moments.length}</small><p>${m.text}</p>` + (picked
+    ? `<p class="reaction">${picked.say}</p><div class="choices"><button class="btn primary" data-evnext>${evStep === ev.moments.length ? 'See how it went ›' : 'Continue ›'}</button></div>`
+    : `<div class="choices">${m.choices.map((c, i) => `<button class="btn" data-evchoice="${i}">${c.l}</button>`).join('')}</div>`);
+}
+function finishEvent() {
+  const ev = evById(evSel), r = scoreLook(state, ev);
+  const fun = evPicked.reduce((a, c) => a + c.fame, 0) + (ev.venue === 'house' ? decorBonus() : 0);
+  const dress = r.score, stars = clamp(Math.round(dress / 20), 1, 5);
+  const title = dress >= 80 ? ev.title : dress >= 55 ? 'Looking great' : 'Fashionably late';
+  profile.events = profile.events || {};
+  const rec = profile.events[ev.id], first = !rec || rec.date !== today();
+  let coins = 0, fame = 0;
+  if (first) { coins = Math.round(dress / 3 + fun / 2); fame = Math.round(dress / 6 + fun); }
+  profile.events[ev.id] = { date: today(), title };
+  if (coins || fame) reward(coins, fame); else saveProfile();
+  // a friend who was there sends a message afterwards
+  const friend = eventGuests(ev)[0];
+  if (friend && first) npcMessage(friend, pickLine(friend, 'after', ev));
+  $('#evDialog').innerHTML = `<small>${ev.name} · the morning after</small>
+    <div class="ev-result"><div class="score-ring" style="--p:${dress};--m:${dress >= 80 ? '#f5c542' : dress >= 55 ? '#c7ccd6' : '#e7defa'}"><b>${dress}</b><small>style</small></div>
+    <div><h3>${title}</h3><div class="stars">${'★'.repeat(stars)}<span>${'★'.repeat(5 - stars)}</span></div>
+    <p>${first ? `You earned ${COIN}<b>${coins}</b> coins and ${FAME}<b>${fame}</b> fame${ev.venue === 'house' ? ` (your decorating added ${decorBonus()})` : ''}.` : 'You already went today, so no prize this time, but what a night!'}</p></div></div>
+    <div class="choices"><button class="btn primary" data-evphoto>Snap a photo for my album</button><button class="btn" data-evback>Back to invitations</button></div>`;
+}
+function renderPrepBar() {
+  const bar = $('#prepBar');
+  if (!preparing) { bar.hidden = true; return; }
+  const ev = evById(preparing), r = scoreLook(state, ev);
+  bar.hidden = false;
+  bar.innerHTML = `<span>Getting ready for <b>${ev.name}</b> · dress code: ${ev.tags.map(t => TAG_LABEL[t]).join(', ')} · style ${r.score}/100</span><button class="btn small primary" data-evgo>Go to the event ›</button><button class="btn small" data-evcancel>Cancel</button>`;
+}
+
+// =====================================================================
+// Chat: private messages with the starlets, and a live Lounge
+// =====================================================================
+const PERSONA = {
+  aria: 'a bubbly pop star who loves pink, glitter, karaoke and big choruses',
+  zuri: 'a confident, warm supermodel who gives runway and posing tips',
+  mina: 'a cheerful idol who loves dance practice, cute cafés and snacks',
+  luz: 'a dramatic actress who adores classic films and red lipstick',
+  noor: 'a gentle film star who loves books, tea and garden parties',
+  ivy: 'a witty fashion designer with strong opinions about colour and fabric',
+  stella: 'the player\'s upbeat personal stylist who knows everything happening in Starlife',
+};
+const CONTACTS_LIST = () => [{ id: 'stella', name: 'Stella', role: 'Your stylist' }, ...STARLETS.filter(x => x.id !== state.starlet).map(x => ({ id: x.id, name: x.name, role: x.role }))];
+const LINES = {
+  hello: ['Hiii! 💕 How\'s your day going?', 'Hey you! I was just thinking about you.', 'Hello, gorgeous! What are we planning?'],
+  outfit: ['Ooh, try something from the Shop, the new pieces are so good.', 'Accessories! Two is perfect, three if you\'re brave.', 'Match the dress code and the judges melt.'],
+  event: ['I\'ll be there! Save me a spot.', 'Wait, what are you wearing?? Tell me everything.', 'That\'s going to be the best night ever.'],
+  party: ['A party?! I\'m bringing snacks.', 'Count me in! Should I bring my playlist?', 'Yesss. Your suite is the cutest place for it.'],
+  thanks: ['Any time! 💖', 'That\'s what friends are for.', 'Aww, stop it, you!'],
+  default: ['Haha, I love that.', 'Tell me more!', 'You always make me smile.', 'Same here!', 'Wait, really? That\'s amazing.'],
+  greet: { stella: 'Hi! I\'m Stella. Message me any time for styling tips or what\'s on this week.', aria: 'Heyyy it\'s Aria! Karaoke at your place sometime? 🎤', zuri: 'Zuri here. Shoulders back, chin up, you\'re a star. ✨', mina: 'Hi hi! Mina here! Coffee this week? ☕', luz: 'Darling! Luz here. Promise me you\'ll come to the Awards. 🎬', noor: 'Hello! It\'s Noor. Have you read anything good lately? 📚', ivy: 'Ivy here. I saw your last look… let\'s talk. 👀' },
+};
+function pickLine(id, kind, ev) {
+  if (kind === 'after') return [`That ${ev.name.toLowerCase()} was SO fun. Your outfit was everything! 💕`, `Best ${ev.name.toLowerCase()} ever. Let's do it again soon!`, `Still thinking about last night. You looked amazing at the ${ev.name.toLowerCase()}!`][id.length % 3];
+  const arr = LINES[kind] || LINES.default;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function scriptedReply(id, text) {
+  const t = text.toLowerCase();
+  const ev = EVENTS.find(e => t.includes(e.name.toLowerCase().split(' ')[0].toLowerCase()) || t.includes(e.id));
+  if (ev) return `${ev.name}? ${pickLine(id, 'event')} The dress code is ${ev.tags.map(x => TAG_LABEL[x].toLowerCase()).join(' and ')}.`;
+  if (/party|come over|hang/.test(t)) return pickLine(id, 'party');
+  if (/wear|outfit|dress|shoes|look|style|makeup/.test(t)) return pickLine(id, 'outfit');
+  if (/thank|love you|ily|bestie/.test(t)) return pickLine(id, 'thanks');
+  if (/\b(hi|hey|hello|hiya|yo)\b/.test(t)) return pickLine(id, 'hello');
+  return pickLine(id, 'default');
+}
+function chats() { profile.chats = profile.chats || {}; profile.unread = profile.unread || {}; return profile.chats; }
+function ensureGreetings() {
+  const c = chats();
+  for (const x of CONTACTS_LIST()) if (!c[x.id]) { c[x.id] = [{ me: false, text: LINES.greet[x.id], t: Date.now() }]; profile.unread[x.id] = 1; }
+  saveProfile();
+}
+function npcMessage(id, text) {
+  const c = chats(); (c[id] = c[id] || []).push({ me: false, text, t: Date.now() });
+  if (!(view === 'chat' && chatSel === id)) profile.unread[id] = (profile.unread[id] || 0) + 1;
+  c[id] = c[id].slice(-60);
+  saveProfile(); renderChatBadge();
+  if (view === 'chat') renderChat();
+}
+function renderChatBadge() {
+  const n = Object.values(profile.unread || {}).reduce((a, b) => a + b, 0);
+  const b = $('#chatBadge'); b.textContent = n; b.hidden = !n;
+}
+let chatSel = 'stella', lounge = [], room = null, roomTried = false, peersN = 0, sampleFn, sampleTried = false, typing = false;
+const faceOf = id => {
+  const x = id === 'stella' ? { skin: '#d9a273', hair: 'waves', hairColor: '#c9944f' } : STARLET_BY[id];
+  return x ? `<svg viewBox="104 30 192 192">${portrait(x, '#d3647f')}</svg>` : `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#ffd166"/><text x="20" y="26" text-anchor="middle" font-size="16" fill="#231942">★</text></svg>`;
+};
+function renderChat() {
+  ensureGreetings();
+  const c = chats();
+  const list = CONTACTS_LIST();
+  $('#chatList').innerHTML = `<button class="chat-item${chatSel === 'lounge' ? ' on' : ''}" data-chat="lounge"><span class="chat-face lounge">★</span><span class="chat-meta"><b>The Lounge</b><small>${room ? `${peersN} online now` : 'Live chat with other players'}</small></span></button>` +
+    list.map(x => { const last = (c[x.id] || []).slice(-1)[0]; const u = profile.unread[x.id]; return `<button class="chat-item${chatSel === x.id ? ' on' : ''}" data-chat="${x.id}"><span class="chat-face">${faceOf(x.id)}</span><span class="chat-meta"><b>${x.name}</b><small>${last ? esc(last.text).slice(0, 42) : x.role}</small></span>${u ? `<i class="dot">${u}</i>` : ''}</button>`; }).join('');
+  if (chatSel === 'lounge') return renderLounge();
+  const who = list.find(x => x.id === chatSel) || list[0];
+  chatSel = who.id;
+  profile.unread[who.id] = 0; saveProfile(); renderChatBadge();
+  $('#chatHead').innerHTML = `<span class="chat-face">${faceOf(who.id)}</span><div><b>${who.name}</b><small>${who.role}${sampleFn ? ' · replies written by Claude' : ''}</small></div>`;
+  $('#chatLog').innerHTML = (c[who.id] || []).map(m => `<div class="msg${m.me ? ' me' : ''}"><p>${esc(m.text)}</p></div>`).join('') + (typing ? `<div class="msg"><p class="typing"><i></i><i></i><i></i></p></div>` : '');
+  $('#chatLog').scrollTop = 1e9;
+  $('#chatInput').disabled = false; $('#chatSend').disabled = false;
+  $('#chatInput').placeholder = `Message ${who.name.split(' ')[0]}…`;
+}
+async function ensureSample() {
+  if (sampleTried) return sampleFn; sampleTried = true;
+  try { sampleFn = window.claude?.use ? await window.claude.use('sample') : null; } catch { sampleFn = null; }
+  return sampleFn;
+}
+async function sendDM(text) {
+  const id = chatSel, c = chats(), who = CONTACTS_LIST().find(x => x.id === id);
+  (c[id] = c[id] || []).push({ me: true, text, t: Date.now() });
+  typing = true; renderChat();
+  let reply = null;
+  const sample = await ensureSample();
+  if (sample) {
+    const convo = c[id].slice(-10).map(m => `${m.me ? starletName() : who.name}: ${m.text}`).join('\n');
+    const prompt = `You are ${who.name}, ${PERSONA[id]}, in Starlife, a cheerful fashion dress-up game for all ages.
+You are texting your friend ${starletName()}. Things happening in Starlife this week: ${EVENTS.map(e => `${e.name} (${e.when})`).join(', ')}. There is also a Shop, style Contests and a Beauty Parlor.
+Reply as ${who.name} only, in one or two short, friendly text messages (under 45 words total). Stay kind and suitable for kids. No links, no personal questions about real life, and never say you are an AI.
+
+Chat so far:
+${convo}
+${who.name}:`;
+    try { reply = (await sample(prompt, { modelTier: 'quick', cache: false })).text.trim().replace(/^"|"$/g, '').slice(0, 400); }
+    catch (e) { if (e?.code === 'not_granted') sampleFn = null; reply = null; }
+  } else await new Promise(r => setTimeout(r, 700 + Math.random() * 700));
+  typing = false;
+  npcMessage(id, reply || scriptedReply(id, text));
+}
+
+// ---------- the Lounge: live chat with whoever has Starlife open right now ----------
+async function ensureRoom() {
+  if (roomTried) return room; roomTried = true;
+  try { room = window.claude?.use ? await window.claude.use('room') : null; } catch { room = null; }
+  if (!room) return null;
+  room.presence({ name: starletName(), starlet: state.starlet || '' }).catch(() => {});
+  room.on('chat', m => {
+    const d = m.data || {};
+    if (typeof d.text !== 'string' || !d.text.trim()) return;
+    lounge.push({ me: m.isMe && m.sameTab, name: String(d.name || 'A starlet').slice(0, 40), starlet: STARLET_BY[d.starlet] ? d.starlet : '', text: d.text.slice(0, 280), guest: m.guest });
+    lounge = lounge.slice(-100);
+    if (view === 'chat' && chatSel === 'lounge') renderLounge();
+  });
+  room.onPeers?.(() => { peersN = room.peers().filter(p => p.kind === 'viewer').length; if (view === 'chat') renderChat(); });
+  peersN = room.peers?.().filter(p => p.kind === 'viewer').length || 1;
+  return room;
+}
+function renderLounge() {
+  $('#chatHead').innerHTML = `<span class="chat-face lounge">★</span><div><b>The Lounge</b><small>${room ? `Live · ${peersN} online · messages aren't saved` : 'Live chat'}</small></div>`;
+  if (!room) {
+    $('#chatLog').innerHTML = `<div class="chat-empty"><b>The Lounge opens when Starlife is played online.</b><p>When this game is shared as a hosted page, everyone who has it open can chat here together in real time. For now, message your starlet friends on the left.</p></div>`;
+    $('#chatInput').disabled = true; $('#chatSend').disabled = true;
+    return;
+  }
+  $('#chatInput').disabled = false; $('#chatSend').disabled = false;
+  $('#chatInput').placeholder = 'Say hi to the Lounge…';
+  $('#chatLog').innerHTML = lounge.length ? lounge.map(m => `<div class="msg${m.me ? ' me' : ''}">${m.me ? '' : `<span class="msg-who">${m.starlet ? `<span class="chat-face tiny">${faceOf(m.starlet)}</span>` : ''}${esc(m.name)}${m.guest ? ' · guest' : ''}</span>`}<p>${esc(m.text)}</p></div>`).join('')
+    : `<div class="chat-empty"><b>It's quiet in here.</b><p>Say hello! Everyone in the Lounge right now will see it.</p></div>`;
+  $('#chatLog').scrollTop = 1e9;
+}
+async function sendLounge(text) {
+  if (!room) return;
+  room.presence({ name: starletName(), starlet: state.starlet || '' }).catch(() => {});
+  try { await room.emit('chat', { text, name: starletName(), starlet: state.starlet || '' }); }
+  catch (e) { toast(e?.code === 'not_permitted' ? 'You need contributor access to this page to talk in the Lounge.' : 'Message not sent. Check your connection.'); }
+}
+
 // ---------- events ----------
 document.addEventListener('click', e => {
   if (suppressClick) return;
@@ -2852,6 +3438,23 @@ document.addEventListener('click', e => {
   const wn = t.closest('[data-wearnow]'); if (wn) { equip(wn.dataset.wearnow, true); toast(`${starletName()} is wearing ${ITEM[wn.dataset.wearnow].name}`); renderShop(); return; }
   const thb = t.closest('[data-theme]'); if (thb) { themeSel = thb.dataset.theme; renderContests(); return; }
   const shopLink = t.closest('[data-goshop]'); if (shopLink) { setView('shop'); return; }
+  const chatBtn = t.closest('[data-chat]'); if (chatBtn) { chatSel = chatBtn.dataset.chat; renderChat(); $('#chatInput').focus(); return; }
+  if (t.closest('[data-evback]')) { evMode = 'list'; renderEvents(); return; }
+  if (t.closest('[data-evprep]')) { preparing = evSel; setView('suite'); if (drawer !== 'wardrobe') openDrawer('wardrobe'); renderPrepBar(); toast(`Dress for ${evById(evSel).name}, then press Go`); return; }
+  if (t.closest('[data-evcancel]')) { preparing = null; renderPrepBar(); return; }
+  if (t.closest('[data-evgo]')) { if (preparing) evSel = preparing; setView('events'); startEvent(); return; }
+  if (t.closest('[data-evnext]')) { evStep++; renderPlay(); return; }
+  const evc = t.closest('[data-evchoice]');
+  if (evc) { const m = evById(evSel).moments[evStep - 1]; evPicked[evStep - 1] = m.choices[+evc.dataset.evchoice]; renderPlay(); return; }
+  if (t.closest('[data-evphoto]')) {
+    const ev = evById(evSel), btn = t.closest('[data-evphoto]'); btn.disabled = true;
+    snapshot(state, { scale: 0.42, type: 'image/jpeg', quality: 0.85, svg: eventSVG(state, ev, { standalone: true }) }).then(thumb => {
+      lookbook.unshift({ id: Date.now().toString(36), name: `${ev.name}`, date: Date.now(), state: clone(state), thumb, event: ev.id });
+      lsSet(LS_BOOK, lookbook); toast('Photo saved to My Album ✦'); btn.textContent = 'Saved ✓';
+    }).catch(() => { toast('Could not take the photo'); btn.disabled = false; });
+    return;
+  }
+  const evb = t.closest('[data-event]'); if (evb) { openEvent(evb.dataset.event); return; }
   const pk = t.closest('[data-pick]'); if (pk) { pickSel = pk.dataset.pick; renderPicker(); return; }
   const car = t.closest('[data-car]');
   if (car) { const i = STARLETS.findIndex(x => x.id === pickSel); pickSel = STARLETS[(i + Number(car.dataset.car) + STARLETS.length) % STARLETS.length].id; renderPicker(); return; }
@@ -2883,6 +3486,13 @@ $('#tbUndo').addEventListener('click', undo);
 $('#tbSave').addEventListener('click', openSave);
 $('#btnSave').addEventListener('click', openSave);
 $('#meBtn').addEventListener('click', openPicker);
+$('#chatForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = $('#chatInput'), text = inp.value.trim().slice(0, 280);
+  if (!text || typing) return;
+  inp.value = '';
+  if (chatSel === 'lounge') sendLounge(text); else sendDM(text);
+});
 $('#fitClear').addEventListener('click', () => { tryOn = []; renderShop(); });
 $('#enterContest').addEventListener('click', enterContest);
 $('#contestDress').addEventListener('click', () => { setView('suite'); if (drawer !== 'wardrobe') openDrawer('wardrobe'); });
@@ -2999,6 +3609,8 @@ $('#promoContest').innerHTML = `<svg viewBox="0 0 300 130"><defs><linearGradient
   `<text x="40" y="58" font-size="30" fill="#fff" opacity=".8">★</text><text x="232" y="96" font-size="24" fill="#fff" opacity=".7">★</text><text x="70" y="108" font-size="18" fill="#fff" opacity=".6">★</text></svg>`;
 lastSnap = JSON.stringify(state); undoStack = []; $('#tbUndo').disabled = true;
 renderLookbook();
+ensureGreetings(); renderChatBadge();
+$('#promoEvents').innerHTML = `<svg viewBox="0 0 300 130"><rect width="300" height="130" fill="#140d24"/><path d="M80,0 L20,130 L120,130 Z" fill="#ff4f8b" opacity=".25"/><path d="M220,0 L170,130 L270,130 Z" fill="#5ee0c4" opacity=".25"/><circle cx="150" cy="44" r="26" fill="#c0c5d6"/><path d="M126,36 H174 M126,52 H174 M140,20 V68 M160,20 V68" stroke="#fff" stroke-width=".8" opacity=".7"/><path d="M150,0 V18" stroke="#888"/><text x="150" y="112" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-weight="700" font-size="26" fill="#ffd166">Tonight</text></svg>`;
 setView('home');
 if (!lsGet(LS_CUR, null) || !lsGet('starlife.guide.v1', false)) openPicker();
 </script>
