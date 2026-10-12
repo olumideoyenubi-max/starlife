@@ -70,6 +70,7 @@
     gap: 24px; max-width: 1380px; margin: 0 auto; padding: 20px 24px 8px;
   }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .stage-wrap, .panel { min-width: 0; }
   .stage-wrap { position: sticky; top: 78px; align-self: start; }
   .stage-card { padding: 14px; }
   #stage {
@@ -107,6 +108,31 @@
   .layer-chip button { border: 0; background: #fff; width: 20px; height: 20px; border-radius: 50%; line-height: 1; padding: 0; color: var(--muted); }
   .layer-chip button:hover { color: var(--deep); }
   .empty { color: var(--muted); font-size: 12.5px; font-style: italic; }
+
+  .starlets { display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: thin; }
+  .starlet { flex: 0 0 auto; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 5px; width: 74px; padding: 0; }
+  .starlet svg { width: 58px; height: 58px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--line); transition: box-shadow .2s, transform .2s; }
+  .starlet:hover svg { transform: translateY(-2px); }
+  .starlet span { font-size: 11.5px; color: var(--muted); white-space: nowrap; line-height: 1.2; text-align: center; }
+  .starlet span small { display: block; font-size: 10px; opacity: .8; }
+  .starlet.on svg { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--deep); }
+  .starlet.on span { color: var(--ink); font-weight: 600; }
+  .stage-name {
+    position: absolute; left: 12px; top: 12px; z-index: 2; pointer-events: none;
+    background: rgba(255,255,255,.86); backdrop-filter: blur(6px);
+    padding: 6px 14px; border-radius: 999px; font-family: var(--serif); font-size: 15px; color: var(--ink);
+  }
+  .stage-name small { font-family: var(--sans); color: var(--muted); font-size: 11px; margin-left: 6px; }
+  #stage { touch-action: pan-y; }
+  #stage [data-slot] { cursor: grab; }
+  body.dragging, body.dragging * { cursor: grabbing !important; user-select: none; }
+  .drag-ghost {
+    position: fixed; z-index: 70; width: 130px; height: 150px; pointer-events: none;
+    transform: translate(-50%, -50%) rotate(-5deg); transition: transform .12s;
+    filter: drop-shadow(0 14px 18px rgba(80, 30, 50, .35));
+  }
+  .drag-ghost svg { width: 100%; height: 100%; }
+  .drag-ghost.over { transform: translate(-50%, -50%) scale(1.1); }
 
   /* ---------- panel ---------- */
   .panel { padding: 18px 20px 22px; min-height: 60vh; }
@@ -184,6 +210,7 @@
   .group-label { grid-column: 1 / -1; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
   .item {
     border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(#fff, #fcf4f6);
+    user-select: none; -webkit-user-drag: none; touch-action: pan-y; cursor: grab;
     padding: 6px 6px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px;
     transition: transform .18s, box-shadow .18s, border-color .18s; position: relative;
   }
@@ -269,7 +296,8 @@
   <!-- ============ STAGE ============ -->
   <section class="stage-wrap">
     <div class="card stage-card">
-      <div id="stage" aria-label="Your doll"><div class="drop-hint">Drop to wear ✦</div></div>
+      <div class="starlets" id="starlets" aria-label="Choose a starlet"></div>
+      <div id="stage" aria-label="Your doll"><div class="stage-name" id="stageName"></div><div class="drop-hint">Drop to dress her ✦</div></div>
       <div class="stage-tools">
         <span class="label">Scene</span>
         <div class="row" id="bgRow"></div>
@@ -277,7 +305,7 @@
       <div class="layers">
         <div class="layers-head">
           <h3>Wearing · layer order</h3>
-          <label class="toggle"><input type="checkbox" id="tuckToggle"> Tuck top in</label>
+          <div class="row"><label class="toggle"><input type="checkbox" id="tuckToggle"> Tuck top in</label><button class="btn small" id="btnUndress">Undress</button></div>
         </div>
         <div class="layer-list" id="layerList"></div>
       </div>
@@ -306,6 +334,7 @@
       </div>
       <div class="section"><h4>Hairstyle</h4><div class="hair-grid" id="hairGrid"></div></div>
       <div class="section"><h4>Hair colour</h4><div class="row" id="hairColorRow"></div></div>
+      <div class="section"><h4>Underwear</h4><div class="row" id="underwearRow"></div></div>
     </div>
 
     <!-- Makeup -->
@@ -371,7 +400,7 @@
         <button data-wcat="shoes">Shoes</button>
         <button data-wcat="acc">Accessories</button>
       </div>
-      <p class="hint">Tap to wear, tap again to take off, or drag a piece onto the doll. Jackets always layer over tops and dresses.</p>
+      <p class="hint">Drag clothes from the rail onto your starlet, or tap to wear. Drag a piece off her to take it off. Jackets always layer over tops and dresses.</p>
       <div class="item-grid" id="itemGrid"></div>
       <div class="recolor" id="recolor"></div>
     </div>
@@ -436,7 +465,8 @@ const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;
 // ---------- base geometry (doll is drawn facing forward, viewBox 400 x 820) ----------
 const MIRROR = 'translate(400,0) scale(-1,1)';
 const sym = s => s + `<g transform="${MIRROR}">${s}</g>`;
-let UID = 0;
+let UID = 0, PFX = '';
+const nid = () => PFX + (++UID);
 
 const TORSO = 'M200,240 C178,240 152,242 140,256 C132,285 138,320 150,360 C155,380 156,392 154,405 C150,425 144,445 142,470 L258,470 C256,445 250,425 246,405 C244,392 245,380 250,360 C262,320 268,285 260,256 C248,242 222,240 200,240 Z';
 const LEG = 'M144,462 C142,520 152,590 160,650 C164,700 167,740 169,772 L191,772 C192,740 193,700 195,655 C198,600 200,540 200,470 Z';
@@ -473,7 +503,7 @@ function baseDefs() {
 // A garment fitted to the body: fill is clipped to the torso/lower silhouette and the
 // silhouette edge is re-stroked where the garment covers it.
 function fit(shape, c, which = 't', extra = '', fill = c) {
-  const id = 'f' + (++UID);
+  const id = 'f' + nid();
   const [clip, d, t] = which === 't' ? ['torsoClip', TORSO, TORSO_T] : ['lowerClip', LOWER, LOWER_T];
   return `<clipPath id="${id}"><path d="${shape}"/></clipPath>
     <g clip-path="url(#${clip})"><path d="${shape}" fill="${fill}" ${st(c, 2.4)}/>${extra}</g>
@@ -485,7 +515,7 @@ function sleeve(c, len = 100, w = 30, fill = c) {
 }
 // clip a mirrored panel's details to the panel itself
 function panel(d, c, details = '', fill = c) {
-  const id = 'p' + (++UID);
+  const id = 'p' + nid();
   return sym(`<clipPath id="${id}"><path d="${d}"/></clipPath><path d="${d}" fill="${fill}" ${st(c, 1.3)}/><g clip-path="url(#${id})">${details}</g>`);
 }
 function curvePts(p0, p1, p2, t0, t1, n) {
@@ -517,6 +547,15 @@ function arms(skin, mannequin = false) {
 function hands(skin, mannequin = false) {
   const e = mannequin ? '#e2d0d8' : shade(skin, -0.22);
   return sym(`<ellipse cx="115" cy="490" rx="10.5" ry="15" fill="${skin}" stroke="${e}" stroke-width="1.2"/>`);
+}
+
+function underwear(c) {
+  const lace = shade(c, -0.14);
+  return sym(`<path d="M166,300 L160,246" stroke="${EDGE(c)}" stroke-width="2" stroke-linecap="round"/>`) +
+    fit('M100,302 Q140,290 172,296 Q190,300 200,312 Q210,300 228,296 Q260,290 300,302 L300,336 Q200,330 100,336 Z', c, 't',
+      `<path d="M150,306 Q175,322 198,314 M202,314 Q225,322 250,306" fill="none" stroke="${lace}" stroke-width="1" opacity=".7"/><circle cx="200" cy="318" r="2.2" fill="${lace}"/>`) +
+    fit('M100,436 Q200,446 300,436 L300,472 Q236,478 205,500 L195,500 Q164,478 100,472 Z', c, 'l',
+      `<path d="M120,442 Q200,452 280,442" fill="none" stroke="${lace}" stroke-width="1.2" stroke-dasharray="2 2"/><circle cx="200" cy="452" r="2" fill="${lace}"/>`);
 }
 
 // ---------- hair ----------
@@ -845,7 +884,7 @@ const ITEMS = [
       `<path d="M148,470 L252,470" stroke="${c}" stroke-width="6"/>` },
   { id: 'sundress', name: 'Floral Sundress', slot: 'dress', cat: 'dress', color: '#f6c453',
     draw: c => {
-      const pid = 'fl' + (++UID);
+      const pid = 'fl' + nid();
       const pat = `<pattern id="${pid}" width="28" height="28" patternUnits="userSpaceOnUse"><rect width="28" height="28" fill="${c}"/>` +
         `<g fill="#fff">${[[7, 7], [21, 21]].map(([x, y]) => [0, 72, 144, 216, 288].map(a => `<circle cx="${(x + Math.cos(a * Math.PI / 180) * 3).toFixed(1)}" cy="${(y + Math.sin(a * Math.PI / 180) * 3).toFixed(1)}" r="2"/>`).join('')).join('')}</g>` +
         `<circle cx="7" cy="7" r="1.5" fill="#e0794f"/><circle cx="21" cy="21" r="1.5" fill="#e0794f"/></pattern>`;
@@ -856,7 +895,7 @@ const ITEMS = [
     } },
   { id: 'sequin', name: 'Disco Mini', slot: 'dress', cat: 'dress', color: '#c0c5d6',
     draw: c => {
-      const pid = 'sq' + (++UID);
+      const pid = 'sq' + nid();
       const pat = `<pattern id="${pid}" width="10" height="9" patternUnits="userSpaceOnUse"><rect width="10" height="9" fill="${shade(c, -0.15)}"/>` +
         `<circle cx="2.5" cy="2.5" r="2.6" fill="${shade(c, 0.35)}"/><circle cx="7.5" cy="7" r="2.6" fill="${c}"/><circle cx="2" cy="2" r=".8" fill="#fff"/></pattern>`;
       return pat + fit('M100,250 L200,280 L300,250 L300,470 L100,470 Z', c, 't', '', `url(#${pid})`) +
@@ -1031,12 +1070,13 @@ function renderDoll(s, { bg = true, standalone = false, width, height } = {}) {
   const o = s.outfit;
   const I = k => (o[k] && ITEM[o[k]]) || null;
   const col = id => s.colors[id] || ITEM[id].color;
-  const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? it[p](col(it.id), s) : ''; };
+  const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? `<g data-slot="${k}">${it[p](col(it.id), s)}</g>` : ''; };
   let out = `<defs>${baseDefs()}${faceDefs(s)}</defs>`;
   if (bg) out += background(s.bg);
   out += `<ellipse cx="200" cy="802" rx="80" ry="9" fill="#000" opacity=".16" filter="url(#blur6)"/>`;
   out += hairBack(s);
   out += bodyBase(s.skin);
+  out += underwear(s.underwear);
   if (I('shoes') && !I('shoes').over) out += part('shoes');
   if (s.tucked) out += part('top') + part('bottom'); else out += part('bottom') + part('top');
   out += part('dress');
@@ -1054,23 +1094,33 @@ function renderDoll(s, { bg = true, standalone = false, width, height } = {}) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 820"${size} preserveAspectRatio="xMidYMid meet">${out}</svg>`;
 }
 
-// mannequin thumbnail for wardrobe cards
-function mannequinThumb(it, color) {
-  const m = '#f1e5ea';
-  const headSlots = ['glasses', 'earrings', 'hat', 'necklace'];
-  let s = `<defs>${baseDefs()}</defs>` + bodyBase(m, true) + arms(m, true);
-  s += sym(`<ellipse cx="141" cy="136" rx="8" ry="14" fill="${m}" stroke="#e2d0d8"/>`) + `<path d="${FACE}" fill="${m}" stroke="#e2d0d8"/>`;
-  if (it.slot === 'bag') s += it.draw(color) + hands(m, true);
-  else s += hands(m, true) + it.draw(color) + (it.sleeves ? it.sleeves(color) : '');
-  if (headSlots.includes(it.slot)) s += '';
+// wardrobe thumbnail: the garment on its own, on a hanger where it hangs
+const HANGER = `<path d="M200,222 L200,212 q0,-9 8,-9 q7,0 7,7" fill="none" stroke="#b9a7b0" stroke-width="2.6" stroke-linecap="round"/><path d="M146,250 L200,222 L254,250" fill="none" stroke="#b9a7b0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+function itemThumb(it, color) {
+  let s = `<defs>${baseDefs()}</defs>`;
+  if (['top', 'dress', 'outer'].includes(it.slot)) s += HANGER;
+  s += it.draw(color) + (it.sleeves ? it.sleeves(color) : '');
   const vb = it.vb || VB[it.slot] || '90 200 220 400';
   return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet">${s}</svg>`;
 }
+const colOf = id => state.colors[id] || ITEM[id].color;
+
+// ---------- starlets (fictional celebrities) ----------
+const STARLETS = [
+  { id: 'aria', name: 'Aria Bloom', role: 'Pop star', skin: '#f6cfb3', hair: 'long', hairColor: '#e3c07a', eyeShape: 'almond', eyeColor: '#4a78b5', brow: 'natural', preset: 'Soft Glam', underwear: '#f4c7d3', bg: 'blush' },
+  { id: 'zuri', name: 'Zuri Nova', role: 'Supermodel', skin: '#5a3420', hair: 'curly', hairColor: '#1c1412', eyeShape: 'upturned', eyeColor: '#3b2414', brow: 'bold', preset: 'Editorial', underwear: '#e9c46a', bg: 'runway' },
+  { id: 'mina', name: 'Mina Seo', role: 'Idol', skin: '#fde3d3', hair: 'bob', hairColor: '#1c1412', eyeShape: 'doe', eyeColor: '#3b2414', brow: 'straight', preset: 'Natural', underwear: '#ffffff', bg: 'garden' },
+  { id: 'luz', name: 'Luz Ortega', role: 'Actress', skin: '#c28552', hair: 'waves', hairColor: '#6b3a1f', eyeShape: 'almond', eyeColor: '#8a6b35', brow: 'arched', preset: 'Night Out', underwear: '#1f1b22', bg: 'night' },
+  { id: 'noor', name: 'Noor Sahni', role: 'Film star', skin: '#a5683d', hair: 'braids', hairColor: '#1c1412', eyeShape: 'doe', eyeColor: '#b07a2a', brow: 'feathered', preset: 'Soft Glam', underwear: '#c8b6e2', bg: 'boutique' },
+  { id: 'ivy', name: 'Ivy Laurent', role: 'Designer', skin: '#fde3d3', hair: 'pixie', hairColor: '#f2a7c3', eyeShape: 'round', eyeColor: '#4f7a45', brow: 'thin', preset: 'Natural', underwear: '#a9c6ef', bg: 'boutique' },
+];
+const starletName = () => (STARLETS.find(x => x.id === state.starlet) || {}).name || 'Your doll';
 
 // ---------- state ----------
 const DEFAULT = {
-  skin: '#eab78f', eyeShape: 'almond', eyeColor: '#6b4a2b', brow: 'natural', browColor: 'match',
-  hair: 'waves', hairColor: '#3b2416', bg: 'blush', tucked: true,
+  starlet: 'aria', underwear: '#f4c7d3',
+  skin: '#f6cfb3', eyeShape: 'almond', eyeColor: '#4a78b5', brow: 'natural', browColor: 'match',
+  hair: 'long', hairColor: '#e3c07a', bg: 'blush', tucked: true,
   makeup: {
     shadow: { style: 'soft', color: '#c9a2a8', opacity: 0.4 },
     liner: { style: 'tight', color: '#2a1c1c' },
@@ -1080,12 +1130,12 @@ const DEFAULT = {
     highlight: { color: '#fff4dc', opacity: 0.35 },
     contour: { opacity: 0.15 },
   },
-  outfit: { top: 'cami', bottom: 'jeans', dress: null, outer: 'denimjk', shoes: 'sneakers', bag: null, necklace: null, earrings: 'hoops', glasses: null, hat: null },
+  outfit: { top: null, bottom: null, dress: null, outer: null, shoes: null, bag: null, necklace: null, earrings: null, glasses: null, hat: null },
   colors: {},
-  focus: 'cami',
+  focus: null,
 };
 const clone = o => JSON.parse(JSON.stringify(o));
-const LS_CUR = 'starlife.current.v1', LS_BOOK = 'starlife.lookbook.v1';
+const LS_CUR = 'starlife.current.v2', LS_BOOK = 'starlife.lookbook.v1';
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
 
@@ -1102,6 +1152,7 @@ function sanitize(s) {
   if (!EYE_SHAPES[s.eyeShape]) s.eyeShape = DEFAULT.eyeShape;
   if (!BROWS[s.brow]) s.brow = DEFAULT.brow;
   if (!BGS[s.bg]) s.bg = DEFAULT.bg;
+  if (!/^#[0-9a-f]{6}$/i.test(s.underwear || '')) s.underwear = DEFAULT.underwear;
   for (const k of Object.keys(s.outfit)) if (s.outfit[k] && !ITEM[s.outfit[k]]) s.outfit[k] = null;
   return s;
 }
@@ -1163,6 +1214,7 @@ function buildUI() {
   chips('browRow', 'brow', Object.entries(BROWS).map(([v, b]) => ({ v, l: b.label })));
   swatches('browColorRow', 'browColor', ['#1c1412', '#3b2416', '#6b3a1f', '#a77b4f', '#d8c3a0'], { match: true });
   swatches('hairColorRow', 'hairColor', PAL.hair);
+  swatches('underwearRow', 'underwear', ['#f4c7d3', '#ffffff', '#1f1b22', '#e9c46a', '#c8b6e2', '#a9c6ef', '#e8c3a0', '#d9475e']);
 
   $('#presetRow').innerHTML = Object.entries(PRESETS).map(([name, p]) =>
     `<button class="preset" data-preset="${name}"><b>${name}</b><span>${[p.shadow.color, p.lips.color, p.blush.color].filter(c => c && c !== 'none').map(c => `<i style="background:${c}"></i>`).join('') || '<i style="background:#f1e5ea"></i>'}</span></button>`).join('');
@@ -1189,32 +1241,51 @@ function buildUI() {
 
 let activeTab = 'wardrobe', activeCat = 'top', hairSig = '';
 
+function portrait(s, lips = '#c96b78') {
+  const sk = s.skin, e = shade(sk, -0.22);
+  return hairBack(s) +
+    `<path d="M186,188 L186,246 L214,246 L214,188 Z" fill="${sk}" stroke="${e}"/>` +
+    sym(`<ellipse cx="141" cy="136" rx="8" ry="14" fill="${sk}" stroke="${e}"/>`) +
+    `<path d="${FACE}" fill="${sk}" stroke="${e}"/>` +
+    sym(`<ellipse cx="175" cy="136" rx="5" ry="3.4" fill="#2a1c1c"/>`) +
+    `<path d="M190,184 Q200,190 210,184" fill="none" stroke="${lips}" stroke-width="3" stroke-linecap="round"/>` +
+    hairFront(s);
+}
 function renderHairCards() {
   const sig = state.skin + state.hairColor + state.hair;
   if (sig === hairSig) return;
   hairSig = sig;
-  const sk = state.skin, e = shade(sk, -0.22);
-  $('#hairGrid').innerHTML = Object.entries(HAIR).map(([k, h]) => {
-    const s = { ...state, hair: k };
-    return `<button class="hair-card" data-bind="hair" data-val="${k}"><svg viewBox="96 -6 208 240">${hairBack(s)}` +
-      `<path d="M186,188 L186,246 L214,246 L214,188 Z" fill="${sk}" stroke="${e}"/>` +
-      sym(`<ellipse cx="141" cy="136" rx="8" ry="14" fill="${sk}" stroke="${e}"/>`) +
-      `<path d="${FACE}" fill="${sk}" stroke="${e}"/>` +
-      sym(`<ellipse cx="175" cy="136" rx="5" ry="3.4" fill="#2a1c1c"/>`) +
-      `<path d="M190,184 Q200,190 210,184" fill="none" stroke="${shade(sk, -0.35)}" stroke-width="2" stroke-linecap="round"/>` +
-      hairFront(s) + `</svg><span>${h.label}</span></button>`;
+  $('#hairGrid').innerHTML = Object.entries(HAIR).map(([k, h]) =>
+    `<button class="hair-card" data-bind="hair" data-val="${k}"><svg viewBox="96 -6 208 240">${portrait({ ...state, hair: k }, shade(state.skin, -0.35))}</svg><span>${h.label}</span></button>`).join('');
+}
+function renderStarlets() {
+  $('#starlets').innerHTML = STARLETS.map(x => {
+    const lips = PRESETS[x.preset].lips.color;
+    return `<button class="starlet" data-starlet="${x.id}" title="${x.name}, ${x.role}"><svg viewBox="104 20 192 192">${portrait(x, lips === 'none' ? '#c96b78' : lips)}</svg><span>${x.name.split(' ')[0]}<small>${x.role}</small></span></button>`;
   }).join('');
+}
+function applyStarlet(id) {
+  const x = STARLETS.find(v => v.id === id); if (!x) return;
+  const keepBook = state.tucked;
+  state = clone(DEFAULT);
+  Object.assign(state, { starlet: x.id, skin: x.skin, hair: x.hair, hairColor: x.hairColor, eyeShape: x.eyeShape, eyeColor: x.eyeColor, brow: x.brow, underwear: x.underwear, bg: x.bg, tucked: keepBook });
+  applyPreset(x.preset, false);
+  hairSig = '';
+  update(true);
+  toast(`Meet ${x.name}. Drag clothes onto her ✦`);
 }
 
 function renderGrid() {
   const list = ITEMS.filter(i => i.cat === activeCat);
   let html = '', grp = null;
+  PFX = 't';
   for (const it of list) {
     if (it.group && it.group !== grp) { grp = it.group; html += `<div class="group-label">${grp}</div>`; }
     const c = state.colors[it.id] || it.color;
-    html += `<button class="item${state.outfit[it.slot] === it.id ? ' on' : ''}" draggable="true" data-item="${it.id}" title="${it.name}">${mannequinThumb(it, c)}<span>${it.name}</span></button>`;
+    html += `<button class="item${state.outfit[it.slot] === it.id ? ' on' : ''}" draggable="false" data-item="${it.id}" title="${it.name}">${itemThumb(it, c)}<span>${it.name}</span></button>`;
   }
   $('#itemGrid').innerHTML = html;
+  PFX = '';
   renderRecolor();
 }
 
@@ -1241,7 +1312,7 @@ function renderLayers() {
   $('#layerList').innerHTML = all.length ? all.map((k, i) => {
     const it = ITEM[o[k]];
     return `<span class="layer-chip"><span class="n">${i + 1}</span><i style="--c:${state.colors[it.id] || it.color}"></i>${it.name}<button data-remove="${k}" aria-label="Remove ${it.name}">×</button></span>`;
-  }).join('') : `<span class="empty">Nothing on yet. Pick something from the wardrobe.</span>`;
+  }).join('') : `<span class="empty">Just her underwear. Drag something on from the wardrobe.</span>`;
   const t = $('#tuckToggle');
   t.checked = state.tucked;
   t.disabled = !(o.top && o.bottom);
@@ -1271,10 +1342,12 @@ function refreshUI() {
 
 function renderStage(pop = false) {
   const stage = $('#stage');
-  const hint = stage.querySelector('.drop-hint');
-  stage.innerHTML = renderDoll(state);
+  stage.querySelector('svg')?.remove();
+  stage.insertAdjacentHTML('afterbegin', renderDoll(state));
   stage.style.setProperty('--scene', BGS[state.bg].sw);
-  stage.appendChild(hint);
+  const x = STARLETS.find(v => v.id === state.starlet);
+  $('#stageName').innerHTML = x ? `${x.name}<small>${x.role}</small>` : 'My Doll';
+  $$('[data-starlet]').forEach(b => b.classList.toggle('on', b.dataset.starlet === state.starlet));
   if (pop) { stage.classList.remove('pop'); void stage.offsetWidth; stage.classList.add('pop'); }
 }
 
@@ -1410,6 +1483,8 @@ function randomize() {
   o.shoes = pick(byslot('shoes'));
   for (const k of ['bag', 'necklace', 'earrings', 'glasses', 'hat']) o[k] = Math.random() < (k === 'hat' || k === 'glasses' ? 0.25 : 0.5) ? pick(byslot(k)) : null;
   state.colors = {};
+  state.starlet = null;
+  state.underwear = pick(['#f4c7d3', '#ffffff', '#1f1b22', '#c8b6e2']);
   state.focus = o.top || o.dress;
   update(true);
   toast('A brand new look ✦');
@@ -1424,7 +1499,10 @@ function applyPreset(name, doUpdate = true) {
 
 // ---------- events ----------
 document.addEventListener('click', e => {
+  if (suppressClick) return;
   const t = e.target;
+  const sl = t.closest('[data-starlet]');
+  if (sl) { applyStarlet(sl.dataset.starlet); return; }
   const bind = t.closest('[data-bind]');
   if (bind) { setP(bind.dataset.bind, bind.dataset.val); update(); return; }
 
@@ -1482,24 +1560,65 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => { if (e.target.hasAttribute('data-recolor-input')) update(); });
 $('#tuckToggle').addEventListener('change', e => { state.tucked = e.target.checked; update(); });
 
-// drag & drop
-document.addEventListener('dragstart', e => {
-  const it = e.target.closest?.('[data-item]');
-  if (!it) return;
-  e.dataTransfer.setData('text/plain', it.dataset.item);
-  e.dataTransfer.effectAllowed = 'copy';
-  it.classList.add('dragging');
-});
-document.addEventListener('dragend', e => { e.target.closest?.('[data-item]')?.classList.remove('dragging'); $('#stage').classList.remove('drag-over'); });
+// ---------- drag & drop (pointer based) ----------
+// Drag a card onto the doll to wear it; drag a worn piece off the doll to take it off.
+let drag = null, suppressClick = false;
 const stageEl = $('#stage');
-stageEl.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; stageEl.classList.add('drag-over'); });
-stageEl.addEventListener('dragleave', e => { if (!stageEl.contains(e.relatedTarget)) stageEl.classList.remove('drag-over'); });
-stageEl.addEventListener('drop', e => {
-  e.preventDefault(); stageEl.classList.remove('drag-over');
-  const id = e.dataTransfer.getData('text/plain');
-  if (ITEM[id]) { equip(id, true); toast(`Wearing ${ITEM[id].name}`); }
+const overStage = (x, y) => { const r = stageEl.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const card = e.target.closest('[data-item]');
+  const piece = !card && e.target.closest('#stage [data-slot]');
+  if (!card && !piece) return;
+  const id = card ? card.dataset.item : state.outfit[piece.dataset.slot];
+  if (!id) return;
+  drag = { id, slot: piece ? piece.dataset.slot : null, x: e.clientX, y: e.clientY, started: false, ghost: null };
 });
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.started) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.started = true;
+    const g = document.createElement('div');
+    g.className = 'drag-ghost';
+    PFX = 'g'; g.innerHTML = itemThumb(ITEM[drag.id], colOf(drag.id)); PFX = '';
+    document.body.appendChild(g);
+    drag.ghost = g;
+    document.body.classList.add('dragging');
+    if (drag.slot) { state.outfit[drag.slot] = null; UID = 0; renderStage(); }
+  }
+  e.preventDefault();
+  drag.ghost.style.left = e.clientX + 'px';
+  drag.ghost.style.top = e.clientY + 'px';
+  const over = overStage(e.clientX, e.clientY);
+  stageEl.classList.toggle('drag-over', over && !drag.slot);
+  drag.ghost.classList.toggle('over', over);
+});
+function endDrag(e, cancelled) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.started) return;
+  d.ghost.remove();
+  stageEl.classList.remove('drag-over');
+  document.body.classList.remove('dragging');
+  suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
+  const it = ITEM[d.id], over = !cancelled && overStage(e.clientX, e.clientY);
+  if (d.slot) {
+    if (over || cancelled) { state.outfit[d.slot] = d.id; update(); }
+    else { update(true); toast(`Took off ${it.name}`); }
+  } else if (over) {
+    equip(d.id, true);
+    toast(`${starletName()} is wearing ${it.name}`);
+  }
+}
+document.addEventListener('pointerup', e => endDrag(e, false));
+document.addEventListener('pointercancel', e => endDrag(e, true));
+document.addEventListener('dragstart', e => { if (e.target.closest?.('[data-item], #stage')) e.preventDefault(); });
 
+$('#btnUndress').addEventListener('click', () => {
+  for (const k of Object.keys(state.outfit)) state.outfit[k] = null;
+  update(true); toast(`${starletName()} is back in her underwear`);
+});
 $('#btnSave').addEventListener('click', openSave);
 $('#cancelSave').addEventListener('click', closeSave);
 $('#confirmSave').addEventListener('click', confirmSave);
@@ -1508,10 +1627,11 @@ $('#lookName').addEventListener('keydown', e => { if (e.key === 'Enter') confirm
 $('#saveModal').addEventListener('click', e => { if (e.target.id === 'saveModal') closeSave(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSave(); });
 $('#btnRandom').addEventListener('click', randomize);
-$('#btnReset').addEventListener('click', () => { state = clone(DEFAULT); hairSig = ''; update(true); toast('Back to the beginning'); });
+$('#btnReset').addEventListener('click', () => applyStarlet(state.starlet || 'aria'));
 
 // ---------- boot ----------
 buildUI();
+renderStarlets();
 update();
 renderLookbook();
 </script>

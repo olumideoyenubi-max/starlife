@@ -10,13 +10,15 @@ A browser dress-up and makeup game inspired by classic virtual doll games. The w
 
 ## Features
 
+- **Starlets:** six made-up celebrities (pop star, supermodel, idol, actress, film star, designer). Like on Stardoll, each one starts out in her underwear and you dress her up. Pick one from the row above the doll.
+
 - **Avatar:** skin tone (presets plus a custom colour picker), 4 eye shapes, eye colour, 6 brow styles with brow colour, 8 hairstyles, and hair colour.
 - **Makeup Studio:**
   - Eyes: eyeshadow (5 styles, any colour, opacity), eyeliner (tightline, classic, winged, cat-eye, smudged) in any colour, mascara levels, and coloured contacts.
   - Lips: lipstick shade with matte, gloss or metallic finish and an intensity slider, plus lip liner.
   - Face: blush (colour, placement, intensity), highlighter (shade, glow) and contour.
   - One-click presets: Bare, Natural, Soft Glam, Night Out, Editorial.
-- **Wardrobe:** tops, bottoms, dresses, outerwear, shoes and accessories (bags, necklaces, earrings, glasses, hats). Tap a piece or drag it onto the doll, and recolour anything you're wearing. Layering is handled for you:
+- **Wardrobe:** tops, bottoms, dresses, outerwear, shoes and accessories (bags, necklaces, earrings, glasses, hats). Clothes hang on a rail. Drag them onto the doll, or tap to wear them. Drag a piece off the doll to take it off, or use "Undress" to go back to underwear. You can recolour anything she's wearing. Layering is handled for you:
   - A dress replaces the top and bottom.
   - Jackets go over everything.
   - Boots go over trousers.
