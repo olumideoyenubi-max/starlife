@@ -66,19 +66,72 @@
 
   /* ---------- layout ---------- */
   .app {
-    display: grid; grid-template-columns: minmax(320px, 42%) 1fr;
+    display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
     gap: 24px; max-width: 1380px; margin: 0 auto; padding: 20px 24px 8px;
   }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
   .stage-wrap, .panel { min-width: 0; }
-  .stage-wrap { position: sticky; top: 78px; align-self: start; }
+  .stage-wrap { align-self: start; }
   .stage-card { padding: 14px; }
   #stage {
-    position: relative; border-radius: 14px; overflow: hidden;
+    position: relative; border-radius: 14px; overflow: hidden; min-width: 0;
     transition: box-shadow .2s;
   }
-  #stage { display: flex; justify-content: center; background: var(--scene, #f4cfdb); transition: background .3s; }
-  #stage svg { display: block; height: min(72vh, 740px); width: auto; max-width: 100%; aspect-ratio: 400 / 820; }
+  #stage { display: flex; justify-content: center; align-items: flex-end; height: 100%; min-height: 0; }
+  #stage svg { display: block; height: 100%; width: auto; max-width: 100%; aspect-ratio: 400 / 820; }
+
+  /* the room: scene backdrop with an open wardrobe standing beside the doll */
+  .room {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 4px;
+    height: min(76vh, 760px); min-height: 440px; border-radius: 16px; overflow: hidden; padding: 14px 10px 0 14px;
+    background: #f4cfdb;
+  }
+  .room-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .closet {
+    position: relative; z-index: 1; align-self: end; display: flex; flex-direction: column; min-height: 0; height: 94%;
+    margin: 0 18px; padding: 34px 10px 0;
+    background: linear-gradient(90deg, #e8b9c8, #f3d4de 18%, #f6dce5 50%, #f3d4de 82%, #e8b9c8);
+    border-radius: 140px 140px 6px 6px / 70px 70px 6px 6px;
+    box-shadow: 0 18px 30px -14px rgba(90, 30, 55, .45), inset 0 0 0 3px #f9e7ed, inset 0 0 0 5px #d9a3b6;
+  }
+  .closet-crown {
+    position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
+    font-family: var(--serif); font-style: italic; font-size: 13px; color: #9b4f6b; letter-spacing: .5px; white-space: nowrap;
+  }
+  .closet-door {
+    position: absolute; top: 46px; bottom: 30px; width: 22px; z-index: -1;
+    background: linear-gradient(180deg, #f0c9d6, #e2aabd); border: 2px solid #d9a3b6; border-radius: 6px;
+  }
+  .closet-door::after { content: ""; position: absolute; top: 50%; width: 6px; height: 6px; border-radius: 50%; background: #d6b25e; }
+  .closet-door.left { left: -20px; transform: perspective(300px) rotateY(-38deg); transform-origin: right center; }
+  .closet-door.left::after { left: 5px; }
+  .closet-door.right { right: -20px; transform: perspective(300px) rotateY(38deg); transform-origin: left center; }
+  .closet-door.right::after { right: 5px; }
+  .closet-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-bottom: 8px; }
+  .closet-tabs button {
+    border: 0; background: rgba(255,255,255,.55); color: #8a4a62; font-size: 11.5px; font-weight: 600;
+    padding: 4px 9px; border-radius: 999px; transition: background .2s, color .2s;
+  }
+  .closet-tabs button.on { background: #9b4f6b; color: #fff; }
+  .closet-inner {
+    position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    background: linear-gradient(#fff8fa, #fbeef2); border-radius: 10px 10px 0 0; padding: 18px 6px 8px;
+    box-shadow: inset 0 8px 16px -10px rgba(120, 50, 80, .45), inset 0 0 0 1px #edc9d6;
+    scrollbar-width: thin;
+  }
+  .closet-inner::before { /* the hanging rail */
+    content: ""; position: sticky; top: -12px; display: block; height: 5px; margin: -12px 4px 4px; border-radius: 3px; z-index: 1;
+    background: linear-gradient(#f1dc9a, #c9a24a); box-shadow: 0 2px 3px rgba(0,0,0,.15);
+  }
+  .closet-foot { text-align: center; font-size: 11px; color: #8a4a62; padding: 6px 0 8px; }
+  .closet .item-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 4px; }
+  .closet .item { background: transparent; border-color: transparent; padding: 2px 2px 6px; border-radius: 12px; }
+  .closet .item svg { height: 92px; }
+  .closet .item span { font-size: 11px; line-height: 1.2; text-align: center; color: #5b3a48; }
+  .closet .item:hover { background: rgba(255,255,255,.7); box-shadow: none; }
+  .closet .item.on { background: rgba(184, 92, 122, .1); border-color: var(--deep); box-shadow: none; }
+  .closet .group-label { margin-top: 2px; text-align: center; color: #9b4f6b; }
+  .recolor:empty { display: none; }
   #stage.drag-over { box-shadow: inset 0 0 0 3px var(--deep); }
   #stage .drop-hint {
     position: absolute; inset: 0; display: grid; place-items: center;
@@ -118,7 +171,7 @@
   .starlet.on svg { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--deep); }
   .starlet.on span { color: var(--ink); font-weight: 600; }
   .stage-name {
-    position: absolute; left: 12px; top: 12px; z-index: 2; pointer-events: none;
+    position: absolute; right: 8px; top: 0; z-index: 2; pointer-events: none;
     background: rgba(255,255,255,.86); backdrop-filter: blur(6px);
     padding: 6px 14px; border-radius: 999px; font-family: var(--serif); font-size: 15px; color: var(--ink);
   }
@@ -268,12 +321,22 @@
   @media (max-width: 960px) {
     .app { grid-template-columns: 1fr; padding: 12px 16px; }
     .stage-wrap { position: relative; top: 0; }
-    #stage svg { height: 62vh; }
+    .room { height: 62vh; min-height: 400px; }
     header { padding: 10px 16px; gap: 8px; }
     .brand h1 { font-size: 20px; }
     .brand span { display: none; }
     .lookbook { padding: 0 16px; }
     .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .room { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); padding: 10px 4px 0 6px; height: 470px; }
+    .closet { margin: 0 10px; padding: 30px 6px 0; }
+    .closet-door { display: none; }
+    .closet .item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .closet .item svg { height: 70px; }
+    .closet-tabs button { font-size: 10.5px; padding: 3px 7px; }
+    .stage-name { font-size: 12px; padding: 4px 10px; }
+    .stage-name small { display: none; }
   }
   @media (max-width: 520px) {
     header .btn .t { display: none; }
@@ -297,7 +360,25 @@
   <section class="stage-wrap">
     <div class="card stage-card">
       <div class="starlets" id="starlets" aria-label="Choose a starlet"></div>
-      <div id="stage" aria-label="Your doll"><div class="stage-name" id="stageName"></div><div class="drop-hint">Drop to dress her ✦</div></div>
+      <div class="room" id="room">
+        <svg class="room-bg" id="roomBg" viewBox="0 0 400 820" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+        <div class="closet" aria-label="Wardrobe">
+          <div class="closet-door left" aria-hidden="true"></div>
+          <div class="closet-door right" aria-hidden="true"></div>
+          <div class="closet-crown">Wardrobe</div>
+          <nav class="closet-tabs">
+            <button data-wcat="top" class="on">Tops</button>
+            <button data-wcat="bottom">Bottoms</button>
+            <button data-wcat="dress">Dresses</button>
+            <button data-wcat="outer">Jackets</button>
+            <button data-wcat="shoes">Shoes</button>
+            <button data-wcat="acc">Accessories</button>
+          </nav>
+          <div class="closet-inner"><div class="item-grid" id="itemGrid"></div></div>
+          <div class="closet-foot">Drag onto her ✦ drag off to remove</div>
+        </div>
+        <div id="stage" aria-label="Your doll"><div class="stage-name" id="stageName"></div><div class="drop-hint">Drop to dress her ✦</div></div>
+      </div>
       <div class="stage-tools">
         <span class="label">Scene</span>
         <div class="row" id="bgRow"></div>
@@ -309,19 +390,19 @@
         </div>
         <div class="layer-list" id="layerList"></div>
       </div>
+      <div class="recolor" id="recolor"></div>
     </div>
   </section>
 
   <!-- ============ PANEL ============ -->
   <section class="card panel">
     <nav class="tabs" role="tablist">
-      <button data-tab="avatar">Avatar</button>
+      <button data-tab="avatar" class="on">Avatar</button>
       <button data-tab="makeup">Makeup Studio</button>
-      <button data-tab="wardrobe" class="on">Wardrobe</button>
     </nav>
 
     <!-- Avatar -->
-    <div class="pane" data-pane="avatar">
+    <div class="pane on" data-pane="avatar">
       <div class="section"><h4>Skin tone</h4><div class="row" id="skinRow"></div></div>
       <div class="grid2">
         <div class="section"><h4>Eye shape</h4><div class="row" id="eyeShapeRow"></div></div>
@@ -390,20 +471,6 @@
       </div>
     </div>
 
-    <!-- Wardrobe -->
-    <div class="pane on" data-pane="wardrobe">
-      <div class="subtabs" data-sub="wardrobe">
-        <button data-wcat="top" class="on">Tops</button>
-        <button data-wcat="bottom">Bottoms</button>
-        <button data-wcat="dress">Dresses</button>
-        <button data-wcat="outer">Outerwear</button>
-        <button data-wcat="shoes">Shoes</button>
-        <button data-wcat="acc">Accessories</button>
-      </div>
-      <p class="hint">Drag clothes from the rail onto your starlet, or tap to wear. Drag a piece off her to take it off. Jackets always layer over tops and dresses.</p>
-      <div class="item-grid" id="itemGrid"></div>
-      <div class="recolor" id="recolor"></div>
-    </div>
   </section>
 </main>
 
@@ -468,19 +535,23 @@ const sym = s => s + `<g transform="${MIRROR}">${s}</g>`;
 let UID = 0, PFX = '';
 const nid = () => PFX + (++UID);
 
-const TORSO = 'M200,240 C178,240 152,242 140,256 C132,285 138,320 150,360 C155,380 156,392 154,405 C150,425 144,445 142,470 L258,470 C256,445 250,425 246,405 C244,392 245,380 250,360 C262,320 268,285 260,256 C248,242 222,240 200,240 Z';
-const LEG = 'M144,462 C142,520 152,590 160,650 C164,700 167,740 169,772 L191,772 C192,740 193,700 195,655 C198,600 200,540 200,470 Z';
-const LOWER = 'M154,395 C150,425 144,445 143,465 C142,520 152,590 160,650 C164,700 167,740 169,775 L191,775 C192,740 193,700 195,655 C198,600 200,540 200,488 C200,540 202,600 205,655 C207,700 208,740 209,775 L231,775 C233,740 236,700 240,650 C248,590 258,520 257,465 C256,445 250,425 246,395 Z';
+const TORSO = 'M186,232 C184,244 168,246 150,250 C138,253 133,266 134,290 C135,315 146,345 154,365 C159,382 160,394 156,410 C150,428 144,448 142,470 L258,470 C256,448 250,428 244,410 C240,394 241,382 246,365 C254,345 265,315 266,290 C267,266 262,253 250,250 C232,246 216,244 214,232 Z';
+const LEG = 'M143,465 C141,520 150,590 158,640 C160,660 156,690 160,715 C163,740 168,755 170,772 L191,772 C192,750 195,730 196,710 C197,690 196,665 194,645 C193,610 200,560 200,470 Z';
+const FOOT = 'M170,766 C167,776 163,786 164,793 C166,799 175,800 182,799 C190,800 196,797 195,790 C194,782 193,774 192,766 Z';
+const NECK = 'M187,184 C188,208 186,228 182,244 Q200,252 218,244 C214,228 212,208 213,184 Z';
+const ARM_SHAPE = 'M151,254 C137,254 127,268 125,296 C122,330 117,362 114,394 C111,424 109,450 110,474 L124,475 C125,452 128,428 131,402 C134,374 140,344 145,320 C149,302 156,280 151,254 Z';
+const HAND = 'M110,471 C106,484 103,497 105,508 C106,515 110,519 113,516 C114,520 118,521 120,517 C123,517 125,513 124,507 C126,500 127,492 125,484 L124,472 Z';
+const LOWER = 'M154,395 C150,425 144,445 143,465 C141,520 150,590 158,640 C160,660 156,690 160,715 C163,740 168,755 170,775 L191,775 C192,750 195,730 196,710 C197,690 196,665 194,645 C193,610 200,560 200,488 C200,560 207,610 206,645 C204,665 203,690 204,710 C205,730 208,750 209,775 L230,775 C232,755 237,740 240,715 C244,690 240,660 242,640 C250,590 259,520 257,465 C256,445 250,425 246,395 Z';
 const ARM = 'M147,262 C131,300 125,350 122,400 C120,435 118,460 116,478';
-const FACE = 'M140,120 C140,62 168,48 200,48 C232,48 260,62 260,120 C260,170 234,204 200,208 C166,204 140,170 140,120 Z';
+const FACE = 'M142,118 C142,64 168,48 200,48 C232,48 258,64 258,118 C258,150 251,174 236,191 C224,204 211,210 200,210 C189,210 176,204 164,191 C149,174 142,150 142,118 Z';
 const TORSO_T = 'translate(200,350) scale(1.07,1.02) translate(-200,-350)';
 const LOWER_T = 'translate(200,580) scale(1.07,1.004) translate(-200,-580)';
 
 const EYE_SHAPES = {
-  almond:   { label: 'Almond',   ox: 158, oy: 136, ix: 192, iy: 136, top: 121, bot: 147, r: 7.5 },
-  round:    { label: 'Round',    ox: 160, oy: 136, ix: 191, iy: 136, top: 115, bot: 153, r: 8.3 },
-  upturned: { label: 'Upturned', ox: 157, oy: 130, ix: 192, iy: 138, top: 119, bot: 147, r: 7.5 },
-  doe:      { label: 'Doe',      ox: 158, oy: 140, ix: 192, iy: 136, top: 120, bot: 151, r: 8 },
+  almond:   { label: 'Almond',   ox: 160, oy: 136, ix: 190, iy: 137, top: 124, bot: 146, r: 6.8 },
+  round:    { label: 'Round',    ox: 161, oy: 136, ix: 189, iy: 137, top: 119, bot: 151, r: 7.4 },
+  upturned: { label: 'Upturned', ox: 159, oy: 131, ix: 190, iy: 138, top: 122, bot: 146, r: 6.8 },
+  doe:      { label: 'Doe',      ox: 160, oy: 139, ix: 190, iy: 136, top: 122, bot: 150, r: 7.2 },
 };
 const BROWS = {
   natural:  { label: 'Natural',  d: 'M160,119 Q175,110 192,115', w: 4 },
@@ -528,25 +599,46 @@ function curvePts(p0, p1, p2, t0, t1, n) {
 }
 
 // ---------- body ----------
-function bodyBase(skin, mannequin = false) {
-  const e = mannequin ? '#e2d0d8' : shade(skin, -0.22);
-  const f = skin;
-  let s = sym(`<path d="${LEG}" fill="${f}" stroke="${e}" stroke-width="1.2"/><ellipse cx="180" cy="781" rx="13" ry="8" fill="${f}" stroke="${e}" stroke-width="1.2"/>`);
-  s += `<path d="${TORSO}" fill="${f}" stroke="${e}" stroke-width="1.2"/>`;
-  s += `<path d="M186,188 L186,246 Q200,254 214,246 L214,188 Z" fill="${f}" stroke="${e}" stroke-width="1.2"/>`;
-  if (!mannequin) {
-    s += sym(`<path d="M168,256 Q182,260 194,255" fill="none" stroke="${e}" stroke-width="1" opacity=".55"/>`);
-    s += `<path d="M200,402 q-2,4 0,6" fill="none" stroke="${e}" stroke-width="1.2" opacity=".6"/>`;
-  }
+function skinDefs(sk) {
+  const d1 = shade(sk, -0.17), d2 = shade(sk, -0.07), l = shade(sk, 0.1);
+  return `<linearGradient id="skinCyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${d1}"/><stop offset=".4" stop-color="${l}"/><stop offset=".65" stop-color="${sk}"/><stop offset="1" stop-color="${d1}"/></linearGradient>
+  <linearGradient id="skinTorso" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${d1}"/><stop offset=".18" stop-color="${sk}"/><stop offset=".45" stop-color="${l}"/><stop offset=".82" stop-color="${sk}"/><stop offset="1" stop-color="${d1}"/></linearGradient>
+  <radialGradient id="skinFace" cx=".5" cy=".44" r=".62"><stop offset="0" stop-color="${l}"/><stop offset=".72" stop-color="${sk}"/><stop offset="1" stop-color="${d2}"/></radialGradient>
+  <filter id="hairTex" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.7 0.02" numOctaves="2" seed="4" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 -0.4" result="dk"/>
+    <feComposite in="dk" in2="SourceGraphic" operator="in" result="dkIn"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 -0.9 0 0 0.32" result="lt"/>
+    <feComposite in="lt" in2="SourceGraphic" operator="in" result="ltIn"/>
+    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="dkIn"/><feMergeNode in="ltIn"/></feMerge>
+  </filter>`;
+}
+// The body is shaded with soft gradients and fine anatomy lines so it reads as a person, not a paper doll.
+function bodyBase(skin) {
+  const e = shade(skin, -0.26);
+  const S = `stroke="${e}" stroke-width="1" stroke-opacity=".75"`;
+  const line = (d, o = .4, w = 1) => `<path d="${d}" fill="none" stroke="${e}" stroke-width="${w}" stroke-linecap="round" opacity="${o}"/>`;
+  let s = sym(`<path d="${LEG}" fill="url(#skinCyl)" ${S}/><path d="${FOOT}" fill="url(#skinCyl)" ${S}/>` +
+    line('M167,632 Q178,641 190,633', .4) + line('M170,646 Q178,650 186,646', .25) +
+    line('M175,758 q-2,5 1,9', .35) + line('M171,792 l0,5 M177,793 l0,5 M183,793 l0,5 M189,792 l0,4', .3, .8));
+  s += `<path d="${TORSO}" fill="url(#skinTorso)" ${S}/>`;
+  s += sym(line('M166,256 Q180,262 194,258', .5, 1.1) + line('M150,326 Q170,346 194,334', .35) + line('M156,436 Q174,460 194,474', .3) + line('M160,372 Q164,392 160,410', .18, 2));
+  s += line('M200,300 L200,326', .18, 2) + `<ellipse cx="200" cy="410" rx="1.6" ry="2.8" fill="${e}" opacity=".6"/>`;
+  s += `<path d="${NECK}" fill="url(#skinCyl)" ${S}/>` +
+    `<path d="M187,186 Q200,226 213,186 Z" fill="${shade(skin, -0.32)}" opacity=".35" filter="url(#soft)"/>` +
+    sym(line('M191,214 Q190,232 184,242', .22));
   return s;
 }
-function arms(skin, mannequin = false) {
-  const e = mannequin ? '#e2d0d8' : shade(skin, -0.22);
-  return sym(`<path d="${ARM}" fill="none" stroke="${e}" stroke-width="24" stroke-linecap="round"/><path d="${ARM}" fill="none" stroke="${skin}" stroke-width="21.6" stroke-linecap="round"/>`);
+function arms(skin) {
+  const e = shade(skin, -0.26);
+  return sym(`<path d="${ARM_SHAPE}" fill="url(#skinCyl)" stroke="${e}" stroke-width="1" stroke-opacity=".75"/>` +
+    `<path d="M116,396 q6,3 12,0" fill="none" stroke="${e}" stroke-width="1" opacity=".35"/>`);
 }
-function hands(skin, mannequin = false) {
-  const e = mannequin ? '#e2d0d8' : shade(skin, -0.22);
-  return sym(`<ellipse cx="115" cy="490" rx="10.5" ry="15" fill="${skin}" stroke="${e}" stroke-width="1.2"/>`);
+function hands(skin) {
+  const e = shade(skin, -0.26);
+  return sym(`<path d="${HAND}" fill="url(#skinCyl)" stroke="${e}" stroke-width="1" stroke-opacity=".8"/>` +
+    `<path d="M124,482 C130,487 131,495 127,500" fill="none" stroke="${e}" stroke-width="1" opacity=".6"/>` +
+    `<path d="M113,505 L113,515 M118,506 L119,517" fill="none" stroke="${e}" stroke-width=".8" opacity=".45"/>`);
 }
 
 function underwear(c) {
@@ -563,7 +655,7 @@ const HAIR_CAP = 'M137,124 C132,60 166,36 200,36 C234,36 268,60 263,124 C256,96 
 const SLEEK_CAP = 'M137,124 C132,58 166,36 200,36 C234,36 268,58 263,124 C258,92 234,70 200,68 C166,70 142,92 137,124 Z';
 const strands = (d) => `<path d="M176,44 Q156,62 146,104" fill="none" stroke="${d}" stroke-width="1.4" opacity=".55"/><path d="M226,44 Q246,62 254,104" fill="none" stroke="${d}" stroke-width="1.4" opacity=".55"/>`;
 const shine = (l) => `<path d="M170,48 Q200,38 230,48" fill="none" stroke="${l}" stroke-width="4" stroke-linecap="round" opacity=".45"/>`;
-const H = (d, c, dk) => `<path d="${d}" fill="${c}" stroke="${dk}" stroke-width="1.2" stroke-linejoin="round"/>`;
+const H = (d, c, dk) => `<path d="${d}" fill="${c}" stroke="${dk}" stroke-width=".9" stroke-opacity=".55" stroke-linejoin="round"/>`;
 
 const HAIR = {
   long: {
@@ -652,10 +744,12 @@ function eyePath(E) { return `M${E.ox},${E.oy} Q175,${E.top} ${E.ix},${E.iy} Q17
 
 function faceDefs(s) {
   const m = s.makeup, E = EYE_SHAPES[s.eyeShape];
+  const irisCol = m.contacts !== 'none' ? m.contacts : s.eyeColor;
   const lc = m.lips.color === 'none' ? '#c97a7a' : m.lips.color;
   const bc = m.blush.color === 'none' ? '#f19a9a' : m.blush.color;
   return `<clipPath id="faceClip"><path d="${FACE}"/></clipPath>
   <clipPath id="eyeClip"><path d="${eyePath(E)}"/></clipPath>
+  <radialGradient id="irisG"><stop offset="0" stop-color="${shade(irisCol, 0.35)}"/><stop offset=".55" stop-color="${irisCol}"/><stop offset="1" stop-color="${shade(irisCol, -0.45)}"/></radialGradient>
   <radialGradient id="blushG"><stop offset="0" stop-color="${bc}" stop-opacity="1"/><stop offset="1" stop-color="${bc}" stop-opacity="0"/></radialGradient>
   <radialGradient id="hlG"><stop offset="0" stop-color="${m.highlight.color}" stop-opacity="1"/><stop offset="1" stop-color="${m.highlight.color}" stop-opacity="0"/></radialGradient>
   <linearGradient id="lipMetal" x1="0" y1="0" x2="1" y2="1">
@@ -729,12 +823,15 @@ function eye(s) {
   return eyeshadow(m, E) +
     `<path d="${eyePath(E)}" fill="#fbf8f6"/>` +
     `<g clip-path="url(#eyeClip)">
-      <circle cx="176" cy="${cy}" r="${r}" fill="${iris}" stroke="${shade(iris, -0.45)}" stroke-width="1.2"/>
+      <rect x="150" y="110" width="50" height="50" fill="#000" opacity=".04"/>
+      <circle cx="176" cy="${cy}" r="${r}" fill="url(#irisG)" stroke="${shade(iris, -0.5)}" stroke-width="1.1"/>
+      ${Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return `<path d="M${(176 + Math.cos(a) * r * 0.45).toFixed(1)},${(cy + Math.sin(a) * r * 0.45).toFixed(1)} L${(176 + Math.cos(a) * r * 0.9).toFixed(1)},${(cy + Math.sin(a) * r * 0.9).toFixed(1)}" stroke="${shade(iris, 0.35)}" stroke-width=".6" opacity=".55"/>`; }).join('')}
       <circle cx="176" cy="${cy}" r="${r * 0.62}" fill="none" stroke="${shade(iris, 0.3)}" stroke-width="1.2" opacity=".55"/>
       <circle cx="176" cy="${cy}" r="${r * 0.42}" fill="#16100f"/>
       <circle cx="179" cy="${cy - 3}" r="2" fill="#fff"/><circle cx="173.5" cy="${cy + 2.4}" r=".9" fill="#fff" opacity=".8"/>
       <path d="M${E.ox},${E.oy} Q175,${E.top} ${E.ix},${E.iy}" fill="none" stroke="#000" stroke-width="4" opacity=".12"/>
     </g>` +
+    `<ellipse cx="${E.ix - 1.5}" cy="${E.iy}" rx="2.2" ry="1.6" fill="#e8a0a0" opacity=".8"/>` +
     `<path d="M${E.ox},${E.oy} Q175,${E.bot} ${E.ix},${E.iy}" fill="none" stroke="${skinLine}" stroke-width=".9" opacity=".7"/>` +
     `<path d="M${E.ox + 3},${E.oy - 3} Q175,${E.top - 7} ${E.ix - 2},${E.iy - 4}" fill="none" stroke="${skinLine}" stroke-width=".9" opacity=".45"/>` +
     `<path d="M${E.ox},${E.oy} Q175,${E.top} ${E.ix},${E.iy}" fill="none" stroke="#2a1c1c" stroke-width="1.5" stroke-linecap="round"/>` +
@@ -744,7 +841,10 @@ function eye(s) {
 function head(s) {
   const sk = s.skin, e = shade(sk, -0.22), m = s.makeup;
   let h = sym(`<ellipse cx="141" cy="136" rx="8" ry="14" fill="${sk}" stroke="${e}" stroke-width="1.2"/><path d="M141,128 Q137,136 141,143" fill="none" stroke="${e}" stroke-width=".9"/>`);
-  h += `<path d="${FACE}" fill="${sk}" stroke="${e}" stroke-width="1.2"/>`;
+  h += `<path d="${FACE}" fill="url(#skinFace)" stroke="${e}" stroke-width="1" stroke-opacity=".8"/>`;
+  // natural shading: temples, cheek hollows, eye sockets
+  h += `<g clip-path="url(#faceClip)" filter="url(#softer)" fill="${shade(sk, -0.3)}"><g opacity=".22">` +
+    sym(`<ellipse cx="143" cy="140" rx="9" ry="44"/><ellipse cx="176" cy="126" rx="17" ry="6" opacity=".6"/>`) + `</g></g>`;
 
   // contour, blush, highlighter: all clipped to the face
   let face = '';
@@ -773,14 +873,22 @@ function head(s) {
 
   // brows
   const B = BROWS[s.brow], bcol = s.browColor === 'match' ? shade(s.hairColor, lum(s.hairColor) > 0.6 ? -0.45 : -0.12) : s.browColor;
-  const brow = `<path d="${B.d}" fill="none" stroke="${bcol}" stroke-width="${B.w}" stroke-linecap="round"/>` +
-    `<path d="${B.d}" fill="none" stroke="${shade(bcol, -0.3)}" stroke-width="${Math.max(1, B.w * 0.35)}" stroke-linecap="round" stroke-dasharray="1.5 2.5" opacity=".6"/>`;
+  const bp = B.d.match(/-?\d+(\.\d+)?/g).map(Number);
+  const hairs = curvePts([bp[0], bp[1]], [bp[2], bp[3]], [bp[4], bp[5]], 0, 1, 22).map(([x, y, t]) => {
+    const len = B.w * 1.1 + 1.5, ang = -0.35 - t * 0.9; // outer hairs sweep outwards, inner hairs stand up
+    const dx = Math.cos(Math.PI / 2 + ang) * len, dy = -Math.sin(Math.PI / 2 + ang) * len;
+    return `<path d="M${(x - dx / 2).toFixed(1)},${(y - dy / 2).toFixed(1)} l${dx.toFixed(1)},${dy.toFixed(1)}" stroke="${shade(bcol, -0.15)}" stroke-width=".85" stroke-linecap="round"/>`;
+  }).join('');
+  const brow = `<path d="${B.d}" fill="none" stroke="${bcol}" stroke-width="${B.w}" stroke-linecap="round" opacity=".55"/>` + hairs;
   h += sym(B.soft ? `<g filter="url(#soft)" opacity=".85">${brow}</g><path d="${B.d}" fill="none" stroke="${bcol}" stroke-width="2.4" stroke-linecap="round"/>` : brow);
 
   // nose
   const nz = shade(sk, -0.3);
-  h += `<path d="M197,150 Q193,166 198,171" fill="none" stroke="${nz}" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>` +
-       `<path d="M193,170 Q196,174 200,172 Q204,174 207,170" fill="none" stroke="${nz}" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>`;
+  h += `<g filter="url(#soft)" opacity=".45">` + sym(`<path d="M194,128 C192,144 190,156 191,165" fill="none" stroke="${nz}" stroke-width="2.4"/>`) + `</g>` +
+       `<ellipse cx="200" cy="164" rx="3.4" ry="2.4" fill="#fff" opacity=".2"/>` +
+       sym(`<path d="M190,168 C188,164 191,160 195,164" fill="none" stroke="${nz}" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><ellipse cx="195.5" cy="169.5" rx="2" ry="1.1" fill="${shade(sk, -0.45)}" opacity=".55"/>`) +
+       `<path d="M193,171 Q200,174 207,171" fill="none" stroke="${nz}" stroke-width="1" stroke-linecap="round" opacity=".55"/>` +
+       `<path d="M198,174 L198.5,179 M202,174 L201.5,179" stroke="${nz}" stroke-width=".7" opacity=".3"/>`;
 
   // lips
   const base = mix(sk, '#c45f6c', 0.42);
@@ -795,7 +903,10 @@ function head(s) {
       h += `<g fill="#fff">${[[193, 188], [204, 190], [198, 182], [209, 184], [189, 184]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".8" opacity=".85"/>`).join('')}</g>`;
     }
   }
-  h += `<path d="M183,183 Q200,186.5 217,183" fill="none" stroke="${shade(base, -0.4)}" stroke-width="1.1" stroke-linecap="round"/>`;
+  h += `<path d="M183,183 Q200,186.5 217,183" fill="none" stroke="${shade(base, -0.4)}" stroke-width="1.1" stroke-linecap="round"/>` +
+    sym(`<circle cx="183.5" cy="183.2" r="1.2" fill="${shade(base, -0.45)}" opacity=".6"/>`) +
+    (L.finish === 'gloss' && L.color !== 'none' ? '' : `<ellipse cx="200" cy="190" rx="5.5" ry="1.6" fill="#fff" opacity=".18"/>`) +
+    `<path d="M193,199 Q200,202 207,199" fill="none" stroke="${shade(sk, -0.25)}" stroke-width="1.2" opacity=".35" filter="url(#soft)"/>`;
   if (L.liner !== 'none') h += `<path d="${LIP_ALL}" fill="none" stroke="${L.liner}" stroke-width="1.4" stroke-linejoin="round"/>`;
   return h;
 }
@@ -940,24 +1051,24 @@ const ITEMS = [
     sleeves: c => sleeve(c, 100, 42) + sym(`<path d="${ARM}" pathLength="100" stroke-dasharray="0 30 1 25 1 25 1 300" fill="none" stroke="${EDGE(c)}" stroke-width="42" opacity=".5"/>`) },
 
   // ----- shoes -----
-  { id: 'sneakers', name: 'Court Sneakers', slot: 'shoes', cat: 'shoes', color: '#e57b97',
+  { id: 'sneakers', name: 'Court Sneakers', slot: 'shoes', cat: 'shoes', vb: '148 744 104 64', color: '#e57b97',
     draw: c => sym(`<path d="M163,768 L196,768 L198,786 Q199,796 189,796 L168,796 Q158,795 160,786 Z" fill="#fbfbfb" ${st('#ffffff')}/>` +
       `<path d="M164,786 Q180,776 196,782" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round"/>` +
       `<path d="M158,792 L199,792 L198,799 Q190,801 168,801 Q158,800 158,792 Z" fill="${shade(c, 0.55)}" ${st(c, 1)}/>` +
       `<path d="M172,772 L188,772 M172,776 L188,776" stroke="#c9c2c6" stroke-width="1.2"/>`) },
-  { id: 'pumps', name: 'Pointed Pumps', slot: 'shoes', cat: 'shoes', color: '#c2233f',
+  { id: 'pumps', name: 'Pointed Pumps', slot: 'shoes', cat: 'shoes', vb: '148 744 104 64', color: '#c2233f',
     draw: c => sym(`<path d="M165,770 L195,770 Q199,788 186,800 Q180,804 174,800 Q161,788 165,770 Z" fill="${c}" ${st(c)}/>` +
       `<path d="M168,772 Q180,780 192,772" fill="none" stroke="${shade(c, 0.3)}" stroke-width="1.3"/><path d="M171,786 Q174,794 178,797" fill="none" stroke="#fff" stroke-width="1.6" opacity=".35"/>`) },
-  { id: 'ankleboots', name: 'Chelsea Boots', slot: 'shoes', cat: 'shoes', color: '#5b3b2a', over: true,
-    draw: c => sym(`<path d="M163,708 L198,708 L197,770 Q201,790 192,799 L168,799 Q157,797 161,784 Z" fill="${c}" ${st(c)}/>` +
+  { id: 'ankleboots', name: 'Chelsea Boots', slot: 'shoes', cat: 'shoes', vb: '146 694 108 114', color: '#5b3b2a', over: true,
+    draw: c => sym(`<path d="M159,706 L198,706 L197,770 Q201,790 192,799 L168,799 Q157,797 161,784 Z" fill="${c}" ${st(c)}/>` +
       `<path d="M166,722 Q180,736 195,722 L195,746 Q180,760 166,746 Z" fill="${shade(c, -0.25)}"/><rect x="164" y="797" width="34" height="5" rx="2" fill="${shade(c, -0.5)}"/>`) },
   { id: 'kneeboots', name: 'Knee-high Boots', slot: 'shoes', cat: 'shoes', color: '#1e1a1d', over: true,
     draw: c => sym(`<path d="M156,626 L199,626 L197,770 Q201,790 192,800 L168,800 Q157,797 161,784 L162,700 Z" fill="${c}" ${st(c)}/>` +
       `<path d="M168,640 Q172,700 172,780" fill="none" stroke="#fff" stroke-width="3" opacity=".14"/><path d="M156,634 L199,634" stroke="${EDGE(c)}" stroke-width="1"/>`) },
-  { id: 'flats', name: 'Ballet Flats', slot: 'shoes', cat: 'shoes', color: '#f2c6d3',
+  { id: 'flats', name: 'Ballet Flats', slot: 'shoes', cat: 'shoes', vb: '148 744 104 64', color: '#f2c6d3',
     draw: c => sym(`<path d="M165,772 L195,772 Q199,789 189,797 L171,797 Q161,789 165,772 Z" fill="${c}" ${st(c)}/>` +
       `<path d="M174,776 L180,779 L186,776 L186,782 L180,779 L174,782 Z" fill="${shade(c, -0.25)}"/>`) },
-  { id: 'sandals', name: 'Strappy Sandals', slot: 'shoes', cat: 'shoes', color: '#d6b25e',
+  { id: 'sandals', name: 'Strappy Sandals', slot: 'shoes', cat: 'shoes', vb: '148 734 104 74', color: '#d6b25e',
     draw: c => sym(`<path d="M167,756 L193,756" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M180,756 L180,776" stroke="${c}" stroke-width="2.2"/>` +
       `<path d="M166,776 Q180,770 194,776" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M167,784 Q180,780 193,784" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>` +
       `<path d="M163,790 L197,790 L197,795 L163,795 Z" fill="${shade(c, -0.25)}"/>`) },
@@ -1071,10 +1182,10 @@ function renderDoll(s, { bg = true, standalone = false, width, height } = {}) {
   const I = k => (o[k] && ITEM[o[k]]) || null;
   const col = id => s.colors[id] || ITEM[id].color;
   const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? `<g data-slot="${k}">${it[p](col(it.id), s)}</g>` : ''; };
-  let out = `<defs>${baseDefs()}${faceDefs(s)}</defs>`;
+  let out = `<defs>${baseDefs()}${skinDefs(s.skin)}${faceDefs(s)}</defs>`;
   if (bg) out += background(s.bg);
-  out += `<ellipse cx="200" cy="802" rx="80" ry="9" fill="#000" opacity=".16" filter="url(#blur6)"/>`;
-  out += hairBack(s);
+  out += `<ellipse cx="200" cy="802" rx="70" ry="8" fill="#000" opacity=".2" filter="url(#blur6)"/>`;
+  out += `<g filter="url(#hairTex)">${hairBack(s)}</g>`;
   out += bodyBase(s.skin);
   out += underwear(s.underwear);
   if (I('shoes') && !I('shoes').over) out += part('shoes');
@@ -1088,7 +1199,7 @@ function renderDoll(s, { bg = true, standalone = false, width, height } = {}) {
   out += hands(s.skin);
   out += part('necklace');
   out += head(s);
-  out += hairFront(s);
+  out += `<g filter="url(#hairTex)">${hairFront(s)}</g>`;
   out += part('earrings') + part('glasses') + part('hat');
   const size = standalone ? ` width="${width || 400}" height="${height || 820}"` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 820"${size} preserveAspectRatio="xMidYMid meet">${out}</svg>`;
@@ -1239,7 +1350,7 @@ function buildUI() {
   slider('contourOpacity', 'makeup.contour.opacity', 0, 0.7);
 }
 
-let activeTab = 'wardrobe', activeCat = 'top', hairSig = '';
+let activeTab = 'avatar', activeCat = 'top', hairSig = '', bgSig = '';
 
 function portrait(s, lips = '#c96b78') {
   const sk = s.skin, e = shade(sk, -0.22);
@@ -1292,11 +1403,8 @@ function renderGrid() {
 function renderRecolor() {
   const box = $('#recolor');
   const f = state.focus && ITEM[state.focus];
-  const worn = f && state.outfit[f.slot] === f.id && f.cat === activeCat;
-  if (!worn) {
-    box.innerHTML = `<h5>Recolour</h5><div class="empty">Wear something from this rail to restyle its colour.</div>`;
-    return;
-  }
+  const worn = f && state.outfit[f.slot] === f.id;
+  if (!worn) { box.innerHTML = ''; return; }
   const cur = state.colors[f.id] || f.color;
   box.innerHTML = `<h5>Recolour · <span>${f.name}</span></h5><div class="row">` +
     PAL.cloth.map(c => `<button class="sw${c === cur ? ' on' : ''}" style="--c:${c}" data-recolor="${c}" aria-label="Colour ${c}"></button>`).join('') +
@@ -1343,8 +1451,8 @@ function refreshUI() {
 function renderStage(pop = false) {
   const stage = $('#stage');
   stage.querySelector('svg')?.remove();
-  stage.insertAdjacentHTML('afterbegin', renderDoll(state));
-  stage.style.setProperty('--scene', BGS[state.bg].sw);
+  stage.insertAdjacentHTML('afterbegin', renderDoll(state, { bg: false }));
+  if (bgSig !== state.bg) { bgSig = state.bg; $('#roomBg').innerHTML = background(state.bg); }
   const x = STARLETS.find(v => v.id === state.starlet);
   $('#stageName').innerHTML = x ? `${x.name}<small>${x.role}</small>` : 'My Doll';
   $$('[data-starlet]').forEach(b => b.classList.toggle('on', b.dataset.starlet === state.starlet));
@@ -1356,7 +1464,7 @@ function update(pop = false) {
   UID = 0;
   renderStage(pop);
   if (activeTab === 'avatar') renderHairCards();
-  if (activeTab === 'wardrobe') renderGrid();
+  renderGrid();
   renderLayers();
   refreshUI();
   clearTimeout(saveTimer);
