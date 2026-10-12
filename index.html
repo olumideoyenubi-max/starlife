@@ -1370,12 +1370,34 @@ function skinDefs(sk) {
   <linearGradient id="skinTorso" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${d1}"/><stop offset=".18" stop-color="${sk}"/><stop offset=".45" stop-color="${l}"/><stop offset=".82" stop-color="${sk}"/><stop offset="1" stop-color="${d1}"/></linearGradient>
   <radialGradient id="skinFace" cx=".5" cy=".44" r=".62"><stop offset="0" stop-color="${l}"/><stop offset=".72" stop-color="${sk}"/><stop offset="1" stop-color="${d2}"/></radialGradient>
   <filter id="hairTex" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.7 0.02" numOctaves="2" seed="4" result="n"/>
-    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 -0.4" result="dk"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.22 0.012" numOctaves="3" seed="4" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.75 0 0 0 -0.36" result="dk"/>
     <feComposite in="dk" in2="SourceGraphic" operator="in" result="dkIn"/>
-    <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 -0.9 0 0 0.32" result="lt"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 -0.8 0 0 0.3" result="lt"/>
     <feComposite in="lt" in2="SourceGraphic" operator="in" result="ltIn"/>
-    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="dkIn"/><feMergeNode in="ltIn"/></feMerge>
+    <feMerge result="tex"><feMergeNode in="SourceGraphic"/><feMergeNode in="dkIn"/><feMergeNode in="ltIn"/></feMerge>
+    <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="b"/>
+    <feDiffuseLighting in="b" surfaceScale="9" diffuseConstant="1.15" lighting-color="#fff" result="l"><feDistantLight azimuth="225" elevation="48"/></feDiffuseLighting>
+    <feComponentTransfer in="l" result="l2"><feFuncR type="linear" slope="1.25" intercept=".02"/><feFuncG type="linear" slope="1.25" intercept=".02"/><feFuncB type="linear" slope="1.25" intercept=".02"/></feComponentTransfer>
+    <feBlend in="tex" in2="l2" mode="multiply" result="lit"/>
+    <feComposite in="lit" in2="SourceAlpha" operator="in"/>
+  </filter>
+  <filter id="volSkin" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="b"/>
+    <feDiffuseLighting in="b" surfaceScale="3.2" diffuseConstant="1.05" lighting-color="#fff" result="l"><feDistantLight azimuth="225" elevation="58"/></feDiffuseLighting>
+    <feComponentTransfer in="l" result="l2"><feFuncR type="linear" slope="1.12" intercept=".04"/><feFuncG type="linear" slope="1.12" intercept=".04"/><feFuncB type="linear" slope="1.12" intercept=".04"/></feComponentTransfer>
+    <feBlend in="SourceGraphic" in2="l2" mode="multiply" result="lit"/>
+    <feComposite in="lit" in2="SourceAlpha" operator="in"/>
+  </filter>
+  <filter id="vol" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="b"/>
+    <feDiffuseLighting in="b" surfaceScale="7" diffuseConstant="1.1" lighting-color="#fff" result="l"><feDistantLight azimuth="225" elevation="52"/></feDiffuseLighting>
+    <feComponentTransfer in="l" result="l2"><feFuncR type="linear" slope="1.2" intercept=".04"/><feFuncG type="linear" slope="1.2" intercept=".04"/><feFuncB type="linear" slope="1.2" intercept=".04"/></feComponentTransfer>
+    <feBlend in="SourceGraphic" in2="l2" mode="multiply" result="lit"/>
+    <feSpecularLighting in="b" surfaceScale="7" specularConstant=".35" specularExponent="18" lighting-color="#fff" result="sp"><feDistantLight azimuth="225" elevation="52"/></feSpecularLighting>
+    <feComposite in="sp" in2="SourceAlpha" operator="in" result="spIn"/>
+    <feComposite in="lit" in2="spIn" operator="arithmetic" k2="1" k3=".5"/>
+    <feComposite in2="SourceAlpha" operator="in"/>
   </filter>`;
 }
 // The body is shaded with soft gradients and fine anatomy lines so it reads as a person, not a paper doll.
@@ -1425,16 +1447,16 @@ const H = (d, c, dk) => `<path d="${d}" fill="${c}" stroke="${dk}" stroke-width=
 const HAIR = {
   long: {
     label: 'Long Sleek',
-    back: (c, d) => H('M132,105 C126,40 172,26 200,26 C228,26 274,40 268,105 C276,200 290,300 284,370 Q200,392 116,370 C110,300 124,200 132,105 Z', c, d),
+    back: (c, d) => H('M132,105 C126,40 172,26 200,26 C228,26 274,40 268,105 C280,240 300,420 292,540 Q200,566 108,540 C100,420 120,240 132,105 Z', c, d),
     front: (c, d, l) => H(HAIR_CAP, c, d) + strands(d) +
-      sym(H('M139,112 C126,170 132,230 146,282 C152,312 150,340 141,362 C160,348 167,312 161,272 C151,222 149,162 157,118 Z', c, d)) +
+      sym(H('M139,112 C124,190 128,290 140,370 C146,420 146,460 138,500 C160,480 166,430 160,380 C152,300 148,190 157,118 Z', c, d)) +
       H('M138,128 C140,92 170,70 214,74 C236,76 252,88 260,110 C236,92 205,92 182,104 C163,113 150,124 138,128 Z', c, d) + shine(l),
   },
   waves: {
     label: 'Mermaid Waves',
-    back: (c, d) => H('M132,100 C120,150 140,180 124,220 C110,260 132,290 118,330 C112,350 120,370 128,388 Q200,402 272,388 C280,370 288,350 282,330 C268,290 290,260 276,220 C260,180 280,150 268,100 C268,44 232,26 200,26 C168,26 132,44 132,100 Z', c, d),
+    back: (c, d) => H('M132,100 C118,160 142,200 122,250 C104,300 134,340 116,390 C104,430 126,470 112,510 C108,525 118,540 128,548 Q200,566 272,548 C282,540 292,525 288,510 C274,470 296,430 284,390 C266,340 296,300 278,250 C258,200 282,160 268,100 C268,44 232,26 200,26 C168,26 132,44 132,100 Z', c, d),
     front: (c, d, l) => sym(H('M200,38 C168,38 138,58 135,124 C146,96 170,80 198,78 Z', c, d) +
-      H('M138,112 C124,160 146,200 132,240 C122,270 140,300 130,334 C150,320 158,292 150,262 C142,230 160,200 150,160 C146,140 148,124 154,112 Z', c, d)) + shine(l),
+      H('M138,112 C122,170 148,220 130,270 C116,320 142,360 126,410 C120,440 132,470 124,500 C150,480 158,440 148,400 C138,360 162,320 150,270 C140,220 160,170 152,130 C150,122 152,116 154,112 Z', c, d)) + shine(l),
   },
   bob: {
     label: 'Chic Bob',
@@ -1451,7 +1473,7 @@ const HAIR = {
   },
   ponytail: {
     label: 'High Pony',
-    back: (c, d) => H('M238,58 C300,46 314,130 298,210 C290,252 302,292 288,334 C268,302 264,252 268,202 C274,142 266,98 234,80 Z', c, d) +
+    back: (c, d) => H('M238,58 C300,46 314,130 298,230 C288,300 306,370 286,440 C262,380 262,300 268,222 C274,142 266,98 234,80 Z', c, d) +
       `<path d="M262,96 C286,150 276,240 286,310" fill="none" stroke="${d}" stroke-width="1.3" opacity=".5"/>`,
     front: (c, d, l) => H(SLEEK_CAP, c, d) + strands(d) + shine(l) +
       `<ellipse cx="248" cy="62" rx="8" ry="12" transform="rotate(35 248 62)" fill="${shade(c, -0.45)}"/>`,
@@ -1488,11 +1510,11 @@ const HAIR = {
     back: (c, d) => `<ellipse cx="200" cy="100" rx="66" ry="72" fill="${c}" stroke="${d}" stroke-width="1.2"/>`,
     front: (c, d, l) => {
       let b = '';
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 18; i++) {
         const y = 150 + i * 19, x = 144 + Math.min(i, 6) * 1.6;
-        b += `<ellipse cx="${x}" cy="${y}" rx="${12 - i * 0.25}" ry="12" transform="rotate(${i % 2 ? 22 : -22} ${x} ${y})" fill="${c}" stroke="${d}" stroke-width="1.1"/>`;
+        b += `<ellipse cx="${x}" cy="${y}" rx="${12 - i * 0.2}" ry="12" transform="rotate(${i % 2 ? 22 : -22} ${x} ${y})" fill="${c}" stroke="${d}" stroke-width="1.1"/>`;
       }
-      b += `<rect x="146" y="372" width="14" height="6" rx="3" fill="${shade(c, -0.5)}"/><path d="M147,378 L142,398 L153,392 L164,398 L159,378 Z" fill="${c}" stroke="${d}" stroke-width="1"/>`;
+      b += `<rect x="146" y="486" width="14" height="6" rx="3" fill="${shade(c, -0.5)}"/><path d="M147,492 L142,512 L153,506 L164,512 L159,492 Z" fill="${c}" stroke="${d}" stroke-width="1"/>`;
       return sym(H('M200,38 C168,38 138,58 135,124 C146,96 170,80 198,78 Z', c, d) + b) + shine(l);
     },
   },
@@ -2023,25 +2045,24 @@ function renderDoll(s, { standalone = false, width, height, vb = '0 0 400 820', 
   const o = s.outfit;
   const I = k => (o[k] && ITEM[o[k]]) || null;
   const col = id => s.colors[id] || ITEM[id].color;
-  const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? `<g data-slot="${k}">${it[p](col(it.id), s)}</g>` : ''; };
+  const part = (k, p = 'draw') => { const it = I(k); return it && it[p] ? `<g data-slot="${k}" filter="url(#vol)">${it[p](col(it.id), s)}</g>` : ''; };
+  const HEAD = 'translate(200,206) scale(0.62) translate(-200,-206)';
   let out = `<defs>${baseDefs()}${skinDefs(s.skin)}${faceDefs(s)}</defs>`;
   out += `<ellipse cx="200" cy="802" rx="78" ry="9" fill="#000" opacity=".22" filter="url(#blur6)"/>`;
-  out += `<g filter="url(#hairTex)">${hairBack(s)}</g>`;
-  out += bodyBase(s.skin);
+  out += `<g transform="${HEAD}"><g filter="url(#hairTex)">${hairBack(s)}</g></g>`;
+  out += `<g filter="url(#volSkin)">${bodyBase(s.skin)}</g>`;
   out += underwear(s.underwear);
   if (I('shoes') && !I('shoes').over) out += part('shoes');
   if (s.tucked) out += part('top') + part('bottom'); else out += part('bottom') + part('top');
   out += part('dress');
   if (I('shoes') && I('shoes').over) out += part('shoes');
-  out += arms(s.skin);
+  out += `<g filter="url(#volSkin)">${arms(s.skin)}</g>`;
   out += part('top', 'sleeves') + part('dress', 'sleeves');
   out += part('outer') + part('outer', 'sleeves');
   out += part('bag');
   out += hands(s.skin);
   out += part('necklace');
-  out += head(s);
-  out += `<g filter="url(#hairTex)">${hairFront(s)}</g>`;
-  out += part('earrings') + part('glasses') + part('hat');
+  out += `<g transform="${HEAD}">` + head(s) + `<g filter="url(#hairTex)">${hairFront(s)}</g>` + part('earrings') + part('glasses') + part('hat') + `</g>`;
   if (inner) return out;
   const size = standalone ? ` width="${width || 400}" height="${height || 820}"` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${size} preserveAspectRatio="xMidYMax meet">${out}</svg>`;
@@ -2343,7 +2364,7 @@ function renderSuite(pop = false) {
 }
 function renderParlor() {
   $('#parlorDoll').style.setProperty('--mirror', state.room.wall);
-  $('#parlorDoll').innerHTML = scope(renderDoll(state, { vb: zoom === 'face' ? '106 4 188 250' : '0 0 400 820' }), 'B');
+  $('#parlorDoll').innerHTML = scope(renderDoll(state, { vb: zoom === 'face' ? '140 84 120 160' : '0 70 400 750' }), 'B');
   $$('[data-zoom]').forEach(b => b.classList.toggle('on', b.dataset.zoom === zoom));
   renderHairCards();
 }
@@ -2620,7 +2641,7 @@ function openGuide(step = 0) {
   guideStep = step;
   if (drawer) openDrawer(drawer);
   UID = 0;
-  $('#guideFace').innerHTML = scope(renderDoll(guideHost(), { vb: '92 6 216 300' }), 'H');
+  $('#guideFace').innerHTML = scope(renderDoll(guideHost(), { vb: '128 84 144 196' }), 'H');
   $('#guide').hidden = false;
   renderGuide();
 }
