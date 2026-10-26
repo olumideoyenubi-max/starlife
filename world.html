@@ -71,6 +71,27 @@
   #busy .c { color: var(--ink-2); font-variant-numeric: tabular-nums; }
   #busy .bar { width: 220px; margin: 16px auto 0; height: 4px; }
 
+  /* ---------- boutique ---------- */
+  #boutique { position: fixed; right: max(16px, env(safe-area-inset-right)); top: 50%; transform: translateY(-50%); width: min(400px, calc(100vw - 32px)); max-height: calc(100vh - 40px); display: flex; flex-direction: column; padding: 18px; background: rgba(16,14,18,.72); }
+  #boutique .close { position: absolute; right: 12px; top: 12px; border: 0; background: rgba(255,255,255,.1); width: 30px; height: 30px; border-radius: 50%; color: var(--ink-2); font-size: 15px; padding: 0; }
+  #btqName { margin: 0; font: italic 600 26px Fraunces, Georgia, serif; letter-spacing: .2px; }
+  #btqLine { color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
+  .btq-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 10px 0 12px; font-size: 12.5px; color: var(--ink-2); }
+  #btqGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; overflow: auto; padding-right: 2px; scrollbar-width: thin; }
+  .piece { border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: rgba(255,255,255,.04); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .piece.on { border-color: var(--accent); background: rgba(255,79,139,.1); }
+  .pc-thumb { border: 0; border-radius: 9px; aspect-ratio: 1.6; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.16), rgba(255,255,255,.03)); padding: 0; }
+  .pc-thumb svg { width: 46%; height: auto; }
+  .pc-name { font-size: 12.5px; font-weight: 500; line-height: 1.25; min-height: 2.5em; }
+  .pc-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11.5px; }
+  .pc-price { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .pc-own { color: #7fe0a8; font-weight: 500; }
+  .pc-btn { border: 1px solid var(--line); background: rgba(255,255,255,.08); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 500; }
+  .pc-btn.buy { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pc-btn[disabled] { opacity: .4; cursor: default; }
+  #btqNote { color: var(--ink-3); font-size: 12px; margin: 12px 0 0; line-height: 1.45; }
+  @media (max-width: 640px) { #boutique { top: auto; bottom: max(14px, env(safe-area-inset-bottom)); transform: none; right: 14px; left: 14px; width: auto; max-height: 52vh; } #btqGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pc-thumb { aspect-ratio: 1.2; } }
+
   /* ---------- phone ---------- */
   #phoneBtn { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: calc(max(20px, env(safe-area-inset-bottom)) + 4px); width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center; padding: 0; }
   #phoneBtn svg { width: 22px; height: 22px; }
@@ -130,6 +151,13 @@
   <div class="opts" id="cardOpts"></div>
 </div>
 
+<div id="boutique" class="glass" hidden role="dialog" aria-label="Boutique">
+  <button class="close" id="btqX" aria-label="Leave the shop">×</button>
+  <h2 id="btqName"></h2><div id="btqLine"></div>
+  <div class="btq-top"><span>Collection</span><span id="btqCoins"></span></div>
+  <div id="btqGrid"></div>
+  <p id="btqNote"></p>
+</div>
 <div id="busy" hidden><div><div class="t" id="busyT">At the café</div><h3 id="busyH">Having a latte</h3><div class="c" id="busyC"></div><div class="bar"><b id="busyB" style="width:0"></b></div></div></div>
 
 <button id="phoneBtn" class="glass" aria-label="Phone (M)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg></button>
@@ -216,7 +244,7 @@ function saveAll() {
   // re-read so we never clobber a change the 2D game made in another tab
   const disk = lsGet(LS_LIFE, {});
   lsSet(LS_LIFE, Object.assign(disk, { min: life.min, sims: Object.assign(disk.sims || {}, { [me.id]: sim() }) }));
-  const p = lsGet(LS_PROFILE, {}); p.coins = profile.coins; p.fame = profile.fame; lsSet(LS_PROFILE, p);
+  const p = lsGet(LS_PROFILE, {}); p.coins = profile.coins; p.fame = profile.fame; p.owned = [...new Set([...(p.owned || []), ...(profile.owned || [])])]; p.lux = [...new Set([...(p.lux || []), ...(profile.lux || [])])]; lsSet(LS_PROFILE, p);
   world.x = player.pos.x; world.z = player.pos.z; lsSet(LS_WORLD, world);
 }
 const hourOf = (m = life.min) => (m % 1440) / 60;
@@ -998,6 +1026,15 @@ const INTERIORS = {
   cinema: (g, w, h) => { g.fillStyle = '#1a0f24'; g.fillRect(0, 0, w, h); for (let i = 0; i < 3; i++) { g.fillStyle = pick(['#3a1c5c', '#5a1020', '#1f2a44']); g.fillRect(30 + i * (w - 60) / 3, 30, (w - 60) / 3 - 24, h * 0.6); g.fillStyle = 'rgba(255,255,255,.85)'; g.font = 'italic 600 28px Georgia, serif'; g.textAlign = 'center'; g.fillText(['Moonlit Gala', 'Runway Dreams', 'Star Crossed'][i], 30 + i * (w - 60) / 3 + ((w - 60) / 3 - 24) / 2, 30 + h * 0.35); } g.fillStyle = '#ffd166'; for (let i = 0; i < 30; i++) { g.beginPath(); g.arc(10 + i * w / 30, h - 12, 4, 0, 7); g.fill(); } },
   food: (g, w, h) => { g.fillStyle = '#f4ecdf'; g.fillRect(0, 0, w, h); const stalls = ['Noodles', 'Tacos', 'Smoothies', 'Pizza']; stalls.forEach((s, i) => { const x = i * w / 4; g.fillStyle = ['#c8344a', '#e8c64a', '#3fa07a', '#2f5d8c'][i]; g.fillRect(x + 8, 10, w / 4 - 16, 44); g.fillStyle = '#fff'; g.font = '600 26px Inter, sans-serif'; g.textAlign = 'center'; g.fillText(s, x + w / 8, 42); g.fillStyle = '#d9c7ad'; g.fillRect(x + 8, h * 0.62, w / 4 - 16, h * 0.38); }); },
   salon: (g, w, h) => { g.fillStyle = '#fde8ef'; g.fillRect(0, 0, w, h); for (let i = 0; i < 4; i++) { g.fillStyle = '#fff'; g.beginPath(); g.ellipse(w * (0.14 + i * 0.24), h * 0.35, 34, 48, 0, 0, 7); g.fill(); g.strokeStyle = '#d6b25e'; g.lineWidth = 5; g.stroke(); g.fillStyle = '#ff4f8b'; g.fillRect(w * (0.14 + i * 0.24) - 28, h * 0.7, 56, 40); } },
+  coffee: (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#3a2418'); gr.addColorStop(1, '#1e120c'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#e9e3d8'; g.fillRect(0, h * 0.58, w * 0.62, h * 0.08); g.fillStyle = '#5a3a26'; g.fillRect(0, h * 0.66, w * 0.62, h * 0.34); // marble counter
+    g.fillStyle = '#c9a24a'; g.fillRect(w * 0.12, h * 0.36, w * 0.22, h * 0.22); g.fillStyle = '#e2c47a'; g.fillRect(w * 0.14, h * 0.3, w * 0.18, h * 0.07); for (let i = 0; i < 3; i++) { g.fillStyle = '#1b1b1f'; g.fillRect(w * (0.15 + i * 0.06), h * 0.5, 10, 18); } // espresso machine
+    g.fillStyle = '#2a1a12'; g.fillRect(w * 0.05, 14, w * 0.5, h * 0.2); g.fillStyle = '#f3dcae'; g.font = '600 22px Georgia, serif'; g.fillText('Espresso · Doré Latte · Rose Cappuccino', w * 0.07, 14 + h * 0.12);
+    for (let i = 0; i < 6; i++) { g.fillStyle = 'rgba(255,214,140,.6)'; g.beginPath(); g.arc(w * (0.08 + i * 0.16), 8, 12, 0, 7); g.fill(); }
+    for (let i = 0; i < 2; i++) { g.fillStyle = '#7a2a3a'; g.beginPath(); g.roundRect(w * (0.68 + i * 0.16), h * 0.6, w * 0.12, h * 0.26, 14); g.fill(); g.fillStyle = '#e9e3d8'; g.beginPath(); g.ellipse(w * (0.74 + i * 0.16), h * 0.6, 36, 10, 0, 0, 7); g.fill(); } },
+  tailor: (g, w, h) => { g.fillStyle = '#2b2620'; g.fillRect(0, 0, w, h); g.fillStyle = '#4a3a2a'; for (let i = 0; i < 6; i++) g.fillRect(16 + i * (w - 32) / 6, 20, (w - 32) / 6 - 10, h * 0.85); g.fillStyle = '#c9a24a'; g.fillRect(16, h * 0.3, w - 32, 4);
+    for (let i = 0; i < 10; i++) { g.fillStyle = pick(['#1f2a44', '#141218', '#3b3b40', '#2b3a67', '#5a4a3a', '#f4f1ea']); const x = 26 + i * (w - 52) / 10; g.fillRect(x, h * 0.31, (w - 52) / 10 - 8, h * 0.4); }
+    for (let s = 0; s < 3; s++) for (let i = 0; i < 8; i++) { g.fillStyle = pick(['#8c1c2c', '#2b3a67', '#d6b25e', '#3f7f6b']); g.fillRect(30 + i * 22, h * 0.8 + s * 10, 16, 6); } },
   arcade: (g, w, h) => { g.fillStyle = '#140d24'; g.fillRect(0, 0, w, h); for (let i = 0; i < 6; i++) { g.fillStyle = pick(['#ff4f8b', '#5ee0c4', '#ffd166', '#8f63f0']); g.fillRect(20 + i * (w - 40) / 6, h * 0.25, (w - 40) / 6 - 20, h * 0.6); g.fillStyle = '#000'; g.fillRect(28 + i * (w - 40) / 6, h * 0.3, (w - 40) / 6 - 36, h * 0.22); } },
 };
 const MANNEQUIN_LOOKS = [
@@ -1051,8 +1088,10 @@ function avenueWest() {     // block (-1,-1), shops face west onto the Avenue
 }
 function avenueEast() {     // block (-2,-1), shops face east onto the Avenue
   const fr = frame(-2 * CELL, -CELL, 'e');
-  luxShop(fr, -15, -5, { id: 'lumiere', name: 'Lumière', sub: 'Parfumerie', kind: 'perfume', style: ['plaster', '#f6e3ea'], signBg: '#f6e3ea', signFg: '#a8477a', canopy: 0xf2c6d2, lux: 'perfume', color: '#f2a7c3', open: [10, 20] });
-  luxShop(fr, -5, 5, { id: 'celestine', name: 'Celestine', sub: 'Watches and diamonds', kind: 'jewels', style: ['stone', '#e8e2d8'], floors: 4, mannequins: [3, 4], lux: 'jewels', color: '#bfe3ff', open: [10, 20], canopy: 0x1f2a44 });
+  luxShop(fr, -15, -5, { id: 'dore', name: 'Café Doré', sub: 'Luxury coffee house', kind: 'coffee', style: ['stone', '#e6d6c0'], setback: 4, signBg: '#2a1a12', signFg: '#e2c47a', canopy: 0x2a1a12, topiary: false, hangout: true, color: '#c9a27a', open: [7, 22], font: 'italic 600 130px Fraunces, Georgia, serif' });
+  terrace(fr, [-13, -10, -7], 1.4, 'dore', 'Sit at Café Doré');
+  festoon(fr.pt(-14.7, 0.3), fr.pt(-5.3, 0.3), 3.4, 0.4, 10);
+  luxShop(fr, -5, 5, { id: 'celestine', name: 'Celestine', sub: 'Diamonds and high jewellery', kind: 'jewels', style: ['stone', '#e8e2d8'], floors: 4, mannequins: [3, 4], lux: 'jewels', color: '#bfe3ff', open: [10, 20], canopy: 0x1f2a44 });
   luxShop(fr, 5, 15, { id: 'patisserie', name: 'Petit Four', sub: 'Patisserie and terrace', kind: 'patisserie', style: ['plaster', '#fbe9d7'], setback: 4, signBg: '#fbe9d7', signFg: '#b5476a', canopy: 0xf4b8c8, topiary: false, hangout: true, color: '#ff9ec0', open: [8, 20] });
   terrace(fr, [7.2, 10, 12.8], 1.4, 'patisserie', 'Sit at Petit Four');
   festoon(fr.pt(5.3, 0.3), fr.pt(14.7, 0.3), 3.4, 0.4, 10);
@@ -1076,7 +1115,8 @@ function velvetRoom() {     // back of the home block, facing the Avenue
   const fr = frame(-CELL, 0, 'w');
   luxShop(fr, -15, -3, { id: 'lounge', name: 'The Velvet Room', sub: 'Members’ lounge', kind: 'lounge', style: ['plaster', '#5a2a4a'], frame: M.velvet, canopy: 0x2a0d22, signBg: '#2a0d22', signFg: '#f2c6d2', hangout: true, color: '#c38bf0', open: [12, 2], topiary: true, font: 'italic 600 120px Fraunces, Georgia, serif' });
   stanchions(fr, [-11.4, -6.6], [-1.6, -2.4]);
-  fbuilding(fr, -3, 15, 0, 15, 3, pick(STYLES));
+  luxShop(fr, -3, 7, { id: 'hartwell', name: 'Hartwell & Sons', sub: 'Menswear tailor', kind: 'tailor', style: ['brick', '#5a3a2e'], signBg: '#1b1b1f', signFg: '#e2c47a', canopy: 0x1b1b1f, color: '#8a7340', open: [10, 20], font: '600 110px Fraunces, Georgia, serif' });
+  fbuilding(fr, 7, 15, 0, 15, 3, pick(STYLES));
 }
 function buildAvenueStreet() {
   batch(M.avePave, { shadow: false }).flat(AVE.x0, AVE.z0, AVE.x1, AVE.z1, 0.03, 3);
@@ -1581,6 +1621,7 @@ function animate(ch, dt, speed) {
   setRot(B_.shL, Math.sin(p) * A * 0.75 + (A < 0.05 ? Math.sin(ch.t * 1.1) * 0.02 : 0), 0, 0.09 + (ch.male ? 0.03 : 0), k);
   setRot(B_.elL, -0.12 - A * 0.45 - running * 0.9, 0, 0, k);
   if (wave) { setRot(B_.shR, -0.2, 0, -2.5, k); setRot(B_.elR, 0, Math.sin(ch.t * 9) * 0.5, -0.5, k); }
+  else if (ch.cup) { setRot(B_.shR, -0.15 - Math.sin(p) * A * 0.2, 0, -0.12, k); setRot(B_.elR, -1.35, 0, 0, k); }
   else { setRot(B_.shR, -Math.sin(p) * A * 0.75, 0, -0.09 - (ch.male ? 0.03 : 0), k); setRot(B_.elR, -0.12 - A * 0.45 - running * 0.9, 0, 0, k); }
   setRot(B_.pelvis, 0, Math.sin(p) * 0.09 * A, 0, k);
   setRot(B_.spine, 0.04 * running + breathe, -Math.sin(p) * 0.13 * A, 0, k);
@@ -1673,9 +1714,9 @@ function randomSpec() {
 // what each starlet likes to do through the day
 const HAUNTS = {
   aria: ['cafe', 'boutique', 'club', 'theatre', 'park', 'candy', 'velours', 'skygarden', 'arcade'], zuri: ['boutique', 'hall', 'theatre', 'bar', 'cafe', 'velours', 'celestine', 'lounge', 'avenue'], mina: ['cafe', 'park', 'books', 'club', 'boutique', 'gelato', 'candy', 'arcade', 'foodcourt'],
-  luz: ['theatre', 'cafe', 'hall', 'bar', 'books', 'lounge', 'aurelle', 'patisserie', 'cinema'], noor: ['books', 'cafe', 'park', 'hall', 'house', 'patisserie', 'lumiere', 'spa', 'cinema'], ivy: ['boutique', 'cafe', 'bar', 'books', 'hall', 'velours', 'noir', 'avenue', 'skygarden'],
-  kai: ['bar', 'club', 'park', 'house', 'cafe', 'skygarden', 'foodcourt', 'arcade', 'sneakers'], leo: ['theatre', 'cafe', 'hall', 'bar', 'boutique', 'lounge', 'noir', 'cinema', 'avenue'], jin: ['park', 'club', 'cafe', 'house', 'books', 'arcade', 'sneakers', 'foodcourt', 'gelato'],
-  theo: ['park', 'cafe', 'bar', 'house', 'club', 'foodcourt', 'cinema', 'gelato', 'spa'], omar: ['cafe', 'books', 'hall', 'bar', 'park', 'patisserie', 'foodcourt', 'gelato', 'avenue'],
+  luz: ['theatre', 'cafe', 'hall', 'bar', 'books', 'lounge', 'aurelle', 'dore', 'cinema'], noor: ['books', 'cafe', 'park', 'hall', 'house', 'patisserie', 'dore', 'spa', 'celestine'], ivy: ['boutique', 'cafe', 'bar', 'books', 'hall', 'velours', 'noir', 'dore', 'skygarden'],
+  kai: ['bar', 'club', 'park', 'house', 'cafe', 'skygarden', 'hartwell', 'arcade', 'dore'], leo: ['theatre', 'cafe', 'hall', 'bar', 'boutique', 'lounge', 'hartwell', 'dore', 'avenue'], jin: ['park', 'club', 'cafe', 'house', 'books', 'arcade', 'sneakers', 'foodcourt', 'gelato'],
+  theo: ['park', 'cafe', 'bar', 'house', 'club', 'foodcourt', 'cinema', 'gelato', 'spa'], omar: ['cafe', 'books', 'hall', 'bar', 'park', 'patisserie', 'dore', 'hartwell', 'avenue'],
 };
 const placeBy = id => places.find(p => p.id === id);
 const isOpen = (p, h = hourOf()) => { if (!p.open) return true; const [a, b] = p.open; return a < b ? h >= a && h < b : h >= a || h < b; };
@@ -1826,7 +1867,9 @@ function camBlock(t, dir, maxD) {
 }
 function updateCamera(dt) {
   const pp = player.ch.group.position;
-  cam.target.lerp(tmpV.set(pp.x, pp.y + (player.seat ? 1.05 : 1.42), pp.z), 1 - Math.exp(-dt * 10));
+  // in a boutique, frame the whole outfit and slide it clear of the shop panel
+  const fy = cam.focusY ?? (player.seat ? 1.05 : 1.42), sh = cam.shift || 0;
+  cam.target.lerp(tmpV.set(pp.x + Math.cos(cam.yaw) * sh, pp.y + fy, pp.z - Math.sin(cam.yaw) * sh), 1 - Math.exp(-dt * 10));
   // drift behind the player while walking, unless the player is steering the camera
   if (player.speed > 0.4 && performance.now() / 1000 - cam.lastDrag > 1.6 && !joy?.look) cam.yaw = turn(cam.yaw, player.ry + Math.PI, dt * 0.9);
   const dir = new THREE.Vector3(Math.sin(cam.yaw) * Math.cos(cam.pitch), Math.sin(cam.pitch), Math.cos(cam.yaw) * Math.cos(cam.pitch));
@@ -1863,11 +1906,6 @@ const ACTS = {
   hall: [A_('Attend the Grand Ball', 150, { fun: 30, social: 30, energy: -10 }, { busy: 'At the Grand Ball', hours: [18, 24], glam: true }), A_('Banquet dinner', 60, { hunger: 50, social: 15 }, { cost: 15, busy: 'At the banquet', hours: [12, 22] }), A_('Tour the hall', 20, { fun: 6 }, { busy: 'Touring the hall' }), { label: 'All events this week', link: 'index.html#events', note: 'dress codes and prizes' }],
   theatre: [A_('Walk the red carpet', 30, { fun: 15, social: 10 }, { busy: 'On the red carpet', hours: [18, 23], glam: true, fame: true }), A_('Watch the awards show', 150, { fun: 35, social: 15 }, { busy: 'At the Starlight Awards', hours: [19, 24] }), A_('Catch a matinee', 120, { fun: 30 }, { cost: 12, busy: 'At the matinee', hours: [12, 18] })],
   house: [A_('Join the house party', 120, { social: 35, fun: 30, energy: -15, hunger: 15 }, { busy: 'At Maya’s party' })],
-  aurelle: [A_('Try on diamonds', 20, { fun: 15 }, { busy: 'Trying on diamonds' }), A_('Buy a signature piece', 30, { fun: 35 }, { cost: 150, fameGain: 12, busy: 'Choosing a signature piece' })],
-  celestine: [A_('Try on a watch', 15, { fun: 12 }, { busy: 'Trying on watches' }), A_('Buy a diamond pendant', 30, { fun: 35 }, { cost: 140, fameGain: 12, busy: 'Picking a pendant' })],
-  velours: [A_('Private styling session', 45, { fun: 20 }, { cost: 60, skill: ['charisma', 0.3], busy: 'At a private styling session', glam: true }), { label: 'Shop the collection', link: 'index.html#shop', note: 'opens the Shop' }],
-  noir: [A_('Browse the bags', 20, { fun: 10 }, { busy: 'Browsing the bags' }), A_('Buy an It bag', 30, { fun: 30 }, { cost: 120, fameGain: 10, busy: 'Buying an It bag' })],
-  lumiere: [A_('Find your signature scent', 30, { fun: 15, hygiene: 10 }, { cost: 40, busy: 'Sampling perfumes' })],
   patisserie: [A_('Macarons and tea', 30, { hunger: 25, social: 10 }, { cost: 12, busy: 'Having macarons and tea' }), { label: 'Sit on the terrace', sit: 'patisserie' }],
   gelato: [A_('Get a double scoop', 15, { hunger: 15, fun: 15 }, { cost: 6, busy: 'Eating gelato' }), { label: 'Sit outside', sit: 'gelato' }],
   skygarden: [A_('Sunset mocktails on the roof', 60, { social: 30, fun: 25 }, { cost: 15, busy: 'On the rooftop', glam: true })],
@@ -1906,9 +1944,11 @@ function callFriends(p) {
   for (const x of pals) { x.meetup = p; if (x.seat) { x.seat = null; x.ch.pose = 'stand'; } sendTo(x, p); }
   toast(`You texted ${pals.map(x => x.spec.name.split(' ')[0]).join(', ')}. They’re on their way to ${p.name}!`);
 }
-const BLURB = { avenue: 'Brass lamps, topiaries and the best window displays in town.', galleria: 'Pick a store and we’ll show you the way.', aurelle: 'Velvet trays of gold and diamonds.', celestine: 'Every watch here has a story.', velours: 'This season: satin, sequins and sharp tailoring.', noir: 'Bags so soft you want to hug them.', lumiere: 'A hundred bottles, one is yours.', patisserie: 'Pastel macarons stacked like jewels.', gelato: 'Twenty flavours, all made this morning.', skygarden: 'The whole town glitters from up here.', spa: 'Soft music, warm towels, deep breaths.', lounge: 'Velvet sofas and low lamps. Members only, and you’re on the list.', candy: 'Sweets in every colour and bubble tea.', arcade: 'Lights, prizes and a photo booth.', cinema: 'Popcorn smell and three films showing today.', foodcourt: 'Four counters and lots of tables.', home: 'Home sweet home. Your suite is upstairs.', cafe: 'It smells of coffee and warm croissants.', books: 'Shelves floor to ceiling, and a cat asleep on the poetry.', boutique: 'This week’s collection is in the window.', bar: 'Fizzy drinks in every colour. No alcohol, all sparkle.', park: 'The fountain sparkles. Somebody is feeding the pigeons.', house: 'Music and laughter from inside. Maya waves you in.' };
+const BLURB = { dore: 'Marble counters and a brass espresso machine.', avenue: 'Brass lamps, topiaries and the best window displays in town.', galleria: 'Pick a store and we’ll show you the way.', aurelle: 'Velvet trays of gold and diamonds.', celestine: 'Every watch here has a story.', velours: 'This season: satin, sequins and sharp tailoring.', noir: 'Bags so soft you want to hug them.', lumiere: 'A hundred bottles, one is yours.', patisserie: 'Pastel macarons stacked like jewels.', gelato: 'Twenty flavours, all made this morning.', skygarden: 'The whole town glitters from up here.', spa: 'Soft music, warm towels, deep breaths.', lounge: 'Velvet sofas and low lamps. Members only, and you’re on the list.', candy: 'Sweets in every colour and bubble tea.', arcade: 'Lights, prizes and a photo booth.', cinema: 'Popcorn smell and three films showing today.', foodcourt: 'Four counters and lots of tables.', home: 'Home sweet home. Your suite is upstairs.', cafe: 'It smells of coffee and warm croissants.', books: 'Shelves floor to ceiling, and a cat asleep on the poetry.', boutique: 'This week’s collection is in the window.', bar: 'Fizzy drinks in every colour. No alcohol, all sparkle.', park: 'The fountain sparkles. Somebody is feeding the pigeons.', house: 'Music and laughter from inside. Maya waves you in.' };
 function openPlace(p) {
   if (busy) return;
+  if (BRANDS[p.id]) { if (!isOpen(p)) { openCard(p.name, `${p.sub} · ${hoursTxt(p.open)}`, `Closed right now. Opens at ${hoursTxt(p.open).split('–')[0]}.`, []); return; } openBoutique(p); return; }
+  if (p.id === 'dore') { openCoffee(p); return; }
   const h = hourOf(), open = isOpen(p, h), friend = people.find(x => x.state === 'follow');
   const opts = (ACTS[p.id] || []).map(a => {
     if (a.link || a.sit) return Object.assign({}, a, { run: a.sit ? () => { const s = seats.filter(x => x.place === a.sit && !seatTaken(x)).sort((m, n) => Math.hypot(m.x - player.pos.x, m.z - player.pos.z) - Math.hypot(n.x - player.pos.x, n.z - player.pos.z))[0]; closeCard(); if (s) sitOn(s); else toast('Every seat is taken right now.'); } : null });
@@ -2067,12 +2107,162 @@ function renderPhone() {
 function togglePhone(on = $('#phone').hidden) { $('#phone').hidden = !on; $('#phoneBtn .dot')?.remove(); if (on) renderPhone(); updateHud(true); }
 
 // =====================================================================
+// Luxury boutiques: brand collections you try on and buy in store.
+// Pieces are wardrobe items in the brand's signature colour, so they
+// also show up in the suite's wardrobe (profile.owned / colours).
+// =====================================================================
+const SLOT = { tee: 'top', cami: 'top', blouse: 'top', turtle: 'top', corset: 'top', breton: 'top', shirt: 'top', polo: 'top', hoodie: 'top', jeans: 'bottom', shorts: 'bottom', mini: 'bottom', pleated: 'bottom', wide: 'bottom', pencil: 'bottom', chinos: 'bottom', suitpants: 'bottom', slip: 'dress', gown: 'dress', wrap: 'dress', lbd: 'dress', sundress: 'dress', sequin: 'dress', blazer: 'outer', biker: 'outer', trench: 'outer', cardigan: 'outer', denimjk: 'outer', puffer: 'outer', suit: 'outer', tux: 'outer', sneakers: 'shoes', pumps: 'shoes', ankleboots: 'shoes', kneeboots: 'shoes', flats: 'shoes', sandals: 'shoes', oxfords: 'shoes', loafers: 'shoes', tote: 'bag', clutch: 'bag', crossbody: 'bag', heartbag: 'bag', pearls: 'necklace', pendant: 'necklace', choker: 'necklace', tie: 'necklace', bowtie: 'necklace', hoops: 'earrings', studs: 'earrings', drops: 'earrings', roundspecs: 'glasses', cateye: 'glasses', sunnies: 'glasses', heartsunnies: 'glasses', beret: 'hat', sunhat: 'hat', beanie: 'hat', tiara: 'hat', cap: 'hat' };
+const P_ = (item, color, name, price) => ({ item, color, name, price });
+const BRANDS = {
+  velours: { name: 'Maison Velours', line: 'Couture · eveningwear and tailoring', accent: '#e2c47a', items: [
+    P_('gown', '#e8d3a8', 'Champagne Silk Gown', 240), P_('gown', '#1f2a44', 'Midnight Ball Gown', 240), P_('slip', '#a3122e', 'Rouge Satin Slip Dress', 160),
+    P_('sequin', '#e2c47a', 'Gold Sequin Mini', 180), P_('lbd', '#18151a', 'The Velours Black Dress', 170), P_('blazer', '#f4f1ea', 'Ivory Tailored Blazer', 150),
+    P_('pleated', '#f2c6d2', 'Blush Pleated Midi', 110), P_('pumps', '#18151a', 'Velours Stiletto Pumps', 120), P_('corset', '#a3122e', 'Velvet Corset Top', 130)] },
+  noir: { name: 'Noir & Or', line: 'Leather goods · bags, boots and jackets', accent: '#e2c47a', items: [
+    P_('biker', '#18151a', 'Noir Leather Biker', 190), P_('trench', '#7a4a2a', 'Cognac Leather Trench', 210), P_('crossbody', '#7a4a2a', 'Cognac Quilted Bag', 140),
+    P_('clutch', '#18151a', 'Noir Evening Clutch', 110), P_('tote', '#c8a979', 'Camel Leather Tote', 130), P_('kneeboots', '#4a2f22', 'Riding Knee Boots', 160),
+    P_('ankleboots', '#18151a', 'Noir Chelsea Boots', 120), P_('loafers', '#18151a', 'Horsebit Loafers', 110)] },
+  hartwell: { name: 'Hartwell & Sons', line: 'Menswear tailor · suits, shirts and shoes', accent: '#e2c47a', items: [
+    P_('tux', '#141218', 'Midnight Tuxedo Jacket', 230), P_('suit', '#2b3a67', 'Navy Three-Season Suit', 190), P_('suit', '#5a5a60', 'Charcoal Suit Jacket', 190),
+    P_('suitpants', '#2b3a67', 'Navy Suit Trousers', 90), P_('shirt', '#ffffff', 'White Poplin Shirt', 70), P_('turtle', '#1f1b22', 'Merino Turtleneck', 85),
+    P_('tie', '#2b3a67', 'Navy Silk Tie', 45), P_('bowtie', '#141218', 'Silk Bow Tie', 40), P_('oxfords', '#18151a', 'Black Oxford Shoes', 120), P_('loafers', '#7a4a2a', 'Suede Loafers', 100)] },
+  aurelle: { name: 'Aurelle', line: 'Fine jewellery · gold and pearls', accent: '#e2c47a', items: [
+    P_('pearls', '#f6f1e7', 'South Sea Pearl Strand', 160), P_('hoops', '#d6b25e', '18k Gold Hoops', 110), P_('pendant', '#d6b25e', 'Gold Coin Pendant', 120),
+    P_('choker', '#d6b25e', 'Gold Collar Choker', 130), P_('studs', '#f6f1e7', 'Pearl Studs', 80), P_('tiara', '#d6b25e', 'Laurel Gold Tiara', 280)] },
+  celestine: { name: 'Celestine', line: 'High jewellery · diamonds and sapphires', accent: '#bfe3ff', items: [
+    P_('studs', '#f0f4ff', 'Solitaire Diamond Studs', 190), P_('drops', '#bfe3ff', 'Diamond Drop Earrings', 220), P_('pendant', '#2b3a67', 'Sapphire Pendant', 210),
+    P_('drops', '#c8344a', 'Ruby Drops', 200), P_('tiara', '#e8edf5', 'Diamond Tiara', 320), P_('pearls', '#e8edf5', 'Diamond Rivière Necklace', 300)] },
+};
+const luxKey = (b, i) => `${b}:${i}`;
+const ICON = {
+  dress: 'M9 2h6l-1 5 4 15H6l4-15z', top: 'M7 3l-4 3 2 4 2-1v12h10V9l2 1 2-4-4-3c-1 2-2 3-5 3S8 5 7 3z', bottom: 'M6 2h12l1 20h-5l-2-12-2 12H5z',
+  outer: 'M8 2l-5 4v16h6V9l3 4 3-4v13h6V6l-5-4-4 5z', shoes: 'M3 14c4 0 6-3 7-7h3c0 4 3 7 8 8v3H3z', bag: 'M5 8h14l1 13H4zM9 8V6a3 3 0 0 1 6 0v2',
+  necklace: 'M5 3c0 7 3 11 7 11s7-4 7-11M12 14v3m-2 1a2 2 0 1 0 4 0 2 2 0 1 0-4 0', earrings: 'M8 4v4m0 0a3 3 0 1 0 0 6 3 3 0 1 0 0-6M16 4v4m0 0a3 3 0 1 0 0 6 3 3 0 1 0 0-6',
+  hat: 'M4 17h16M7 17c0-6 2-10 5-10s5 4 5 10', glasses: 'M3 12a3 3 0 1 0 6 0 3 3 0 1 0-6 0M15 12a3 3 0 1 0 6 0 3 3 0 1 0-6 0M9 12h6',
+};
+let shopState = null;
+function rebuildPlayer() {
+  const old = player.ch;
+  const spec = Object.assign({}, me, { eyeColor: saved?.eyeColor, lips: saved?.makeup?.lips?.color });
+  const ch = makeCharacter(spec);
+  ch.pose = old.pose; ch.seatDrop = old.seatDrop; ch.phase = old.phase;
+  if (old.cupMesh) attachCup(ch);
+  scene.remove(old.group);
+  for (const m of Object.values(old.meshes)) m.geometry.dispose();
+  scene.add(ch.group); player.ch = ch;
+  ch.group.position.copy(player.pos); ch.group.rotation.y = player.ry;
+  animate(ch, 0.016, 0);
+}
+function wearPiece(outfit, colors, b) {
+  const slot = SLOT[b.item];
+  outfit[slot] = b.item; colors[b.item] = b.color;
+  if (slot === 'dress') { outfit.top = null; outfit.bottom = null; }
+  if (slot === 'top' || slot === 'bottom') outfit.dress = null;
+}
+function saveLook() {
+  const cur = lsGet(LS_CUR, null) || { starlet: me.id, gender: me.gender, beard: me.beard, skin: me.skin, hair: me.hair, hairColor: me.hairColor, underwear: me.underwear };
+  cur.outfit = Object.assign({}, cur.outfit || {}, me.outfit); cur.colors = Object.assign({}, cur.colors || {}, me.colors);
+  lsSet(LS_CUR, cur);
+}
+function openBoutique(p) {
+  const B = BRANDS[p.id];
+  shopState = { p, B, orig: { outfit: Object.assign({}, me.outfit), colors: Object.assign({}, me.colors) }, trying: null, cam: { yaw: cam.yaw, pitch: cam.pitch, dist: cam.dist } };
+  ui.modal = { boutique: true };
+  // turn to face the camera as if in front of a mirror
+  player.ry = p.ry; cam.yaw = player.ry; cam.pitch = 0.06; const narrow = innerWidth < 640; cam.dist = narrow ? 4.6 : 3.9; cam.focusY = narrow ? 0.55 : 0.95; cam.shift = narrow ? 0 : 0.85; cam.lastDrag = performance.now() / 1000 + 9999;
+  renderBoutique();
+  $('#boutique').hidden = false; $('#prompt').hidden = true;
+}
+function renderBoutique() {
+  const { p, B, trying } = shopState, lux = profile.lux || [];
+  $('#btqName').textContent = B.name; $('#btqLine').textContent = B.line; $('#btqCoins').textContent = `${profile.coins} coins`;
+  $('#btqName').style.color = B.accent;
+  $('#btqGrid').innerHTML = B.items.map((it, i) => {
+    const own = lux.includes(luxKey(p.id, i)), slot = SLOT[it.item], wearing = me.outfit[slot] === it.item && me.colors[it.item] === it.color;
+    const tryOn = trying === i;
+    return `<div class="piece${tryOn ? ' on' : ''}">
+      <button class="pc-thumb" data-try="${i}" aria-label="Try on ${esc(it.name)}" style="--c:${it.color}"><svg viewBox="0 0 24 24"><path d="${ICON[slot]}" fill="${slot === 'necklace' || slot === 'earrings' || slot === 'hat' || slot === 'glasses' ? 'none' : it.color}" stroke="${slot === 'necklace' || slot === 'earrings' || slot === 'hat' || slot === 'glasses' ? it.color : 'rgba(255,255,255,.35)'}" stroke-width="${slot === 'necklace' || slot === 'earrings' || slot === 'hat' || slot === 'glasses' ? 1.8 : 0.6}" stroke-linejoin="round"/></svg></button>
+      <div class="pc-name">${esc(it.name)}</div>
+      <div class="pc-row">${own ? (wearing ? '<span class="pc-own">Wearing ✓</span>' : `<button class="pc-btn" data-wear="${i}">Wear</button>`) : `<span class="pc-price">${it.price} coins</span><button class="pc-btn buy" data-buy="${i}" ${profile.coins < it.price ? 'disabled' : ''}>Buy</button>`}</div>
+    </div>`;
+  }).join('');
+  $('#btqNote').textContent = trying != null && !lux.includes(luxKey(p.id, trying)) ? `Trying on ${B.items[trying].name}. Buy it to keep it, or it comes off when you leave.` : 'Tap a piece to try it on. Everything you buy goes into your wardrobe in the suite too.';
+}
+function tryPiece(i) {
+  const { B } = shopState;
+  shopState.trying = i;
+  // try-ons stack on what you walked in wearing plus anything bought here
+  const o = Object.assign({}, me.outfit), c = Object.assign({}, me.colors);
+  wearPiece(o, c, B.items[i]);
+  me.outfit = o; me.colors = c; rebuildPlayer(); renderBoutique();
+}
+function buyPiece(i) {
+  const { p, B } = shopState, it = B.items[i];
+  if (profile.coins < it.price) { toast('Not enough coins yet. Work, go to events and win contests to earn more.'); return; }
+  profile.coins -= it.price;
+  profile.owned = profile.owned || []; if (!profile.owned.includes(it.item)) profile.owned.push(it.item);
+  profile.lux = profile.lux || []; profile.lux.push(luxKey(p.id, i));
+  const fame = Math.round(it.price / 15); profile.fame = (profile.fame || 0) + fame;
+  wearPiece(me.outfit, me.colors, it); shopState.orig = { outfit: Object.assign({}, me.outfit), colors: Object.assign({}, me.colors) }; shopState.trying = null;
+  rebuildPlayer(); saveLook(); saveAll(); renderBoutique(); updateHud(true);
+  toast(`You bought the ${it.name}! +${fame} fame. It’s in your wardrobe now.`);
+}
+function wearOwned(i) {
+  const it = shopState.B.items[i];
+  wearPiece(me.outfit, me.colors, it); shopState.orig = { outfit: Object.assign({}, me.outfit), colors: Object.assign({}, me.colors) }; shopState.trying = null;
+  rebuildPlayer(); saveLook(); renderBoutique();
+}
+function closeBoutique() {
+  if (!shopState) return;
+  const { orig, cam: c } = shopState;
+  if (JSON.stringify(orig.outfit) !== JSON.stringify(me.outfit) || JSON.stringify(orig.colors) !== JSON.stringify(me.colors)) { me.outfit = orig.outfit; me.colors = orig.colors; rebuildPlayer(); }
+  cam.yaw = c.yaw; cam.pitch = c.pitch; cam.dist = c.dist; cam.focusY = null; cam.shift = 0; cam.lastDrag = performance.now() / 1000;
+  shopState = null; ui.modal = null; $('#boutique').hidden = true; canvas.focus();
+}
+
+// ---------- coffee ----------
+const COFFEE = [
+  ['Espresso', 4, { energy: 18 }, 'A short, strong shot.'], ['Doré Latte', 7, { energy: 14, fun: 8 }, 'Honey, vanilla and a dusting of edible gold.'],
+  ['Rose Cappuccino', 7, { energy: 14, fun: 6, social: 4 }, 'Pink foam and dried rose petals.'], ['Iced Caramel Cold Brew', 6, { energy: 16, hunger: 4 }, 'Slow-steeped for 18 hours.'],
+  ['Ceremonial Matcha', 6, { energy: 12, hygiene: 4, fun: 4 }, 'Whisked to order.'], ['Hot Chocolate Royale', 6, { hunger: 10, fun: 10 }, 'Dark chocolate with whipped cream.'],
+];
+function attachCup(ch) {
+  const g = new THREE.Group();
+  const cupM = new THREE.MeshStandardMaterial({ color: 0xf4efe6, roughness: 0.6 }), sleeveM = new THREE.MeshStandardMaterial({ color: 0x2a1a12, roughness: 0.8 }), lidM = new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: 0.35, metalness: 0.7 });
+  const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.028, 0.12, 16), cupM);
+  const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.0375, 0.033, 0.05, 16), sleeveM);
+  const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.037, 0.014, 16), lidM); lid.position.y = 0.066;
+  g.add(cup, sl, lid); g.position.set(0, -0.31, 0.045); g.rotation.x = 1.35;
+  ch.bones.elR.add(g); ch.cup = true; ch.cupMesh = g;
+}
+let coffeeT = 0;
+function coffeeToGo(c) {
+  if (profile.coins < c[1] + 1) { toast('Not enough coins.'); return; }
+  profile.coins -= c[1] + 1;
+  for (const [k, v] of Object.entries(c[2])) bump(k, v);
+  if (!player.ch.cup) attachCup(player.ch);
+  coffeeT = 90; closeCard(); updateHud(true);
+  toast(`${c[0]} to go. Sip it while you stroll the Avenue!`);
+}
+function dropCup() { const ch = player.ch; if (ch.cupMesh) { ch.bones.elR.remove(ch.cupMesh); ch.cupMesh = null; ch.cup = false; } }
+function openCoffee(p) {
+  const h = hourOf(), open = isOpen(p, h), friend = people.find(x => x.state === 'follow');
+  const opts = COFFEE.map(c => ({ label: c[0], note: `${c[1]} coins · sit in`, disabled: !open || profile.coins < c[1], run: () => doActivity(p, A_(c[0], 25, Object.fromEntries(Object.entries(c[2]).map(([k, v]) => [k, v + (k === 'energy' ? 6 : 0)])), { cost: c[1], busy: `Sipping a ${c[0]}`, social: true })) }));
+  opts.push({ label: 'Order a coffee to go', note: 'pick one, carry it with you', disabled: !open, run: () => openCard('Café Doré', 'To go · 1 coin for the cup', 'What can we get you?', COFFEE.map(c => ({ label: c[0], note: `${c[1] + 1} coins`, disabled: profile.coins < c[1] + 1, run: () => coffeeToGo(c) }))) });
+  opts.push({ label: 'Sit on the terrace', run: () => { const s = seats.filter(x => x.place === 'dore' && !seatTaken(x)).sort((m, n) => Math.hypot(m.x - player.pos.x, m.z - player.pos.z) - Math.hypot(n.x - player.pos.x, n.z - player.pos.z))[0]; closeCard(); if (s) sitOn(s); else toast('Every table is taken right now.'); } });
+  const pals = people.filter(x => x.starlet && x.ch.group.visible && Math.hypot(x.pos.x - player.pos.x, x.pos.z - player.pos.z) < 9 && ((sim().rel[x.id] || 0) >= 15 || x.state === 'follow' || x.meetup === p));
+  if (open && pals.length) opts.unshift({ label: `Coffee date with ${pals.map(x => x.spec.name.split(' ')[0]).join(' & ')}`, note: '45 min · +social +energy', accent: true, run: () => doActivity(p, A_('Coffee together', 45, { social: 35, energy: 15, fun: 10 }, { cost: 7, busy: `Coffee with ${pals.map(x => x.spec.name.split(' ')[0]).join(' & ')}`, group: pals })) });
+  if (open) opts.push({ label: 'Call your friends to meet here', note: 'they’ll walk over', run: () => callFriends(p) });
+  openCard(p.name, `${p.sub} · ${hoursTxt(p.open)}`, !open ? 'Closed right now. Opens at 7 AM.' : friend ? `Marble counters, a brass espresso machine and the smell of fresh beans. ${friend.spec.name.split(' ')[0]} is with you.` : 'Marble counters, a brass espresso machine and the smell of fresh beans. What are you having?', opts);
+}
+
+// =====================================================================
 // Input: keyboard, mouse orbit, touch joystick and look
 // =====================================================================
 addEventListener('keydown', e => {
   if (e.target.closest?.('input, textarea')) return;
   if (e.code === 'KeyE' || (e.code === 'Enter' && !ui.modal && document.activeElement === canvas)) { e.preventDefault(); interact(); return; }
-  if (e.code === 'Escape') { if (ui.modal) closeCard(); else if (!$('#phone').hidden) togglePhone(false); return; }
+  if (e.code === 'Escape') { if (shopState) closeBoutique(); else if (ui.modal) closeCard(); else if (!$('#phone').hidden) togglePhone(false); return; }
   if (e.code === 'KeyM') { togglePhone(); return; }
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
   keys.add(e.code); hideHint();
@@ -2121,6 +2311,8 @@ function tapPick(x, y) {
 }
 $('#prompt').addEventListener('click', interact);
 $('#cardX').addEventListener('click', closeCard);
+$('#btqX').addEventListener('click', closeBoutique);
+$('#btqGrid').addEventListener('click', e => { const t = e.target.closest('[data-try],[data-buy],[data-wear]'); if (!t || t.disabled) return; if (t.dataset.try != null) tryPiece(+t.dataset.try); else if (t.dataset.buy != null) buyPiece(+t.dataset.buy); else wearOwned(+t.dataset.wear); });
 $('#cardOpts').addEventListener('click', e => { const b = e.target.closest('[data-opt]'); if (!b || b.disabled) return; const o = ui.modal.opts[+b.dataset.opt]; o.run && o.run(); });
 $('#phoneBtn').addEventListener('click', () => togglePhone());
 $('#compassX').addEventListener('click', () => setWaypoint(null));
@@ -2160,6 +2352,7 @@ function tick() {
     if (player.seat) { n.energy = clamp(n.energy + 0.12 * gm, 0, 100); n.fun = clamp(n.fun + 0.12 * gm, 0, 100); if (people.some(pp => pp.starlet && pp.seat && Math.hypot(pp.pos.x - player.pos.x, pp.pos.z - player.pos.z) < 3)) n.social = clamp(n.social + 0.25 * gm, 0, 100); }
   }
   updatePlayer(dt);
+  if (coffeeT > 0) { coffeeT -= gm; if (coffeeT <= 0) { dropCup(); toast('Coffee finished.'); } }
   for (const pp of people) {
     stepPerson(pp, dt, busy ? dt * 30 : gm);
     const d = pp.pos.distanceTo(player.pos);
@@ -2261,7 +2454,7 @@ async function boot() {
   clock.getDelta(); tick();
 }
 // test hook (read-only views and helpers for automated checks)
-window.__town = { player, people, places, seats, renderer, life, world, setHour: h => { life.min = Math.floor(life.min / 1440) * 1440 + h * 60; }, teleport: (x, z, ry = 0) => { standUp(); player.pos.set(x, heightAt(x, z), z); player.ry = ry; player.speed = 0; cam.yaw = ry + Math.PI; player.ch.group.position.copy(player.pos); cam.target.set(x, player.pos.y + 1.42, z); cam.cur = null; }, interact, openPlace: id => openPlace(placeBy(id)), talkTo: id => talkTo(people.find(p => p.id === id)), cam };
+window.__town = { player, people, places, seats, renderer, life, world, setHour: h => { life.min = Math.floor(life.min / 1440) * 1440 + h * 60; }, teleport: (x, z, ry = 0) => { standUp(); player.pos.set(x, heightAt(x, z), z); player.ry = ry; player.speed = 0; cam.yaw = ry + Math.PI; player.ch.group.position.copy(player.pos); cam.target.set(x, player.pos.y + 1.42, z); cam.cur = null; }, interact, openPlace: id => openPlace(placeBy(id)), shop: () => shopState, me, profile, talkTo: id => talkTo(people.find(p => p.id === id)), cam };
 boot().catch(err => { console.error(err); const e = $('#loadErr'); e.hidden = false; e.textContent = 'Starlife Town could not start: ' + (err && err.message || err) + '. It needs WebGL; try another browser.'; });
 </script>
 </body>
