@@ -46,3 +46,18 @@ A dress-up, makeup and room-decorating game in the spirit of the classic Stardol
 Your current suite, your album and your coins are kept in the browser's localStorage.
 
 Starlife is an independent fan project. It isn't affiliated with Stardoll and uses none of its code or artwork.
+
+## Life mode (Sims-style)
+
+Your starlet now lives in their suite:
+
+- **Needs.** Hunger, energy, hygiene, fun and social slowly drop as the clock runs. Mood comes from the needs, and the star above your starlet's head shows it (green, yellow or red).
+- **Clock.** Use the pause, play, fast and faster buttons in the life bar. Days run Monday to Sunday. The room gets darker in the evening.
+- **Actions.** Click furniture to use it. You can cook or snack in the kitchen, sleep or nap in bed, shower, watch TV, read at the bookshelf, practise at the desk, run on the treadmill or dance by the stereo. Click your starlet to call or text friends. Buy more furniture from the Decor drawer.
+- **Skills.** Cooking, fitness, charisma and creativity grow as you use the matching furniture.
+- **Career.** Take a job from the Life panel and go to work on weekday mornings. Your pay depends on your mood and how well your outfit suits the office. Three great days in a row earn a promotion.
+- **Friends.** Messaging starlets and going to events builds friendships, from Stranger up to Best friend.
+
+## Male starlets
+
+Kai, Leo, Jin, Theo and Omar join the cast. In the Avatar tab you can switch any starlet's body, and pick beards and men's hairstyles: crop, buzz, quiff and locs. The Shop sells menswear: shirt, polo, hoodie, chinos, suit trousers, suit, tuxedo, tie, bow tie, oxfords, loafers and cap.
