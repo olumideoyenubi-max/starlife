@@ -61,3 +61,15 @@ Your starlet now lives in their suite:
 ## Male starlets
 
 Kai, Leo, Jin, Theo and Omar join the cast. In the Avatar tab you can switch any starlet's body, and pick beards and men's hairstyles: crop, buzz, quiff and locs. The Shop sells menswear: shirt, polo, hoodie, chinos, suit trousers, suit, tuxedo, tie, bow tie, oxfords, loafers and cap.
+
+## Starlife Town (3D open world)
+
+Click **Go out ✦** in the main menu, or open `world.html`, to walk around a 3D town as your starlet. It is built with three.js, which loads from a CDN, so the page needs an internet connection. Your starlet keeps the outfit, skin, hair and beard you chose in the suite.
+
+- **Explore freely.** Use WASD or the arrow keys to walk, Shift to run, and drag to turn the camera. On a phone, drag on the left to walk and on the right to look.
+- **Places:** Starlife Suites (your home), the Bean & Bloom café and its terrace, the Chapter One bookshop, the Maison Starlife boutique, the Neon Owl club, the Fizz mocktail bar, the Grand Hall, Starlight Theatre, Maya's house and Central Park with its fountain. Walk up to a door and press **E** to see what you can do there. Some places only open at certain hours, and the gala events reward a dressy look.
+- **Starlets live in town.** The other starlets walk between their favourite places on a daily routine, sit on the café terrace and park benches, and go home late at night. Walk up to one, or tap them, to chat, pay them a compliment or ask them to hang out. Once you're friends, they'll follow you to your next activity.
+- **One shared life.** The clock, needs, skills, friendships and coins are the same ones the suite uses. Day turns into night, and the street lamps and windows light up after dark.
+- **Phone (M):** a town map you can set routes on, a list of where your friends are, and settings for graphics quality (Low, Medium, High), time speed and an FPS counter.
+
+Graphics tiers: **Low** (the default on phones) has no shadows, a shorter view distance and a smaller crowd. **Medium** adds soft shadows, sky lighting and more people. **High** adds anti-aliasing, sharper shadows and the longest view distance. Building interiors are not walkable: going inside a venue plays the activity as a short scene.

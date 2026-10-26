@@ -649,6 +649,8 @@
     padding: 18px 16px; white-space: nowrap; opacity: .82; transition: opacity .2s;
   }
   .mainnav button:hover, .mainnav button.on { opacity: 1; }
+  .mainnav a.goout { display: inline-flex; align-items: center; gap: 6px; margin: 9px 0 9px 8px; padding: 0 16px; border-radius: 999px; background: #ff4f8b; color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .6px; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+  .mainnav a.goout:hover { background: #ff3478; }
   .mainnav button.on::after { content: ""; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); border: 8px solid transparent; border-bottom-color: #fff; }
   .page main.stage-main { margin: 0; max-width: none; padding: 20px; }
 
@@ -987,6 +989,7 @@
     <button data-view="events">Events</button>
     <button data-view="chat">Chat<i class="navbadge" id="chatBadge" hidden>0</i></button>
     <button data-view="album">My album</button>
+    <a class="goout" href="world.html" title="Walk around Starlife Town in 3D">Go out ✦</a>
   </nav>
 
 <main class="stage-main">
@@ -4124,7 +4127,9 @@ lastSnap = JSON.stringify(state); undoStack = []; $('#tbUndo').disabled = true;
 renderLookbook();
 ensureGreetings(); renderChatBadge();
 $('#promoEvents').innerHTML = `<svg viewBox="0 0 300 130"><rect width="300" height="130" fill="#140d24"/><path d="M80,0 L20,130 L120,130 Z" fill="#ff4f8b" opacity=".25"/><path d="M220,0 L170,130 L270,130 Z" fill="#5ee0c4" opacity=".25"/><circle cx="150" cy="44" r="26" fill="#c0c5d6"/><path d="M126,36 H174 M126,52 H174 M140,20 V68 M160,20 V68" stroke="#fff" stroke-width=".8" opacity=".7"/><path d="M150,0 V18" stroke="#888"/><text x="150" y="112" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-style="italic" font-weight="700" font-size="26" fill="#ffd166">Tonight</text></svg>`;
-setView('home');
+// links like index.html#shop open that page directly (the 3D town uses these)
+const hashView = location.hash.slice(1);
+setView(['home', 'suite', 'parlor', 'shop', 'contests', 'events', 'chat', 'album'].includes(hashView) ? hashView : 'home');
 if (!lsGet(LS_CUR, null) || !lsGet('starlife.guide.v1', false)) openPicker();
 </script>
 </body>
