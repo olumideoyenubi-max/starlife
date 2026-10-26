@@ -342,7 +342,7 @@ function updateSky() {
   if (pmrem) {
     const k = Math.round(h * 4);
     if (k !== envKey) { envKey = k; const rt = pmrem.fromScene(envScene, 0, 0.1, 100); if (envRT) envRT.dispose(); envRT = rt; scene.environment = rt.texture; }
-    for (const m of envMats) m.envMapIntensity = lerp(0.9, 0.25, nightness);
+    for (const m of envMats) m.envMapIntensity = lerp(0.9, 0.25, nightness) * (m.userData.env ?? 1);
   }
 }
 const sunOffset = new THREE.Vector3(60, 100, 40);
@@ -676,7 +676,7 @@ function buildHome() {
   const st = styleOf('plaster', '#f0c9d4');
   fbuilding(fr, -9, 9, 0, 14, 8, st, { shops: false });
   fbuilding(fr, -15, -9, 0, 15, 3, pick(STYLES)); fbuilding(fr, 9, 15, 0, 15, 4, pick(STYLES));
-  fbuilding(fr, -15, 0, 15, 30, 5, pick(STYLES)); fbuilding(fr, 0, 15, 15, 30, 3, pick(STYLES));
+  velvetRoom();
   // entrance: canopy, glass doors and a sign
   fbox(fr, -3, 3, -2.4, 0, 3.0, 3.25, M.white);
   for (const u of [-2.8, 2.8]) fbox(fr, u - 0.06, u + 0.06, -2.3, -2.18, CURB, 3.0, M.gold);
@@ -897,7 +897,7 @@ function buildPark(cx, cz, big) {
 // =====================================================================
 // Assemble the town
 // =====================================================================
-const LAND = { '-1,0': buildHome, '0,-1': buildTheatre, '1,0': buildHall, '0,1': buildShops, '1,1': buildNightlife, '-1,1': buildHouses };
+const LAND = { '2,0': buildMall, '-1,-1': avenueWest, '-2,-1': avenueEast, '-2,0': avenueEast2, '-1,0': buildHome, '0,-1': buildTheatre, '1,0': buildHall, '0,1': buildShops, '1,1': buildNightlife, '-1,1': buildHouses };
 const PARKS = { '0,0': true, '2,-2': false, '-2,2': false };
 function fillBlock(cx, cz, ring) {
   const I = HALF - SW;
@@ -942,6 +942,7 @@ function buildTown() {
       }
     }
   }
+  buildAvenueStreet();
   // overhead cables strung across a few streets
   const cableMat = new THREE.LineBasicMaterial({ color: 0x1a1a1a });
   for (let n = 0; n < 26; n++) {
@@ -962,6 +963,226 @@ function buildTown() {
   sk.build(); sk2.build();
   for (const b of B.values()) b.build();
   buildProps();
+}
+
+// =====================================================================
+// The Avenue: a car-free luxury street along x = -72
+// =====================================================================
+const AVE = { x0: -78, x1: -66, z0: -66, z1: 18 };
+const topiaries = [];
+const furniture = { tables: [], chairs: [] };
+const marbleTex = groundTex('#e9e3d8', g => {
+  for (let y = 0; y < 512; y += 128) for (let x = 0; x < 512; x += 128) { g.fillStyle = (x + y) / 128 % 2 ? '#e3dccf' : '#efe9df'; g.fillRect(x + 1, y + 1, 126, 126); }
+  g.strokeStyle = 'rgba(150,140,125,.18)'; g.lineWidth = 1.2;
+  for (let i = 0; i < 40; i++) { g.beginPath(); let x = rnd() * 512, y = rnd() * 512; g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (rnd() - 0.5) * 70; y += (rnd() - 0.5) * 70; g.lineTo(x, y); } g.stroke(); }
+  speckle(g, 512, 512, 2500, ['#bfb6a6', '#fff'], 2);
+});
+M.marble = std({ map: marbleTex, color: 0xcfc8bd, roughness: 0.38, metalness: 0 });
+M.marble.userData.env = 0.45;
+M.avePave = std({ map: plaza, color: 0xf2e6d6, roughness: 0.85 });
+M.brass = std({ color: 0xc9a24a, roughness: 0.28, metalness: 0.9 });
+M.velvet = std({ color: 0x3a1430, roughness: 0.95 });
+
+// interiors seen through the shop windows (they glow softly at night)
+const INTERIORS = {
+  jewels: (g, w, h) => { g.fillStyle = '#1b1420'; g.fillRect(0, 0, w, h); for (let i = 0; i < 4; i++) { const x = 30 + i * (w - 60) / 4; g.fillStyle = '#2d2335'; g.fillRect(x, h * 0.55, (w - 60) / 4 - 20, h * 0.45); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x, h * 0.5, (w - 60) / 4 - 20, 8); for (let k = 0; k < 7; k++) { g.fillStyle = pick(['#fff6d8', '#bfe3ff', '#ffd1e1', '#ffe08a']); g.beginPath(); g.arc(x + 10 + rnd() * ((w - 60) / 4 - 40), h * 0.6 + rnd() * 20, 2 + rnd() * 3, 0, 7); g.fill(); } } g.fillStyle = '#ffe9b0'; for (let i = 0; i < 5; i++) { g.globalAlpha = 0.35; g.beginPath(); g.arc(w * (0.1 + i * 0.2), 18, 26, 0, 7); g.fill(); } g.globalAlpha = 1; },
+  couture: (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#fbf3e8'); gr.addColorStop(1, '#e7d8c4'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = '#c9a24a'; g.fillRect(20, h * 0.25, w - 40, 5); for (let i = 0; i < 9; i++) { g.fillStyle = pick(['#1f1b22', '#a3122e', '#f2c6d2', '#2b3a67', '#e8d3a8', '#ffffff']); const x = 40 + i * (w - 80) / 9; g.beginPath(); g.moveTo(x, h * 0.27); g.lineTo(x + 18, h * 0.27); g.lineTo(x + 28, h * 0.75); g.lineTo(x - 10, h * 0.75); g.fill(); } },
+  leather: (g, w, h) => { g.fillStyle = '#231b17'; g.fillRect(0, 0, w, h); for (let s = 0; s < 3; s++) { g.fillStyle = '#3a2c24'; g.fillRect(20, 30 + s * h * 0.28, w - 40, 8); for (let i = 0; i < 6; i++) { g.fillStyle = pick(['#7a4a2a', '#1f1b22', '#c8a979', '#8c1c2c']); const x = 30 + i * (w - 60) / 6; g.beginPath(); g.roundRect(x, s * h * 0.28 + 30 - 46, 46, 44, 8); g.fill(); g.strokeStyle = '#c9a24a'; g.beginPath(); g.arc(x + 23, s * h * 0.28 - 16, 12, Math.PI, 0); g.stroke(); } } },
+  perfume: (g, w, h) => { g.fillStyle = '#fdf0f4'; g.fillRect(0, 0, w, h); for (let s = 0; s < 3; s++) { g.fillStyle = '#e8cfd8'; g.fillRect(16, 50 + s * h * 0.28, w - 32, 6); for (let i = 0; i < 12; i++) { g.fillStyle = pick(['#f2a7c3', '#c8b6e2', '#a9c6ef', '#ffd166', '#f6f1e7']); const x = 24 + i * (w - 48) / 12; g.globalAlpha = 0.85; g.fillRect(x, 50 + s * h * 0.28 - 30, 18, 30); g.fillStyle = '#c9a24a'; g.fillRect(x + 6, 50 + s * h * 0.28 - 36, 6, 6); g.globalAlpha = 1; } } },
+  gelato: (g, w, h) => { g.fillStyle = '#fff6ea'; g.fillRect(0, 0, w, h); g.fillStyle = '#d7eef0'; g.fillRect(0, h * 0.5, w, h * 0.5); for (let i = 0; i < 10; i++) { g.fillStyle = pick(['#ffb3c7', '#fff1b8', '#b8e6c9', '#c9a27a', '#f6f1e7', '#c8b6e2', '#ff8a5c']); g.beginPath(); g.ellipse(30 + i * (w - 60) / 10 + 14, h * 0.55, 18, 10, 0, 0, 7); g.fill(); } for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#ff9ec0' : '#fff'; g.fillRect(i * w / 8, 0, w / 8, 22); } },
+  patisserie: (g, w, h) => { g.fillStyle = '#f7ede4'; g.fillRect(0, 0, w, h); g.fillStyle = '#c9a27a'; g.fillRect(0, h * 0.62, w, h * 0.38); for (let i = 0; i < 7; i++) { const x = 30 + i * (w - 60) / 7; g.fillStyle = pick(['#f2c6d2', '#fff4dc', '#c38bf0', '#ffd166', '#b8e6c9']); g.beginPath(); g.ellipse(x + 20, h * 0.58, 22, 12, 0, 0, 7); g.fill(); g.fillStyle = '#ff4f8b'; g.beginPath(); g.arc(x + 20, h * 0.5, 5, 0, 7); g.fill(); } },
+  spa: (g, w, h) => { g.fillStyle = '#e4efe6'; g.fillRect(0, 0, w, h); g.fillStyle = '#9fbfa6'; for (let i = 0; i < 5; i++) { g.beginPath(); g.ellipse(w * (0.12 + i * 0.19), h * 0.7, 26, 60, 0, 0, 7); g.fill(); } g.fillStyle = '#fffaf0'; g.globalAlpha = 0.6; g.beginPath(); g.arc(w / 2, h * 0.3, 60, 0, 7); g.fill(); g.globalAlpha = 1; },
+  lounge: (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#4a1a3c'); gr.addColorStop(1, '#1e0b18'); g.fillStyle = gr; g.fillRect(0, 0, w, h); for (let i = 0; i < 5; i++) { g.fillStyle = 'rgba(255,200,120,.55)'; g.beginPath(); g.arc(w * (0.1 + i * 0.2), h * 0.3, 18, 0, 7); g.fill(); g.fillStyle = '#7a2a5a'; g.beginPath(); g.roundRect(w * (0.05 + i * 0.2), h * 0.62, w * 0.14, h * 0.25, 18); g.fill(); } },
+  bar: (g, w, h) => { g.fillStyle = '#16303a'; g.fillRect(0, 0, w, h); g.fillStyle = '#ffd98a'; for (let i = 0; i < 9; i++) { g.globalAlpha = 0.6; g.fillRect(20 + i * (w - 40) / 9, 30, 16, 44); } g.globalAlpha = 1; g.fillStyle = '#0b1c22'; g.fillRect(0, h * 0.6, w, h * 0.4); },
+  shop: (g, w, h) => { g.fillStyle = '#fbf7f2'; g.fillRect(0, 0, w, h); for (let i = 0; i < 6; i++) { g.fillStyle = pick(['#ff6f9a', '#2f5d8c', '#ffd166', '#3f7f6b', '#c38bf0', '#1f1b22']); g.fillRect(24 + i * (w - 48) / 6, h * 0.3, (w - 48) / 6 - 16, h * 0.45); } g.fillStyle = '#e7ddd0'; g.fillRect(0, h * 0.8, w, h * 0.2); },
+  cinema: (g, w, h) => { g.fillStyle = '#1a0f24'; g.fillRect(0, 0, w, h); for (let i = 0; i < 3; i++) { g.fillStyle = pick(['#3a1c5c', '#5a1020', '#1f2a44']); g.fillRect(30 + i * (w - 60) / 3, 30, (w - 60) / 3 - 24, h * 0.6); g.fillStyle = 'rgba(255,255,255,.85)'; g.font = 'italic 600 28px Georgia, serif'; g.textAlign = 'center'; g.fillText(['Moonlit Gala', 'Runway Dreams', 'Star Crossed'][i], 30 + i * (w - 60) / 3 + ((w - 60) / 3 - 24) / 2, 30 + h * 0.35); } g.fillStyle = '#ffd166'; for (let i = 0; i < 30; i++) { g.beginPath(); g.arc(10 + i * w / 30, h - 12, 4, 0, 7); g.fill(); } },
+  food: (g, w, h) => { g.fillStyle = '#f4ecdf'; g.fillRect(0, 0, w, h); const stalls = ['Noodles', 'Tacos', 'Smoothies', 'Pizza']; stalls.forEach((s, i) => { const x = i * w / 4; g.fillStyle = ['#c8344a', '#e8c64a', '#3fa07a', '#2f5d8c'][i]; g.fillRect(x + 8, 10, w / 4 - 16, 44); g.fillStyle = '#fff'; g.font = '600 26px Inter, sans-serif'; g.textAlign = 'center'; g.fillText(s, x + w / 8, 42); g.fillStyle = '#d9c7ad'; g.fillRect(x + 8, h * 0.62, w / 4 - 16, h * 0.38); }); },
+  salon: (g, w, h) => { g.fillStyle = '#fde8ef'; g.fillRect(0, 0, w, h); for (let i = 0; i < 4; i++) { g.fillStyle = '#fff'; g.beginPath(); g.ellipse(w * (0.14 + i * 0.24), h * 0.35, 34, 48, 0, 0, 7); g.fill(); g.strokeStyle = '#d6b25e'; g.lineWidth = 5; g.stroke(); g.fillStyle = '#ff4f8b'; g.fillRect(w * (0.14 + i * 0.24) - 28, h * 0.7, 56, 40); } },
+  arcade: (g, w, h) => { g.fillStyle = '#140d24'; g.fillRect(0, 0, w, h); for (let i = 0; i < 6; i++) { g.fillStyle = pick(['#ff4f8b', '#5ee0c4', '#ffd166', '#8f63f0']); g.fillRect(20 + i * (w - 40) / 6, h * 0.25, (w - 40) / 6 - 20, h * 0.6); g.fillStyle = '#000'; g.fillRect(28 + i * (w - 40) / 6, h * 0.3, (w - 40) / 6 - 36, h * 0.22); } },
+};
+const MANNEQUIN_LOOKS = [
+  [{ top: 'turtle', bottom: 'pencil', outer: 'trench', shoes: 'kneeboots', bag: 'crossbody' }, {}],
+  [{ dress: 'gown', necklace: 'pearls', shoes: 'pumps' }, { gown: '#f2c6d2' }],
+  [{ dress: 'sequin', earrings: 'drops', shoes: 'pumps', bag: 'clutch' }, {}],
+  [{ dress: 'lbd', necklace: 'pearls', shoes: 'pumps', hat: 'tiara' }, {}],
+  [{ dress: 'slip', outer: 'blazer', shoes: 'pumps', necklace: 'pendant' }, { slip: '#d9c2a6', blazer: '#1f1b22' }],
+  [{ dress: 'gown', earrings: 'studs', shoes: 'pumps' }, { gown: '#a3122e' }],
+  [{ top: 'blouse', bottom: 'wide', outer: 'biker', shoes: 'ankleboots', bag: 'heartbag' }, { wide: '#1f1b22' }],
+  [{ dress: 'wrap', shoes: 'sandals', bag: 'tote', glasses: 'sunnies' }, { wrap: '#f6c453' }],
+];
+
+// a luxury shopfront: recessed display windows, stone frame, canopy, brass sign
+function luxShop(fr, u0, u1, o) {
+  const sb = o.setback ?? 1, uc = (u0 + u1) / 2, w = u1 - u0;
+  fbuilding(fr, u0, u1, sb, o.depth || 15, o.floors || 3, styleOf(o.style[0], o.style[1]), { shops: false });
+  const frameM = o.frame || M.stone;
+  fbox(fr, u0, u0 + 0.5, sb - 1, sb, CURB, 4.7, frameM); fbox(fr, u1 - 0.5, u1, sb - 1, sb, CURB, 4.7, frameM);
+  fbox(fr, u0, u1, sb - 1, sb, 3.9, 4.7, frameM);
+  fbox(fr, u0 + 0.5, uc - 0.95, sb - 1, sb, CURB, 0.45, frameM); fbox(fr, uc + 0.95, u1 - 0.5, sb - 1, sb, CURB, 0.45, frameM);
+  const r = fr.rect(u0, u1, sb - 1, sb); solid(r[0], r[1], r[2], r[3]);
+  facing(fr, uc, sb - OUT, 2.1, new THREE.Mesh(new THREE.PlaneGeometry(w - 1, 3.6), warmInterior(w - 1, 3.6, INTERIORS[o.kind])));
+  for (const s of [-1, 1]) { const p = fr.pt(uc + s * (w / 4 + 0.2), sb - 1.02); const gl = new THREE.Mesh(new THREE.PlaneGeometry(w / 2 - 1.6, 3.4), glassMat); gl.position.set(p[0], 2.15, p[1]); gl.rotation.y = fr.ry; scene.add(gl); }
+  // canopy and brass sign
+  const can = std({ color: o.canopy || 0x151316, roughness: 0.7 });
+  fbox(fr, uc - Math.min(2.2, w / 2 - 0.6), uc + Math.min(2.2, w / 2 - 0.6), sb - 2.6, sb - 1, 3.55, 3.68, can);
+  facing(fr, uc, sb - 1 - OUT, 4.3, signMesh(o.name, Math.min(w - 1.4, 6.5), 0.62, { bg: o.signBg || '#151316', fg: o.signFg || '#e2c47a', neon: true, font: o.font || '500 120px Fraunces, Georgia, serif' }));
+  // mannequins in the windows and topiaries by the door
+  if (o.mannequins) for (const s of [-1, 1]) mannequinSpots.push([...fr.pt(uc + s * (w / 4 + 0.15), sb - 0.5), fr.ry, o.mannequins[s < 0 ? 0 : 1], 0.45]);
+  if (o.topiary !== false) for (const s of [-1, 1]) { const [x, z] = fr.pt(uc + s * 1.35, sb - 1.6); topiaries.push([x, z]); solid(x - 0.35, z - 0.35, x + 0.35, z + 0.35, 1); }
+  return addPlace(o.id, o.name, fr, uc, sb - 2.0, o.color || '#d6b25e', { sub: o.sub, open: o.open, hangout: o.hangout, lux: o.lux });
+}
+// café-style terrace tables in front of a shop
+function terrace(fr, us, v, place, label) {
+  for (const u of us) {
+    const [x, z] = fr.pt(u, v);
+    furniture.tables.push([x, z]); solid(x - 0.45, z - 0.45, x + 0.45, z + 0.45, 1);
+    for (const side of [-1, 1]) {
+      const cx = x + fr.r[0] * 0.75 * side, cz = z + fr.r[1] * 0.75 * side, ry = Math.atan2(x - cx, z - cz);
+      furniture.chairs.push([cx, cz, ry]); seats.push({ x: cx, z: cz, ry, y: CURB + 0.48, place, label });
+    }
+  }
+}
+function avenueWest() {     // block (-1,-1), shops face west onto the Avenue
+  const fr = frame(-CELL, -CELL, 'w');
+  luxShop(fr, -15, -5, { id: 'aurelle', name: 'Aurelle', sub: 'Fine jewellery', kind: 'jewels', style: ['stone', '#efe6d6'], mannequins: [3, 2], lux: 'jewels', color: '#e2c47a', open: [10, 20] });
+  luxShop(fr, -5, 5, { id: 'velours', name: 'Maison Velours', sub: 'Couture house', kind: 'couture', style: ['stone', '#f4ede2'], floors: 4, mannequins: [1, 5], lux: 'couture', color: '#e2c47a', open: [10, 20], canopy: 0x2b1630 });
+  luxShop(fr, 5, 15, { id: 'noir', name: 'Noir & Or', sub: 'Leather goods', kind: 'leather', style: ['plaster', '#d9cfc4'], mannequins: [6, 0], lux: 'leather', color: '#e2c47a', open: [10, 20] });
+  fbuilding(fr, -15, 0, 15, 30, 4, pick(STYLES)); fbuilding(fr, 0, 15, 15, 30, 6, pick(STYLES));
+}
+function avenueEast() {     // block (-2,-1), shops face east onto the Avenue
+  const fr = frame(-2 * CELL, -CELL, 'e');
+  luxShop(fr, -15, -5, { id: 'lumiere', name: 'Lumière', sub: 'Parfumerie', kind: 'perfume', style: ['plaster', '#f6e3ea'], signBg: '#f6e3ea', signFg: '#a8477a', canopy: 0xf2c6d2, lux: 'perfume', color: '#f2a7c3', open: [10, 20] });
+  luxShop(fr, -5, 5, { id: 'celestine', name: 'Celestine', sub: 'Watches and diamonds', kind: 'jewels', style: ['stone', '#e8e2d8'], floors: 4, mannequins: [3, 4], lux: 'jewels', color: '#bfe3ff', open: [10, 20], canopy: 0x1f2a44 });
+  luxShop(fr, 5, 15, { id: 'patisserie', name: 'Petit Four', sub: 'Patisserie and terrace', kind: 'patisserie', style: ['plaster', '#fbe9d7'], setback: 4, signBg: '#fbe9d7', signFg: '#b5476a', canopy: 0xf4b8c8, topiary: false, hangout: true, color: '#ff9ec0', open: [8, 20] });
+  terrace(fr, [7.2, 10, 12.8], 1.4, 'patisserie', 'Sit at Petit Four');
+  festoon(fr.pt(5.3, 0.3), fr.pt(14.7, 0.3), 3.4, 0.4, 10);
+  fbuilding(fr, -15, 0, 15, 30, 5, pick(STYLES)); fbuilding(fr, 0, 15, 15, 30, 3, pick(STYLES));
+}
+function avenueEast2() {    // block (-2,0)
+  const fr = frame(-2 * CELL, 0, 'e');
+  luxShop(fr, -15, -6, { setback: 3, id: 'gelato', name: 'Sorbetto', sub: 'Gelato parlour', kind: 'gelato', style: ['plaster', '#d7eef0'], signBg: '#ffffff', signFg: '#e0567f', canopy: 0xff9ec0, topiary: false, hangout: true, color: '#ffb3c7', open: [11, 23], font: 'italic 600 120px Fraunces, Georgia, serif' });
+  const sg = luxShop(fr, -6, 6, { id: 'skygarden', name: 'Sky Garden', sub: 'Rooftop mocktail lounge', kind: 'bar', style: ['glass', '#4b5866'], floors: 10, hangout: true, color: '#5ee0c4', open: [16, 2], signBg: '#0f2a2a', signFg: '#7ff0dc', canopy: 0x0f2a2a });
+  // the rooftop: glass balustrade, umbrellas and fairy lights you can see from the street
+  const top = 3.2 + 10 * 3.2, rr = fr.rect(-6, 6, 1, 15);
+  for (const [a, b, c, d] of [[rr[0], rr[1], rr[2], rr[1] + 0.06], [rr[0], rr[3] - 0.06, rr[2], rr[3]], [rr[0], rr[1], rr[0] + 0.06, rr[3]], [rr[2] - 0.06, rr[1], rr[2], rr[3]]]) { const gl = new THREE.Mesh(new THREE.BoxGeometry(c - a, 1.1, d - b), glassMat); gl.position.set((a + c) / 2, top + 1.6, (b + d) / 2); scene.add(gl); }
+  for (let i = 0; i < 4; i++) { const x = lerp(rr[0] + 2.5, rr[2] - 2.5, (i % 2)), z = lerp(rr[1] + 3, rr[3] - 3, i < 2 ? 0.2 : 0.8); const um = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.6, 12), std({ color: i % 2 ? 0xf4f1ea : 0x5ee0c4, roughness: 0.8 })); um.position.set(x, top + 3.3, z); scene.add(um); const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.4, 6), M.metal); pole.position.set(x, top + 2.2, z); scene.add(pole); }
+  festoon([rr[0] + 0.3, rr[1] + 0.3], [rr[2] - 0.3, rr[3] - 0.3], top + 3.6, 0.6, 14);
+  festoon([rr[2] - 0.3, rr[1] + 0.3], [rr[0] + 0.3, rr[3] - 0.3], top + 3.6, 0.6, 14);
+  luxShop(fr, 6, 15, { id: 'spa', name: 'Serenity Spa', sub: 'Massage, facials, steam', kind: 'spa', style: ['plaster', '#dfe9df'], signBg: '#dfe9df', signFg: '#4f7a5a', canopy: 0x9fbfa6, color: '#9fbfa6', open: [9, 21], font: '400 110px Fraunces, Georgia, serif' });
+  terrace(fr, [-13.6, -7.4], 1.3, 'gelato', 'Sit outside Sorbetto');
+  fbuilding(fr, -15, 0, 15, 30, 3, pick(STYLES)); fbuilding(fr, 0, 15, 15, 30, 4, pick(STYLES));
+}
+function velvetRoom() {     // back of the home block, facing the Avenue
+  const fr = frame(-CELL, 0, 'w');
+  luxShop(fr, -15, -3, { id: 'lounge', name: 'The Velvet Room', sub: 'Members’ lounge', kind: 'lounge', style: ['plaster', '#5a2a4a'], frame: M.velvet, canopy: 0x2a0d22, signBg: '#2a0d22', signFg: '#f2c6d2', hangout: true, color: '#c38bf0', open: [12, 2], topiary: true, font: 'italic 600 120px Fraunces, Georgia, serif' });
+  stanchions(fr, [-11.4, -6.6], [-1.6, -2.4]);
+  fbuilding(fr, -3, 15, 0, 15, 3, pick(STYLES));
+}
+function buildAvenueStreet() {
+  batch(M.avePave, { shadow: false }).flat(AVE.x0, AVE.z0, AVE.x1, AVE.z1, 0.03, 3);
+  platforms.push({ x0: AVE.x0, z0: AVE.z0, x1: AVE.x1, z1: AVE.z1, y: 0.03 });
+  const mx = (AVE.x0 + AVE.x1) / 2;
+  // planted median with trees and benches, gaps where the cross street meets it
+  for (const [a, b] of [[-62, -34], [-14, 14]]) {
+    for (let z = a; z <= b; z += 7) {
+      batch(M.stone).box(mx - 0.9, 0, z - 1.6, mx + 0.9, 0.55, z + 1.6, { tw: 2, th: 2, top: false });
+      batch(M.grass, { shadow: false }).flat(mx - 0.8, z - 1.5, mx + 0.8, z + 1.5, 0.54, 2);
+      solid(mx - 0.9, z - 1.6, mx + 0.9, z + 1.6, 1);
+      treeSpots.push([mx, z, 0.8]);
+      if (z + 3.5 <= b) for (const s of [-1, 1]) benchSpots.push([mx + s * 1.5, z + 3.5, s > 0 ? Math.PI / 2 : -Math.PI / 2, 'avenue']);
+    }
+  }
+  // string lights across the street
+  for (let z = AVE.z0 + 4; z < AVE.z1; z += 9) if (Math.abs(z + 24) > 7) festoon([AVE.x0 + 0.2, z], [AVE.x1 - 0.2, z + 1], 6.2, 0.7, 12);
+  // arches at each end
+  for (const z of [AVE.z0 + 0.6, AVE.z1 - 0.6]) {
+    for (const x of [AVE.x0 + 0.5, AVE.x1 - 0.5]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 6.4, 14), M.brass); p.position.set(x, 3.2, z); p.castShadow = T.shadow > 0; scene.add(p); solid(x - 0.2, z - 0.2, x + 0.2, z + 0.2, 1); }
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(AVE.x1 - AVE.x0 - 0.6, 0.18, 0.18), M.brass); bar.position.set(mx, 6.3, z); scene.add(bar);
+    const s1 = signMesh('Velvet Avenue', 7, 0.9, { bg: '#151316', fg: '#e2c47a', neon: true, border: '#c9a24a', font: 'italic 600 150px Fraunces, Georgia, serif' });
+    s1.position.set(mx, 5.6, z); s1.rotation.y = z < 0 ? Math.PI : 0; scene.add(s1);
+    const s2 = s1.clone(); s2.rotation.y = z < 0 ? 0 : Math.PI; s2.position.z = z + (z < 0 ? 0.02 : -0.02); scene.add(s2);
+    s1.position.z = z + (z < 0 ? -0.02 : 0.02);
+  }
+  places.push({ id: 'avenue', name: 'Velvet Avenue', x: mx + 2.4, z: -24, ry: Math.PI / 2, color: '#e2c47a', sub: 'Luxury street', street: true });
+  // shared terrace furniture and topiaries
+  const tableGeo = mergeGeometries([new THREE.CylinderGeometry(0.42, 0.42, 0.04, 24).translate(0, 0.74, 0), new THREE.CylinderGeometry(0.03, 0.03, 0.72, 8).translate(0, 0.37, 0), new THREE.CylinderGeometry(0.22, 0.25, 0.03, 16).translate(0, 0.015, 0)]);
+  const chairGeo = mergeGeometries([new THREE.BoxGeometry(0.42, 0.04, 0.42).translate(0, 0.46, 0), new THREE.BoxGeometry(0.42, 0.42, 0.04).translate(0, 0.68, -0.2), ...[[-0.18, -0.18], [0.18, -0.18], [-0.18, 0.18], [0.18, 0.18]].map(([a, b]) => new THREE.CylinderGeometry(0.015, 0.015, 0.46, 6).translate(a, 0.23, b))]);
+  instanced(tableGeo, std({ color: 0xf4f1ea, roughness: 0.3, metalness: 0.2 }), furniture.tables, ([x, z], p) => p.set(x, heightAt(x, z), z));
+  instanced(chairGeo, M.brass, furniture.chairs, ([x, z, ry], p, q) => { p.set(x, heightAt(x, z), z); yQ(q, ry); });
+  const potGeo = new THREE.CylinderGeometry(0.34, 0.26, 0.6, 16).translate(0, 0.3, 0);
+  const bushGeo = colorize(noisyBlob(0.42, 2, 0.05, 1, 1.15, 1).translate(0, 1.05, 0), '#3f6b35', 0.2);
+  instanced(potGeo, std({ color: 0x1b1b1f, roughness: 0.4, metalness: 0.3 }), topiaries, ([x, z], p) => p.set(x, heightAt(x, z), z));
+  instanced(bushGeo, std({ vertexColors: true, roughness: 0.9 }), topiaries, ([x, z], p) => p.set(x, heightAt(x, z), z));
+}
+
+// =====================================================================
+// Starlife Galleria: a mall you walk through, under a glass roof
+// =====================================================================
+const MALL = { cx: 2 * CELL, cz: 0 };
+function buildMall() {
+  const cx = MALL.cx, X0 = cx - 15, X1 = cx + 15, ext = styleOf('glass', '#c9d3dc'), H = 3.2 + 2 * 3.2;
+  // two rows of shops either side of a 10 m walkway, with a wider atrium in the middle
+  for (const [a, b, c, d] of [[X0, -15, cx - 6, -5], [cx + 6, -15, X1, -5], [X0, 5, cx - 6, 15], [cx + 6, 5, X1, 15], [cx - 6, -15, cx + 6, -12], [cx - 6, 12, cx + 6, 15]]) building(a, b, c, d, 2, ext, { shops: false });
+  batch(M.marble, { shadow: false }).flat(X0 - 0.2, -5, X1 + 0.2, 5, CURB + 0.012, 4);
+  batch(M.marble, { shadow: false }).flat(cx - 6, -12, cx + 6, 12, CURB + 0.013, 4);
+  // storefronts facing the walkway: [x or z centre, face, width, name, interior, sign colours, place]
+  const units = [
+    [X0 + 2.25, 'n', 4.5, 'Glimmer', 'shop', ['#ff4f8b', '#fff'], { id: 'glimmer', sub: 'Accessories', link: 'shop' }],
+    [X0 + 6.75, 'n', 4.5, 'Sneaker Vault', 'shop', ['#1f1b22', '#ffd166'], { id: 'sneakers', sub: 'Trainers and streetwear', link: 'shop' }],
+    [cx + 8.25, 'n', 4.5, 'Petal & Pearl', 'jewels', ['#f4f1ea', '#a8873a']],
+    [cx + 12.75, 'n', 4.5, 'Candy Cloud', 'gelato', ['#ffb3c7', '#fff'], { id: 'candy', sub: 'Sweets and bubble tea', hangout: true }],
+    [X0 + 2.25, 's', 4.5, 'Glam Salon', 'salon', ['#fde8ef', '#d3264f'], { id: 'salon', sub: 'Hair and makeup', link: 'parlor' }],
+    [X0 + 6.75, 's', 4.5, 'Denim Lab', 'shop', ['#2b3a67', '#fff']],
+    [cx + 8.25, 's', 4.5, 'Play Zone', 'arcade', ['#140d24', '#5ee0c4'], { id: 'arcade', sub: 'Arcade and photo booth', hangout: true }],
+    [cx + 12.75, 's', 4.5, 'Bloom Florist', 'spa', ['#3f6b35', '#fff']],
+    [cx, 'n12', 11, 'Star Cinema', 'cinema', ['#1a0f24', '#ffd166'], { id: 'cinema', sub: 'Movies all day', hangout: true }],
+    [cx, 's12', 11, 'Food Court', 'food', ['#f4ecdf', '#c8344a'], { id: 'foodcourt', sub: 'Noodles, tacos, smoothies, pizza', hangout: true }],
+  ];
+  for (const [c, face, w, name, kind, [bg, fg], pl] of units) {
+    const zf = face === 'n' ? -5 : face === 's' ? 5 : face === 'n12' ? -12 : 12, dir = face[0] === 'n' ? 1 : -1;
+    const ry = dir > 0 ? 0 : Math.PI;
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.5, 3.6), warmInterior(w - 0.5, 3.6, INTERIORS[kind]));
+    placeAt(win, c, CURB + 1.85, zf + dir * 0.02, ry);
+    const sg = signMesh(name, Math.min(w - 0.8, 4.2), 0.55, { bg, fg, neon: true, font: '600 110px Inter, sans-serif' });
+    placeAt(sg, c, 4.15, zf + dir * 0.03, ry);
+    // upper level shopfronts behind the balcony
+    const up = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.5, 2.8), warmInterior(w - 0.5, 2.8, INTERIORS[pick(['shop', 'couture', 'perfume', 'leather'])]));
+    placeAt(up, c, 6.8, zf + dir * 0.02, ry);
+    if (pl) places.push(Object.assign({ name, x: c, z: zf + dir * 1.6, ry, color: fg === '#fff' ? bg : fg, mall: true, open: pl.id === 'cinema' ? [10, 24] : [9, 22] }, pl));
+  }
+  // balconies with glass railings, and pilasters between the units
+  for (const s of [-1, 1]) {
+    for (const [a, b] of [[X0, cx - 6], [cx + 6, X1]]) {
+      batch(M.white).box(a, 5.0, s < 0 ? -5 : 3.6, b, 5.3, s < 0 ? -3.6 : 5, { tw: 2, th: 2 });
+      const rail = new THREE.Mesh(new THREE.PlaneGeometry(b - a, 1.0), glassMat); rail.position.set((a + b) / 2, 5.8, s * 3.6); scene.add(rail);
+      const hand = new THREE.Mesh(new THREE.BoxGeometry(b - a, 0.06, 0.06), M.brass); hand.position.set((a + b) / 2, 6.32, s * 3.6); scene.add(hand);
+      for (let x = a; x <= b + 0.01; x += 4.5) batch(M.white).box(x - 0.18, CURB, s < 0 ? -5.15 : 4.85, x + 0.18, H, s < 0 ? -4.85 : 5.15, { tw: 2, th: 2 });
+    }
+  }
+  // glass barrel vault over the walkway and a flat glass roof over the atrium, with steel ribs
+  const roofGlass = new THREE.MeshPhysicalMaterial({ color: 0xdfeaf2, roughness: 0.05, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false });
+  const vault = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 30, 32, 1, true, 0, Math.PI).rotateZ(Math.PI / 2), roofGlass); vault.position.set(cx, H, 0); scene.add(vault);
+  const flat = new THREE.Mesh(new THREE.PlaneGeometry(12, 24), roofGlass); flat.rotation.x = -Math.PI / 2; flat.position.set(cx, H + 5.05, 0); scene.add(flat);
+  const ribs = [];
+  for (let x = X0; x <= X1 + 0.01; x += 3) ribs.push(new THREE.TorusGeometry(5, 0.07, 6, 24, Math.PI).rotateY(Math.PI / 2).translate(x, H, 0));
+  for (let z = -12; z <= 12; z += 3) ribs.push(new THREE.BoxGeometry(12, 0.12, 0.12).translate(cx, H + 5, z));
+  for (const s of [-1, 1]) ribs.push(new THREE.BoxGeometry(30, 0.2, 0.2).translate(cx, H, s * 5));
+  const rm = new THREE.Mesh(mergeGeometries(ribs.map(g => g.index ? g.toNonIndexed() : g)), M.metal); rm.castShadow = T.shadow > 0; scene.add(rm);
+  // gateways with the mall's name at both ends
+  for (const [x, ry] of [[X0, -Math.PI / 2], [X1, Math.PI / 2]]) {
+    batch(M.stone).box(x - 0.4, H - 0.6, -5.2, x + 0.4, H + 0.6, 5.2, { tw: 2, th: 2 });
+    const s = signMesh('Starlife Galleria', 8, 1.0, { bg: '#f4f1ea', fg: '#a8873a', font: 'italic 600 150px Fraunces, Georgia, serif' });
+    placeAt(s, x + (ry < 0 ? -0.42 : 0.42), H, 0, ry);
+  }
+  // atrium: a big tree in a round planter with a bench, pendant lights, food court tables
+  const pl = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.1, 0.5, 32), M.stone); pl.position.set(cx, CURB + 0.25, -6.5); pl.castShadow = T.shadow > 0; scene.add(pl);
+  solid(cx - 2, -8.5, cx + 2, -4.5, 1); treeSpots.push([cx, -6.5, 1.1]);
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; seats.push({ x: cx + Math.sin(a) * 2.45, z: -6.5 + Math.cos(a) * 2.45, ry: a, y: CURB + 0.5, place: 'galleria', label: 'Sit by the tree' }); }
+  terrace({ pt: (u, v) => [cx + u, 8.2 + v], r: [1, 0] }, [-3.5, 0, 3.5], 0, 'foodcourt', 'Sit in the food court');
+  terrace({ pt: (u, v) => [cx + u, 4.2 + v], r: [1, 0] }, [-3.5, 3.5], 0, 'foodcourt', 'Sit in the food court');
+  for (let x = X0 + 3; x < X1; x += 6) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 10), M.glow); b.position.set(x, H - 1.4, 0); scene.add(b); lampHeads.push(b.position.clone()); }
+  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([...Array(5)].flatMap((_, i) => [new THREE.Vector3(X0 + 3 + i * 6, H - 1.1, 0), new THREE.Vector3(X0 + 3 + i * 6, H + 5, 0)])), new THREE.LineBasicMaterial({ color: 0x333333 })));
+  places.push({ id: 'galleria', name: 'Starlife Galleria', x: X0 - 1.4, z: 0, ry: -Math.PI / 2, color: '#a8873a', sub: 'Mall · 9 AM–10 PM', open: [9, 22], gate: true });
 }
 
 // =====================================================================
@@ -1024,7 +1245,7 @@ function buildProps() {
   const benches = benchSpots.filter(([x, z]) => !keepOff(x, z));
   instanced(benchGeo, M.wood, benches, ([x, z, ry], p, q) => { p.set(x, heightAt(x, z), z); yQ(q, ry); });
   instanced(legGeo, M.metal, benches, ([x, z, ry], p, q) => { p.set(x, heightAt(x, z), z); yQ(q, ry); });
-  for (const [x, z, ry] of benches) for (const s of [-0.45, 0.45]) seats.push({ x: x + Math.cos(ry) * s, z: z - Math.sin(ry) * s, ry, y: heightAt(x, z) + 0.47, place: 'park', label: 'Sit on the bench' });
+  for (const [x, z, ry, pl] of benches) for (const s of [-0.45, 0.45]) seats.push({ x: x + Math.cos(ry) * s, z: z - Math.sin(ry) * s, ry, y: heightAt(x, z) + 0.47, place: pl || 'park', label: 'Sit on the bench' });
 
   // bins and hydrants
   const bins = [], hyd = [];
@@ -1040,6 +1261,7 @@ function buildProps() {
     const t = (Math.floor(rnd() * (2 * N + 1)) - N) * CELL + (rnd() - 0.5) * 22;
     const off = road + side * 4.6;
     const [x, z] = vert ? [off, t] : [t, off];
+    if (x > AVE.x0 - 3 && x < AVE.x1 + 3 && z > AVE.z0 - 4 && z < AVE.z1 + 4) continue;
     if (Math.abs(x) > EDGE - 3 || Math.abs(z) > EDGE - 3 || cars.some(c => Math.hypot(c[0] - x, c[1] - z) < 6)) continue;
     cars.push([x, z, vert ? 0 : Math.PI / 2, pick(['#c8344a', '#f4f1ea', '#2b3a67', '#1f1b22', '#9fb6cc', '#e8c64a', '#3f7f6b', '#b9b9be', '#f2c6d2'])]);
   }
@@ -1385,10 +1607,15 @@ function buildNav() {
     if (i < N) { const b = cornerOf[`${i + 1},${j}`]; link(a['1,-1'], b['-1,-1']); link(a['1,1'], b['-1,1']); }
     if (j < N) { const b = cornerOf[`${i},${j + 1}`]; link(a['-1,1'], b['-1,-1']); link(a['1,1'], b['1,-1']); }
   }
+  const mc = cornerOf['2,0'], hub = node(MALL.cx, 0), eg = node(MALL.cx + HALF - 1.3, 0);
+  link(eg, mc['1,-1']); link(eg, mc['1,1']); link(hub, eg);
   for (const p of places) {
+    if (p.mall) { p.node = node(p.x, p.z); link(p.node, hub); continue; }
+    if (p.street) { p.node = node(p.x, p.z); nodes.filter(n => n.id !== p.node).map(n => [n.id, Math.hypot(n.x - p.x, n.z - p.z)]).sort((a, b) => a[1] - b[1]).slice(0, 4).forEach(([id]) => link(p.node, id)); continue; }
     const i = Math.round(p.x / CELL), j = Math.round(p.z / CELL), f = [Math.sin(p.ry), Math.cos(p.ry)];
     p.node = node(p.x, p.z);
     for (const [k, id] of Object.entries(cornerOf[`${i},${j}`])) { const [sx, sz] = k.split(',').map(Number); if (sx * f[0] + sz * f[1] > 0.5) link(p.node, id); }
+    if (p.gate) link(p.node, hub);
   }
 }
 function nearestNode(x, z, only = null) { let best = 0, bd = 1e9; for (const n of nodes) { if (only && !only(n)) continue; const d = (n.x - x) ** 2 + (n.z - z) ** 2; if (d < bd) { bd = d; best = n.id; } } return best; }
@@ -1445,10 +1672,10 @@ function randomSpec() {
 
 // what each starlet likes to do through the day
 const HAUNTS = {
-  aria: ['cafe', 'boutique', 'club', 'theatre', 'park'], zuri: ['boutique', 'hall', 'theatre', 'bar', 'cafe'], mina: ['cafe', 'park', 'books', 'club', 'boutique'],
-  luz: ['theatre', 'cafe', 'hall', 'bar', 'books'], noor: ['books', 'cafe', 'park', 'hall', 'house'], ivy: ['boutique', 'cafe', 'bar', 'books', 'hall'],
-  kai: ['bar', 'club', 'park', 'house', 'cafe'], leo: ['theatre', 'cafe', 'hall', 'bar', 'boutique'], jin: ['park', 'club', 'cafe', 'house', 'books'],
-  theo: ['park', 'cafe', 'bar', 'house', 'club'], omar: ['cafe', 'books', 'hall', 'bar', 'park'],
+  aria: ['cafe', 'boutique', 'club', 'theatre', 'park', 'candy', 'velours', 'skygarden', 'arcade'], zuri: ['boutique', 'hall', 'theatre', 'bar', 'cafe', 'velours', 'celestine', 'lounge', 'avenue'], mina: ['cafe', 'park', 'books', 'club', 'boutique', 'gelato', 'candy', 'arcade', 'foodcourt'],
+  luz: ['theatre', 'cafe', 'hall', 'bar', 'books', 'lounge', 'aurelle', 'patisserie', 'cinema'], noor: ['books', 'cafe', 'park', 'hall', 'house', 'patisserie', 'lumiere', 'spa', 'cinema'], ivy: ['boutique', 'cafe', 'bar', 'books', 'hall', 'velours', 'noir', 'avenue', 'skygarden'],
+  kai: ['bar', 'club', 'park', 'house', 'cafe', 'skygarden', 'foodcourt', 'arcade', 'sneakers'], leo: ['theatre', 'cafe', 'hall', 'bar', 'boutique', 'lounge', 'noir', 'cinema', 'avenue'], jin: ['park', 'club', 'cafe', 'house', 'books', 'arcade', 'sneakers', 'foodcourt', 'gelato'],
+  theo: ['park', 'cafe', 'bar', 'house', 'club', 'foodcourt', 'cinema', 'gelato', 'spa'], omar: ['cafe', 'books', 'hall', 'bar', 'park', 'patisserie', 'foodcourt', 'gelato', 'avenue'],
 };
 const placeBy = id => places.find(p => p.id === id);
 const isOpen = (p, h = hourOf()) => { if (!p.open) return true; const [a, b] = p.open; return a < b ? h >= a && h < b : h >= a || h < b; };
@@ -1458,7 +1685,7 @@ function chooseDest(pp) {
   let list = pp.starlet ? HAUNTS[pp.id] : places.map(p => p.id);
   list = list.map(placeBy).filter(p => p && isOpen(p, h) && p !== pp.at);
   const night = h >= 20 || h < 2;
-  const w = list.map(p => (night && ['club', 'bar', 'house', 'hall', 'theatre'].includes(p.id) ? 3 : 1) + (!night && ['cafe', 'park', 'books', 'boutique'].includes(p.id) ? 1.5 : 0));
+  const w = list.map(p => (night && ['club', 'bar', 'house', 'hall', 'theatre', 'skygarden', 'lounge'].includes(p.id) ? 3 : 1) + (!night && ['cafe', 'park', 'books', 'boutique', 'foodcourt', 'avenue', 'gelato', 'patisserie'].includes(p.id) ? 1.5 : 0));
   let r = rnd() * w.reduce((a, b) => a + b, 0);
   for (let i = 0; i < list.length; i++) { r -= w[i]; if (r <= 0) return list[i]; }
   return list[0] || placeBy('park');
@@ -1474,6 +1701,11 @@ function sendTo(pp, dest, target = null) {
 const seatTaken = s => people.some(p => p.seat === s) || player.seat === s;
 function arrive(pp) {
   pp.at = pp.dest;
+  if (pp.meetup && pp.meetup === pp.dest) {
+    pp.state = 'idle'; pp.timer = 120; pp.faceTo = Math.atan2(player.pos.x - pp.pos.x, player.pos.z - pp.pos.z);
+    if (Math.hypot(player.pos.x - pp.pos.x, player.pos.z - pp.pos.z) < 40) toast(`${pp.spec.name.split(' ')[0]} made it to ${pp.dest.name}!`);
+    return;
+  }
   if (pp.dest && pp.dest.id === 'home' && (hourOf() >= 1 && hourOf() < 7)) { pp.state = 'inside'; pp.ch.group.visible = false; pp.timer = 60 + rnd() * 120; return; }
   const free = seats.filter(s => s.place === (pp.dest && pp.dest.id) && !seatTaken(s) && Math.hypot(s.x - pp.pos.x, s.z - pp.pos.z) < 22);
   if (free.length && rnd() < 0.7) { const s = pick(free); pp.seat = s; pp.path = [{ x: s.x, z: s.z }]; pp.state = 'toSeat'; return; }
@@ -1631,6 +1863,25 @@ const ACTS = {
   hall: [A_('Attend the Grand Ball', 150, { fun: 30, social: 30, energy: -10 }, { busy: 'At the Grand Ball', hours: [18, 24], glam: true }), A_('Banquet dinner', 60, { hunger: 50, social: 15 }, { cost: 15, busy: 'At the banquet', hours: [12, 22] }), A_('Tour the hall', 20, { fun: 6 }, { busy: 'Touring the hall' }), { label: 'All events this week', link: 'index.html#events', note: 'dress codes and prizes' }],
   theatre: [A_('Walk the red carpet', 30, { fun: 15, social: 10 }, { busy: 'On the red carpet', hours: [18, 23], glam: true, fame: true }), A_('Watch the awards show', 150, { fun: 35, social: 15 }, { busy: 'At the Starlight Awards', hours: [19, 24] }), A_('Catch a matinee', 120, { fun: 30 }, { cost: 12, busy: 'At the matinee', hours: [12, 18] })],
   house: [A_('Join the house party', 120, { social: 35, fun: 30, energy: -15, hunger: 15 }, { busy: 'At Maya’s party' })],
+  aurelle: [A_('Try on diamonds', 20, { fun: 15 }, { busy: 'Trying on diamonds' }), A_('Buy a signature piece', 30, { fun: 35 }, { cost: 150, fameGain: 12, busy: 'Choosing a signature piece' })],
+  celestine: [A_('Try on a watch', 15, { fun: 12 }, { busy: 'Trying on watches' }), A_('Buy a diamond pendant', 30, { fun: 35 }, { cost: 140, fameGain: 12, busy: 'Picking a pendant' })],
+  velours: [A_('Private styling session', 45, { fun: 20 }, { cost: 60, skill: ['charisma', 0.3], busy: 'At a private styling session', glam: true }), { label: 'Shop the collection', link: 'index.html#shop', note: 'opens the Shop' }],
+  noir: [A_('Browse the bags', 20, { fun: 10 }, { busy: 'Browsing the bags' }), A_('Buy an It bag', 30, { fun: 30 }, { cost: 120, fameGain: 10, busy: 'Buying an It bag' })],
+  lumiere: [A_('Find your signature scent', 30, { fun: 15, hygiene: 10 }, { cost: 40, busy: 'Sampling perfumes' })],
+  patisserie: [A_('Macarons and tea', 30, { hunger: 25, social: 10 }, { cost: 12, busy: 'Having macarons and tea' }), { label: 'Sit on the terrace', sit: 'patisserie' }],
+  gelato: [A_('Get a double scoop', 15, { hunger: 15, fun: 15 }, { cost: 6, busy: 'Eating gelato' }), { label: 'Sit outside', sit: 'gelato' }],
+  skygarden: [A_('Sunset mocktails on the roof', 60, { social: 30, fun: 25 }, { cost: 15, busy: 'On the rooftop', glam: true })],
+  spa: [A_('Spa day', 90, { hygiene: 60, energy: 30, fun: 10 }, { cost: 45, busy: 'Having a spa day' }), A_('Quick facial', 30, { hygiene: 25, fun: 5 }, { cost: 20, busy: 'Having a facial' })],
+  lounge: [A_('Lounge with the members', 60, { social: 35, fun: 15 }, { skill: ['charisma', 0.3], busy: 'In the Velvet Room', glam: true })],
+  avenue: [A_('Window-shop the Avenue', 30, { fun: 12 }, { busy: 'Window-shopping' }), { label: 'Sit on a bench', sit: 'avenue' }],
+  glimmer: [{ label: 'Shop accessories', link: 'index.html#shop', note: 'opens the Shop' }],
+  sneakers: [{ label: 'Shop trainers', link: 'index.html#shop', note: 'opens the Shop' }],
+  salon: [{ label: 'Book hair and makeup', link: 'index.html#parlor', note: 'opens the Beauty Parlor' }],
+  candy: [A_('Bubble tea', 10, { hunger: 10, fun: 10 }, { cost: 5, busy: 'Sipping bubble tea' })],
+  arcade: [A_('Play the arcade', 45, { fun: 35, energy: -5 }, { cost: 8, busy: 'At the arcade' })],
+  cinema: [A_('Watch a movie', 120, { fun: 35 }, { cost: 12, busy: 'At the movies' })],
+  foodcourt: [A_('Grab lunch', 30, { hunger: 45, social: 5 }, { cost: 10, busy: 'At the food court' }), { label: 'Sit at a table', sit: 'foodcourt' }],
+  galleria: [],
   park: [A_('Jog around the park', 30, { fun: 10, energy: -10, hygiene: -12 }, { skill: ['fitness', 0.4], busy: 'Jogging' }), A_('People-watch by the fountain', 30, { fun: 10, social: 6, energy: 4 }, { busy: 'By the fountain' }), { label: 'Sit on a bench', sit: 'park' }],
 };
 const inHours = (a, h = hourOf()) => !a.hours || (h >= a.hours[0] && h < a.hours[1]);
@@ -1647,7 +1898,15 @@ function openCard(title, sub, say, opts, relId = null) {
   setTimeout(() => $('#cardOpts .opt:not([disabled])')?.focus(), 30);
 }
 function closeCard() { if (ui.talking) { ui.talking.state = ['follow', 'sit'].includes(ui.talking.prevState) ? ui.talking.prevState : 'idle'; ui.talking.timer = 8; ui.talking = null; } ui.modal = null; $('#card').hidden = true; canvas.focus(); }
-const BLURB = { home: 'Home sweet home. Your suite is upstairs.', cafe: 'It smells of coffee and warm croissants.', books: 'Shelves floor to ceiling, and a cat asleep on the poetry.', boutique: 'This week’s collection is in the window.', bar: 'Fizzy drinks in every colour. No alcohol, all sparkle.', park: 'The fountain sparkles. Somebody is feeding the pigeons.', house: 'Music and laughter from inside. Maya waves you in.' };
+function callFriends(p) {
+  closeCard();
+  const r = sim().rel;
+  const pals = people.filter(x => x.starlet && x.state !== 'inside' && x.state !== 'follow' && (r[x.id] || 0) >= 15).sort((a, b) => (r[b.id] || 0) - (r[a.id] || 0)).slice(0, 3);
+  if (!pals.length) { toast('No friends to call yet. Chat with starlets around town until they’re your friends.'); return; }
+  for (const x of pals) { x.meetup = p; if (x.seat) { x.seat = null; x.ch.pose = 'stand'; } sendTo(x, p); }
+  toast(`You texted ${pals.map(x => x.spec.name.split(' ')[0]).join(', ')}. They’re on their way to ${p.name}!`);
+}
+const BLURB = { avenue: 'Brass lamps, topiaries and the best window displays in town.', galleria: 'Pick a store and we’ll show you the way.', aurelle: 'Velvet trays of gold and diamonds.', celestine: 'Every watch here has a story.', velours: 'This season: satin, sequins and sharp tailoring.', noir: 'Bags so soft you want to hug them.', lumiere: 'A hundred bottles, one is yours.', patisserie: 'Pastel macarons stacked like jewels.', gelato: 'Twenty flavours, all made this morning.', skygarden: 'The whole town glitters from up here.', spa: 'Soft music, warm towels, deep breaths.', lounge: 'Velvet sofas and low lamps. Members only, and you’re on the list.', candy: 'Sweets in every colour and bubble tea.', arcade: 'Lights, prizes and a photo booth.', cinema: 'Popcorn smell and three films showing today.', foodcourt: 'Four counters and lots of tables.', home: 'Home sweet home. Your suite is upstairs.', cafe: 'It smells of coffee and warm croissants.', books: 'Shelves floor to ceiling, and a cat asleep on the poetry.', boutique: 'This week’s collection is in the window.', bar: 'Fizzy drinks in every colour. No alcohol, all sparkle.', park: 'The fountain sparkles. Somebody is feeding the pigeons.', house: 'Music and laughter from inside. Maya waves you in.' };
 function openPlace(p) {
   if (busy) return;
   const h = hourOf(), open = isOpen(p, h), friend = people.find(x => x.state === 'follow');
@@ -1657,6 +1916,12 @@ function openPlace(p) {
     const note = !open ? 'closed now' : !inHours(a, h) ? hoursTxt(a.hours) : a.cost ? `${a.cost} coins · ${a.min} min` : `${a.min} min`;
     return { label: a.label, note, disabled: !ok, run: () => doActivity(p, a) };
   });
+  if (p.id === 'galleria') for (const q of places.filter(q => q.mall)) opts.push({ label: q.name, note: q.sub, run: () => { closeCard(); setWaypoint(q); } });
+  if (open && (p.hangout || ['cafe', 'bar', 'park', 'house'].includes(p.id))) {
+    const pals = people.filter(x => x.starlet && x.ch.group.visible && Math.hypot(x.pos.x - player.pos.x, x.pos.z - player.pos.z) < 9 && ((sim().rel[x.id] || 0) >= 15 || x.state === 'follow' || x.meetup === p));
+    if (pals.length) opts.unshift({ label: `Hang out with ${pals.map(x => x.spec.name.split(' ')[0]).join(' & ')}`, note: '60 min · +social +fun', accent: true, run: () => doActivity(p, A_('Hang out together', 60, { social: 35, fun: 25 }, { busy: `Hanging out at ${p.name}`, group: pals })) });
+    opts.push({ label: 'Call your friends to meet here', note: 'they’ll walk over', run: () => callFriends(p) });
+  }
   const say = !open ? `Closed right now. Opens at ${hoursTxt(p.open).split('–')[0]}.` : p.id === 'hall' || p.id === 'theatre' || p.id === 'club' ? `Dress code tonight: ${p.id === 'club' ? 'party sparkle' : 'black tie and gowns'}. Your look scores ${outfitScore()}/100.` : friend ? `${friend.spec.name.split(' ')[0]} is with you.` : (BLURB[p.id] || p.sub);
   openCard(p.name, `${p.sub}${p.open ? ' · ' + hoursTxt(p.open) : ''}`, say, opts);
 }
@@ -1680,6 +1945,8 @@ function tickBusy(dt) {
     const a = b.a; let msg = `${a.busy || a.label}: done.`;
     if (a.skill) addSkill(a.skill[0], a.skill[1]);
     if (a.glam) { const s = outfitScore(), coins = Math.round(s / 5), fame = Math.round(s / 8) + (a.fame ? 4 : 0); profile.coins += coins; profile.fame = (profile.fame || 0) + fame; msg = `Your look scored ${s}/100: +${coins} coins, +${fame} fame.`; }
+    if (a.fameGain) { profile.fame = (profile.fame || 0) + a.fameGain; msg = `${a.label}: +${a.fameGain} fame. Everyone will notice!`; }
+    if (a.group) { for (const x of a.group) { befriend(x.id, 6); x.meetup = null; } msg = `Great time with ${a.group.map(x => x.spec.name.split(' ')[0]).join(' & ')}! Friendships grew.`; }
     if (b.friend) { befriend(b.friend.id, 8); bump('social', 8); msg += ` ${b.friend.spec.name.split(' ')[0]} had a great time with you.`; }
     for (const pp of people) if (pp.starlet && pp !== b.friend && pp.at === b.p && Math.hypot(pp.pos.x - player.pos.x, pp.pos.z - player.pos.z) < 25) befriend(pp.id, 3);
     $('#busy').style.opacity = 0; setTimeout(() => $('#busy').hidden = true, 400);
@@ -1768,6 +2035,8 @@ function drawMap() {
     const key = `${i},${j}`, [x, y] = toMap(i * CELL - HALF, j * CELL - HALF), s = HALF * 2 * MAPS;
     mg.fillStyle = key in PARKS ? '#3f6b35' : LAND[key] ? '#4a4652' : '#3c3d45'; mg.beginPath(); mg.roundRect(x, y, s, s, 4); mg.fill();
   }
+  { const [a, b] = toMap(AVE.x0, AVE.z0), [c, d] = toMap(AVE.x1, AVE.z1); mg.fillStyle = '#8a7340'; mg.fillRect(a, b, c - a, d - b); }
+  { const [a, b] = toMap(MALL.cx - HALF, -HALF); mg.fillStyle = '#6a6070'; mg.beginPath(); mg.roundRect(a, b, HALF * 2 * MAPS, HALF * 2 * MAPS, 4); mg.fill(); }
   mg.font = '600 13px Inter, sans-serif'; mg.textAlign = 'center';
   const boxes = [];
   for (const p of places) {
@@ -1783,7 +2052,7 @@ function drawMap() {
 }
 function renderPhone() {
   const h = hourOf();
-  $('#places').innerHTML = places.map((p, i) => `<button class="place" data-goto="${i}"><i style="background:${p.color}"></i><b>${esc(p.name)}</b><small>${isOpen(p, h) ? esc(p.sub) : 'closed'}</small></button>`).join('');
+  $('#places').innerHTML = places.map((p, i) => p.mall ? '' : `<button class="place" data-goto="${i}"><i style="background:${p.color}"></i><b>${esc(p.name)}</b><small>${isOpen(p, h) ? esc(p.sub) : 'closed'}</small></button>`).join('');
   $('#friends').innerHTML = people.filter(p => p.starlet).map((pp, i) => {
     const r = sim().rel[pp.id] || 0, near = places.reduce((a, p) => { const d = Math.hypot(p.x - pp.pos.x, p.z - pp.pos.z); return d < a[1] ? [p, d] : a; }, [null, 30])[0];
     const where = pp.state === 'inside' ? 'at home' : pp.state === 'follow' ? 'with you' : near ? `near ${near.name}` : 'out and about';
@@ -1978,7 +2247,7 @@ async function boot() {
   await step(75, 'Filling the sidewalks…');
   for (let i = 0; i < T.crowd; i++) { const pp = spawnPerson(randomSpec(), { starlet: false }); const n = pick(nodes); pp.pos.set(n.x, 0, n.z); pp.timer = rnd() * 5; }
   // mannequins in the boutique window wear this week's looks
-  for (const [x, z, ry, k] of mannequinSpots) { const m = makeCharacter({ gender: 'f', skin: '#efe9e2', hair: 'buzz', hairColor: '#efe9e2', outfit: k ? { dress: 'gown', necklace: 'pearls', shoes: 'pumps' } : { top: 'turtle', bottom: 'pencil', outer: 'trench', shoes: 'kneeboots', bag: 'crossbody' }, colors: k ? { gown: '#f2c6d2' } : {} }); m.group.position.set(x, 0.5, z); m.group.rotation.y = ry; animate(m, 0.016, 0); scene.add(m.group); }
+  for (const [x, z, ry, k, y = 0.5] of mannequinSpots) { const [outfit, colors] = MANNEQUIN_LOOKS[k]; const m = makeCharacter({ gender: 'f', skin: '#efe9e2', hair: 'buzz', hairColor: '#efe9e2', outfit, colors }); m.group.position.set(x, y, z); m.group.rotation.y = ry; animate(m, 0.016, 0); scene.add(m.group); }
   updateSky();
   await step(92, 'Turning on the lights…');
   renderer.compile(scene, camera);
