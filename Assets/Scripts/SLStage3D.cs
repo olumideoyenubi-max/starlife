@@ -363,7 +363,7 @@ public sealed class SLStage3D {
         if (!clothed && L.signature) {    // nothing from the wardrobe: a signature outfit, exactly as an avatar came (her own, or the one chosen for her)
             string from = L.body != null && HasPart(L.body, "top") || L.body != null && HasPart(L.body, "suit") ? L.body : id, f = "Starlets/" + from;
             foreach (var part in new[] { "body", "feet" }) { if (from == id) Add(t, f, part, null, skinTint); else Add(t, f, part, tone); }
-            foreach (var part in new[] { "top", "bottom", "shoes", "suit" }) Add(t, f, part);
+            foreach (var part in new[] { "top", "bottom", "shoes", "suit" }) Add(t, f, part, part == "top" || part == "suit" ? L.uniform : part == "bottom" ? L.uniformBottom : null);
             foreach (var g in plan) Add(t, "Starlets/" + g.donor, g.part, Dye(g));      // accessories over her own outfit
             return;
         }
@@ -645,11 +645,12 @@ public sealed class Look3 {
     public string bra = "halter", pants = "briefs";   // underwear styles
     public Texture2D makeup; public int makeupVer;   // the makeup painted on her face, and how many times it has been changed
     public bool signature = true;       // with nothing on from the wardrobe: her signature outfit (true) or her underwear (false)
+    public Color? uniform, uniformBottom;   // a signature outfit dyed as a work uniform (shop and restaurant staff in town)
     public readonly List<(string slot, string item, Color color)> worn = new List<(string, string, Color)>();
     public string Key {
         get {
             var sb = new System.Text.StringBuilder(id).Append('|').Append(body).Append('|').Append(hair).Append('|').Append(hairColor).Append('|').Append(underwear).Append('|').Append(skinTint)
-                .Append('|').Append(height).Append('|').Append(build).Append('|').Append(string.Join(",", shape)).Append('|').Append(makeup != null ? "m" + makeupVer : "").Append('|').Append(bra).Append(pants).Append(signature);
+                .Append('|').Append(height).Append('|').Append(build).Append('|').Append(string.Join(",", shape)).Append('|').Append(makeup != null ? "m" + makeupVer : "").Append('|').Append(bra).Append(pants).Append(signature).Append(uniform).Append(uniformBottom);
             foreach (var w in worn) sb.Append('|').Append(w.slot).Append('=').Append(w.item).Append(ColorUtility.ToHtmlStringRGB(w.color));
             return sb.ToString();
         }

@@ -9,7 +9,7 @@ using UnityEngine;
 using static SLJson;
 
 public partial class SLApp {
-    bool townTour;
+    bool townTour; string dirLog = "";
     IEnumerator TownShots() {
         int n = 0;
         IEnumerator Snap(string name, int settle = 20) {
@@ -87,7 +87,9 @@ public partial class SLApp {
             player.pos = new Vector3(myCar.x + 2, 0, myCar.z); cam.cur = 0; yield return Snap("my-car", 20);
             GetIn(myCar); autoWalk = new Vector2(0, 1);
             for (float w0 = Time.time; Time.time - w0 < 2.5f;) yield return null; yield return Snap("driving", 2);
+            var c0 = new Vector3(myCar.x, 0, myCar.z); var right0 = tcam.transform.right;
             autoWalk = new Vector2(0.8f, 0.7f); for (float w0 = Time.time; Time.time - w0 < 1.2f;) yield return null; yield return Snap("driving-turn", 2);
+            var cd = SLTownWorld.W(myCar.x, 0, myCar.z) - SLTownWorld.W(c0.x, 0, c0.z); dirLog += "steer right: " + (Vector3.Dot(cd, right0) > 0 ? "ok" : "WRONG") + " (" + Vector3.Dot(cd, right0).ToString("0.00") + ")\n";
             autoWalk = new Vector2(0, -1); for (float w0 = Time.time; Time.time - w0 < 2f;) yield return null; autoWalk = null; for (float w0 = Time.time; Time.time - w0 < 1f;) yield return null;
             GetOut(); yield return Snap("parked-mine", 10);
         }
@@ -101,6 +103,34 @@ public partial class SLApp {
         // Fashion Week: own the season's pieces, put on a show at the Grand Hall, read the reviews
         foreach (var id in new[] { "haltermaxi", "ankaramaxi", "womensuit", "leather", "silkcarre", "leopardcami", "jeans", "sandals", "flats", "keyholedress", "gown" }) core.Call("grant", "[\"" + id + "\"]");
         profile = core.Get<DProfile>("profile");
+        // walking left and right goes left and right on screen
+        foreach (var (dx, name) in new[] { (1f, "right"), (-1f, "left") }) {
+            Go("park", 6, 12); cam.yaw = player.ry + Mathf.PI; cam.lastDrag = Time.time + 60; cam.cur = 0; yield return null; yield return null;
+            var w0p = SLTownWorld.W(player.pos.x, 0, player.pos.z); var right = tcam.transform.right;
+            autoWalk = new Vector2(dx, 0); for (float w0 = Time.time; Time.time - w0 < 1f;) yield return null; autoWalk = null;
+            float along = Vector3.Dot(SLTownWorld.W(player.pos.x, 0, player.pos.z) - w0p, right) * dx;
+            dirLog += "walk " + name + ": " + (along > 0 ? "ok" : "WRONG") + " (" + along.ToString("0.00") + ")\n";
+        }
+        cam.lastDrag = Time.time;
+        // Restaurant Row, and the shops, cafés and restaurants you walk into
+        Go("greenwave", 9, 13, 0.7f); cam.dist = 9; cam.pitch = 0.2f; yield return Snap("row-west", 30);
+        Go("sunnyside", 9, 13, 0.5f); cam.dist = 9; yield return Snap("row-north", 30);
+        Go("gilded", 9, 21, 0.5f); cam.dist = 9; yield return Snap("row-south-night", 30);
+        foreach (var (id, hr) in new[] { ("greenwave", 10f), ("bigbun", 13f), ("sunnyside", 10f), ("jollof", 19f), ("bella", 19f), ("sakura", 20f), ("gilded", 20f), ("lumiere", 20.5f),
+                                          ("velours", 14f), ("sneakers", 14f), ("aurelle", 14f), ("books", 14f), ("dore", 9f), ("bar", 21f), ("spa", 14f) }) {
+            var pl = PlaceBy(id); if (pl == null) { dirLog += "no place " + id + "\n"; continue; }
+            Go(id, 1.2f, hr); EnterRoom(pl); if (room == null) { dirLog += "no room " + id + "\n"; continue; }
+            cam.yaw = player.ry + Mathf.PI + 0.25f; cam.pitch = 0.18f; cam.cur = 0; yield return Snap("room-" + id, 30);
+            var lead = room.workers.FirstOrDefault(w => w.sells);
+            if (lead != null) {
+                var lp = lead.pp.pos; var to = new Vector2(lp.x + Mathf.Sin(lead.pp.ry) * 1.6f, lp.z + Mathf.Cos(lead.pp.ry) * 1.6f);     // in front of them
+                player.pos = new Vector3(to.x, 0, to.y); player.ry = Mathf.Atan2(lp.x - to.x, lp.z - to.y); cam.yaw = player.ry + Mathf.PI + 0.5f; cam.cur = 0; yield return null;
+                var nr = FindNear(); dirLog += "room " + id + ": " + room.workers.Count + " staff, " + room.guests.Count + " guests, " + room.seats.Count + " free seats, near=" + (nr != null ? nr.kind : "none") + "\n";
+                TalkToWorker(lead); yield return Snap("room-" + id + "-staff", 20); if (shop != null) CloseBoutique(); CloseCard();
+            }
+            ExitRoom(); yield return null;
+            dirLog += "out of " + id + ": " + (room == null && new Vector2(player.pos.x - pl.x, player.pos.z - pl.z).magnitude < 2 ? "ok" : "WRONG") + "\n";
+        }
         Go("hall", 9, 19, 0.2f); OpenPlace(PlaceBy("hall")); yield return Snap("hall-card", 20);
         OpenFashionWeek(); yield return Snap("fw-theme", 10);
         show.theme = 0; for (int k = 0; k < 4; k++) { var hero = OwnedClothes().Where(i => (i.slot == "dress" || i.slot == "top") && !show.heroes.Contains(i.id)).OrderByDescending(i => ThemeFits(i, 0)).First(); show.heroes.Add(hero.id); show.looks.Add(CompleteLook(hero)); }
@@ -126,7 +156,7 @@ public partial class SLApp {
             player.pos = new Vector3(c.x, town.HeightAt(c.x, c.y), c.y); player.ry = pp.ry + Mathf.PI; cam.yaw = pp.ry + 1.2f; cam.dist = 3.6f; cam.pitch = 0.12f; cam.cur = 0;
             yield return Snap("starlet-" + pp.id, 12);
         }
-        File.WriteAllText(Path.Combine(shotsDir, "town-log.txt"), "people " + people.Count + "\nplaces " + town.places.Count + "\ncoins " + profile.coins + "\nneeds " + Nums(needs) + "\nlux " + core.Pref("town.lux") + "\n");
+        File.WriteAllText(Path.Combine(shotsDir, "town-log.txt"), dirLog + "people " + people.Count + "\nplaces " + town.places.Count + "\ncoins " + profile.coins + "\nneeds " + Nums(needs) + "\nlux " + core.Pref("town.lux") + "\n");
         LeaveTown("suite"); yield return null; yield return null;
         ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "town-99-back-in-suite.png")); yield return null; yield return null;
         Application.Quit();

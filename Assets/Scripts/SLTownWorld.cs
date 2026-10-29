@@ -19,6 +19,7 @@ public sealed class SLTownWorld {
     public float Cell, Half, Edge; public int N; public Vector3 Home; public float NightNow, Exposure = 1.35f;
     public bool Ok { get; }
 
+    public const float RoomX = 1000;     // where the room you are inside is built: far beyond the town, so only it is in view
     public const int Layer = 9;     // the town and everyone in it; the suite's stage lights and camera leave this layer alone
     public static void SetLayer(Transform t) { t.gameObject.layer = Layer; foreach (Transform c in t) SetLayer(c); }
     public static Vector3 W(float x, float y, float z) => new Vector3(x, y, -z);
@@ -143,6 +144,7 @@ public sealed class SLTownWorld {
             float dl = p.x - (c[0] - r), dr = (c[2] + r) - p.x, dt = p.y - (c[1] - r), db = (c[3] + r) - p.y, m = Mathf.Min(Mathf.Min(dl, dr), Mathf.Min(dt, db));
             if (m == dl) p.x = c[0] - r; else if (m == dr) p.x = c[2] + r; else if (m == dt) p.y = c[1] - r; else p.y = c[3] + r;
         }
+        if (p.x > RoomX - 100) return p;     // inside a shop or restaurant (built out at RoomX, see SLTownInteriors)
         float L = Edge + 30; p.x = Mathf.Clamp(p.x, -L, L); p.y = Mathf.Clamp(p.y, -L, L); return p;
     }
     /// <summary>How far the camera can sit from t (town x, y, z) along dir before a building is in the way.</summary>

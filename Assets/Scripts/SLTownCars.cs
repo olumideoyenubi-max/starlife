@@ -333,7 +333,7 @@ public partial class SLApp {
         else c.v = Mathf.MoveTowards(c.v, 0, dt * 2.2f);
         c.steer = Mathf.MoveTowards(c.steer, ix * 0.55f, dt * 2.6f);
         float wb = Mathf.Max(1.8f, c.spec.wheelbase > 0 ? c.spec.wheelbase : c.Len * 0.6f);
-        c.ry += c.v / wb * Mathf.Tan(c.steer) * dt;
+        c.ry -= c.v / wb * Mathf.Tan(c.steer) * dt;      // minus: a larger heading turns left on screen (the town is mirrored into Unity)
         float ox = c.x, oz = c.z;
         c.x += Mathf.Sin(c.ry) * c.v * dt; c.z += Mathf.Cos(c.ry) * c.v * dt;
         // buildings, kerb furniture and other cars stop the car; people are never run over

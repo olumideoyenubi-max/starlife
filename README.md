@@ -167,6 +167,15 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
   would show through the dye. Loose skirt fabric is eased smooth after fitting, but never hem or seam vertices: moving
   those tears layered skirts apart. Flats, oxfords and loafers stay on the `cute` avatar's shoes (`toigo_flats` fits as
   a crumpled shell), and knee boots on `mary`'s.
+- **Shops and restaurants you walk into** (`SLTownInteriors.cs`): the boutiques, jewellers, bookshop, cafés, bars,
+  salon and spa, and Restaurant Row (eight eateries with storefronts on the block between the theatre and the Grand
+  Hall: Greenwave Coffee, Big Bun Burgers, Sunny Side, Jollof & Co., Trattoria Bella, Sakura Omakase, The Gilded
+  Steakhouse, Maison Lumière). Going in builds that one room out at `SLTownWorld.RoomX` (beyond the far clip, so only
+  the room shows; its walls and counters join the town's colliders while you are inside) with fittings, seated guests
+  and staff on the passers-by's bodies in dyed uniforms (`Look3.uniform`), aprons, caps and chef's hats. Talking to a
+  cashier, host or sales assistant opens the place's own menu or rails; cooks, waiters and stock staff work their beat.
+- **Directions:** the town is mirrored into Unity (`W` flips z), so a larger heading turns left on screen: walking
+  uses `Atan2(-ix, iz)` and steering subtracts. The tour logs `walk right/left` and `steer right` checks in `town-log.txt`.
 - **Fashion Week** (`SLTownFashion.cs`): at the Grand Hall in the evening, pick a theme, four hero pieces (the looks are
   completed from your wardrobe), and put on a runway show with starlets as models; three critics score it.
 - **Passers-by** (`p_*`, also from `make_men.py`) walk the streets between all the places; they are not in the
