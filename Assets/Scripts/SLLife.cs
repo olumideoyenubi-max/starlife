@@ -114,12 +114,12 @@ public partial class SLApp {
         new Job { id = "mogul", name = "Business mogul", tier = "star", pay = 90, fame = 5, tags = new[] { "Office", "Chic" }, blurb = "A boardroom with her name on the building." },
         new Job { id = "influencer", name = "Influencer", tier = "star", pay = 55, fame = 7, tags = new[] { "Casual", "Summer" }, blurb = "Ten million followers watch what she wears." },
         new Job { id = "rockstar", name = "Rock star", tier = "star", pay = 72, fame = 8, tags = new[] { "Goth", "Edgy" }, blurb = "Black eyeliner, loud guitars and a world tour." },
-        new Job { id = "barista", name = "Barista", tier = "everyday", pay = 16, budget = 35, tags = new[] { "Workwear", "Casual" }, uniform = new[] { "polo", "workpants" }, blurb = "Flat whites from six in the morning." },
+        new Job { id = "barista", name = "Barista", tier = "everyday", pay = 16, budget = 35, tags = new[] { "Workwear", "Casual" }, uniform = new[] { "staffpolo", "workpants" }, blurb = "Flat whites from six in the morning." },
         new Job { id = "nurse", name = "Nurse", tier = "everyday", pay = 24, budget = 40, tags = new[] { "Workwear" }, uniform = new[] { "scrubtop", "scrubpants" }, blurb = "Long shifts on the ward, in scrubs." },
         new Job { id = "chef", name = "Chef", tier = "everyday", pay = 22, budget = 40, tags = new[] { "Workwear" }, uniform = new[] { "chefcoat", "workpants", "workboots" }, blurb = "A hot kitchen and a white jacket." },
         new Job { id = "assistant", name = "Office assistant", tier = "everyday", pay = 26, budget = 50, tags = new[] { "Office" }, uniform = new[] { "workpants" }, blurb = "Diaries, phones and the coffee run." },
         new Job { id = "coach", name = "Fitness coach", tier = "everyday", pay = 24, budget = 45, tags = new[] { "Sporty" }, uniform = new[] { "gymtank", "leggings", "trainers" }, blurb = "Classes at the gym, morning to night." },
-        new Job { id = "retail", name = "Shop assistant", tier = "everyday", pay = 18, budget = 40, tags = new[] { "Casual", "Chic" }, uniform = new[] { "polo" }, blurb = "Folding jumpers on the high street." },
+        new Job { id = "retail", name = "Shop assistant", tier = "everyday", pay = 18, budget = 40, tags = new[] { "Casual", "Chic" }, uniform = new[] { "staffpolo" }, blurb = "Folding jumpers on the high street." },
     };
     static readonly Dictionary<string, string> FirstJob = new Dictionary<string, string> {
         { "aria", "popstar" }, { "zuri", "model" }, { "mina", "popstar" }, { "luz", "actress" }, { "noor", "actress" }, { "ivy", "designer" }, { "charlotte", "influencer" }, { "jenny", "athlete" },

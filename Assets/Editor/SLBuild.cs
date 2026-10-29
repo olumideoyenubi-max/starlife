@@ -118,7 +118,7 @@ public static class SLBuild {
     [MenuItem("Starlife/Build Mac App")]
     public static void BuildMac() {
         Import3D();
-        var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { ScenePath }, locationPathName = "Builds/Mac/Starlife.app", target = BuildTarget.StandaloneOSX });
+        var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { ScenePath }, locationPathName = "Builds/Mac/Starlife.app", target = BuildTarget.StandaloneOSX, options = BuildOptions.CompressWithLz4HC });
         Debug.Log("SLBuild Mac: " + report.summary.result + ", " + report.summary.totalErrors + " errors, " + (report.summary.totalSize / 1048576) + " MB");
         if (report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
     }

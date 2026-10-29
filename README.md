@@ -142,6 +142,14 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
   `m_polo`, `m_hoodie`, `m_tee`, `m_casual`, `m_tweed`; `MenMap` in `SLWardrobe3D.cs`), so all of it fits all of them.
   The wardrobe and shop have a Menswear tab (shirt, chinos, suit trousers, suit, tuxedo, tie, bow tie, oxfords,
   loafers, cap). The avatar studio only offers men's faces and outfits to men, and women's to women.
+- **Drawn (2D) mode** runs the October 2026 artifact script (`Tools/artifact-script.js`), which draws the men
+  (male body, men's hair, beards) and the menswear. `core_api.js` skips its own starlets and items where the script
+  has them, files the menswear under the Menswear tab, and keeps the Staff Polo (`staffpolo`, a work uniform) and
+  Rainbow Hoodie (`rainbowhoodie`, gym) under their own ids.
+- **The look of the men:** heads grow 15% about the neck (the starlets' Ready Player Me proportions), sleeves blend
+  between arm and body by distance from the arm bones, and a corrective smooth irons out the shoulders once the arms
+  are lowered (all in `make_men.py`).
+- **Size:** starlet and hair models use Medium mesh compression (`SLModelImport.cs`) and the Mac build LZ4HC.
 - **Passers-by** (`p_*`, also from `make_men.py`) walk the streets between all the places; they are not in the
   phone's friends list and do not stop to talk.
 - **Controls:** keyboard and mouse; a game controller (left stick walk, right stick look, shoulder buttons or a stick

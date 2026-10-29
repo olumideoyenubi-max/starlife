@@ -33,7 +33,7 @@ PEOPLE = {
     'theo': dict(gender=M, age=0.4, muscle=0.85, weight=0.5, height=0.66, race=AF, skin='young_african_male', hair='short01', brows='eyebrow003',
                  clothes=[('namuhekam_male_polo_shirt', 'top'), ('elvs_male_trouser_short_1', 'bottom'), ('punkduck_running_shoes_01', 'shoes'), ('culturalibre_dal_moustache', 'beard')]),
     'omar': dict(gender=M, age=0.55, muscle=0.5, weight=0.55, height=0.56, race=MIX(0.15, 0.15, 0.7), skin='young_caucasian_male', hair='short03', brows='eyebrow002',
-                 clothes=[('ews_striped_shirt', 'top'), ('toigo_wool_pants', 'bottom'), ('sl_suede_chelsea', 'shoes'), ('grinsegold_full_beard', 'beard')]),
+                 clothes=[('elvs_male_shirt_untucked_bd1', 'top'), ('toigo_wool_pants', 'bottom'), ('sl_suede_chelsea', 'shoes'), ('grinsegold_full_beard', 'beard')]),
     # the shared body in athletic shorts (his underwear), and the menswear, all on that same body
     'manbase':   dict(BASE, hair='short01', clothes=[('elvs_male_trouser_short_1', 'bottom')]),
     'm_suit':    dict(BASE, hair='short01', clothes=[('male_elegantsuit01', 'suit'), ('mindfront_shoes_oxford_male', 'shoes')]),
@@ -188,17 +188,29 @@ def make(pid, spec):
         # a shirt or jacket hem hangs beside the hands in the A-pose and would follow them when the arms come down:
         # below the armpits and inside the shoulders, cloth follows the body, not the arms
         if o in clothes_objs:
+            # cloth follows the arms only where it is a sleeve: near the arm's bones it keeps the arm's weights, beyond
+            # 11 cm it follows the body, and in between it blends, so seams and hems neither tear nor stand out
             arm_groups = {g.index for g in o.vertex_groups if any(k in g.name for k in ('upperarm', 'lowerarm', 'hand_', 'thumb', 'index', 'middle', 'ring', 'pinky'))}
             spine = o.vertex_groups.get('spine_03') or o.vertex_groups.get('spine_02')
-            armpit = (rig.matrix_world @ rig.pose.bones['upperarm_l'].head)
+            segs = []
+            for side in ('l', 'r'):
+                pb = rig.pose.bones
+                a, e, h = (rig.matrix_world @ pb['upperarm_' + side].head, rig.matrix_world @ pb['lowerarm_' + side].head, rig.matrix_world @ pb['hand_' + side].tail)
+                segs += [(a, e), (e, h)]
+            def dist(p):
+                best = 9.0
+                for a, b in segs:
+                    ab = b - a; t = max(0.0, min(1.0, (p - a).dot(ab) / max(ab.length_squared, 1e-9))); best = min(best, (a + ab * t - p).length)
+                return best
             for v in o.data.vertices:
-                p = o.matrix_world @ v.co
-                if o in torso_objs and (abs(p.x) > abs(armpit.x) * 0.95 or p.z > armpit.z - 0.06): continue     # trousers and shoes never follow the arms
-                moved = sum(g.weight for g in v.groups if g.group in arm_groups)
-                if moved <= 0: continue
+                if o in torso_objs:
+                    d = dist(o.matrix_world @ v.co); k = max(0.0, min(1.0, (0.11 - d) / 0.04)); f = k * k * (3 - 2 * k)
+                else: f = 0.0          # trousers and shoes never follow the arms
+                if f >= 1: continue
+                moved = 0.0
                 for g in v.groups:
-                    if g.group in arm_groups: g.weight = 0
-                if spine is not None: spine.add([v.index], moved, 'ADD')
+                    if g.group in arm_groups and g.weight > 0: moved += g.weight * (1 - f); g.weight *= f
+                if moved > 0 and spine is not None: spine.add([v.index], moved, 'ADD')
         if o.vertex_groups:
             with bpy.context.temp_override(object=o, active_object=o, selected_objects=[o]):
                 bpy.ops.object.vertex_group_normalize_all(lock_active=False)
@@ -224,6 +236,26 @@ def make(pid, spec):
         want = Vector((0.13 * out, -0.05, -0.47)).normalized(); have = (hd - sh).normalized()
         q = have.rotation_difference(want); mw = rig.matrix_world @ a.matrix
         a.matrix = rig.matrix_world.inverted() @ (Matrix.Translation(sh) @ q.to_matrix().to_4x4() @ Matrix.Translation(-sh) @ mw); bpy.context.view_layer.update()
+    # lowering the arms bunches cloth at the armpits and shoulder seams: a corrective smooth (against the cloth's own
+    # rest shape) irons that out, around the shoulders only, so the rest of the garment keeps its detail
+    sh = [rig.matrix_world @ rig.pose.bones[b].head for b in ('LeftArm', 'RightArm')]
+    for o in [g for g, p in worn if p in ('top', 'suit')] + [body]:
+        vg = o.vertex_groups.new(name='sl_shoulders')
+        for v in o.data.vertices:
+            d = min(((o.matrix_world @ v.co) - c).length for c in sh); k = max(0.0, min(1.0, (0.24 - d) / 0.12))
+            if k > 0: vg.add([v.index], k * k * (3 - 2 * k), 'REPLACE')
+        cs = o.modifiers.new('ease', 'CORRECTIVE_SMOOTH'); cs.rest_source = 'ORCO'; cs.smooth_type = 'LENGTH_WEIGHTED'
+        cs.iterations = 12; cs.factor = 0.6; cs.vertex_group = vg.name; cs.use_pin_boundary = True
+    # the starlets (Ready Player Me) have heads about a fifth larger for their bodies than MakeHuman's: everything on
+    # the head grows 15% about the top of the neck, easing into the neck over 8 cm so there is no step
+    pivot = rig.matrix_world @ rig.pose.bones['Head'].head
+    for o in [body] + [x for x in list(hair) + list(brows) + list(lashes) + list(eyes) if x.type == 'MESH'] + [g for g, p in worn if p == 'beard']:
+        mw = o.matrix_world; inv = mw.inverted()
+        for v in o.data.vertices:
+            w = mw @ v.co; k = max(0.0, min(1.0, (w.z - (pivot.z - 0.08)) / 0.08)); k = k * k * (3 - 2 * k)
+            if k <= 0: continue
+            v.co = inv @ (pivot + (w - pivot) * (1 + 0.15 * k))
+        o.data.update()
     # the body cut into head and body (the face and neck follow the head), skin named as the starlets' is
     shoulder = (rig.matrix_world @ rig.pose.bones['LeftArm'].head).z
     head, rest = split_by_weight(body, {'Head', 'Neck'}, 'mpfb_head', 'mpfb_body', above=shoulder)     # not 'head' / 'body': wardrobe_export.py names its pieces so

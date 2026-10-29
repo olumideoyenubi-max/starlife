@@ -34,7 +34,7 @@ reward = function (coins, fame) {
   { id: 'theo', name: 'Theo Brooks', role: 'Athlete', skin: '#a5683d', hair: 'pixie', hairColor: '#1c1412', eyeShape: 'round', eyeColor: '#3b2414', brow: 'bold', preset: 'Natural', underwear: '#3f7f6b', bg: 'garden', fame: 81, gender: 'm' },
   { id: 'omar', name: 'Omar Haddad', role: 'Chef', skin: '#d9a273', hair: 'pixie', hairColor: '#2a1a12', eyeShape: 'almond', eyeColor: '#3b2414', brow: 'bold', preset: 'Natural', underwear: '#c8b48c', bg: 'boutique', fame: 47, gender: 'm' },
   { id: 'pigtail', name: 'Ruby Tanaka', role: 'Executive', skin: '#fde3d3', hair: 'ponytail', hairColor: '#8f3b3b', eyeShape: 'round', eyeColor: '#8a6b35', brow: 'natural', preset: 'Natural', underwear: '#c8b6e2', bg: 'runway', fame: 36 },
-].forEach(function (x) { STARLETS.push(x); STARLET_FAME[x.id] = x.fame; if (typeof STARLET_BY !== 'undefined') STARLET_BY[x.id] = x; });
+].forEach(function (x) { if (STARLETS.some(function (y) { return y.id === x.id; })) return; STARLETS.push(x); STARLET_FAME[x.id] = x.fame; if (typeof STARLET_BY !== 'undefined') STARLET_BY[x.id] = x; });
 
 // A starlet of the player's own: her face, outfit, height and name are chosen in the Beauty Parlor (3D).
 (function (x) { STARLETS.push(x); STARLET_FAME[x.id] = 0; if (typeof STARLET_BY !== 'undefined') STARLET_BY[x.id] = x; })(
@@ -51,10 +51,10 @@ reward = function (coins, fame) {
   ['tracktop', 'Track Jacket', 'outer', 'sport', 'denimjk', '#7c4ee0', 45, ['sport', 'casual']],
   ['trainers', 'Gym Trainers', 'shoes', 'sport', 'sneakers', '#ffffff', 30, ['sport', 'casual']],
   ['runners', 'Speed Runners', 'shoes', 'sport', 'sneakers', '#3fcf8e', 40, ['sport']],
-  ['hoodie', 'Rainbow Hoodie', 'outer', 'sport', 'cardigan', '#b8a6f0', 40, ['sport', 'casual']],
+  ['rainbowhoodie', 'Rainbow Hoodie', 'outer', 'sport', 'cardigan', '#b8a6f0', 40, ['sport', 'casual']],
   ['joggers', 'Joggers', 'bottom', 'sport', 'wide', '#2b2f38', 30, ['sport', 'casual']],
   ['hightops', 'High-tops', 'shoes', 'sport', 'sneakers', '#2b2f38', 35, ['sport', 'casual', 'edgy']],
-  ['polo', 'Staff Polo', 'top', 'work', 'tee', '#2f6f9f', 15, ['work', 'casual']],
+  ['staffpolo', 'Staff Polo', 'top', 'work', 'tee', '#2f6f9f', 15, ['work', 'casual']],
   ['scrubtop', 'Scrub Top', 'top', 'work', 'tee', '#6fc3c0', 15, ['work']],
   ['scrubpants', 'Scrub Trousers', 'bottom', 'work', 'wide', '#6fc3c0', 15, ['work']],
   ['workpants', 'Work Trousers', 'bottom', 'work', 'wide', '#3a3f4a', 15, ['work', 'office']],
@@ -86,10 +86,13 @@ reward = function (coins, fame) {
   ['crossear', 'Cross Earrings', 'earrings', 'goth', 'drops', '#c9ccd6', 25, ['goth', 'edgy']],
   ['coffinbag', 'Coffin Bag', 'bag', 'goth', 'crossbody', '#18151a', 55, ['goth', 'edgy']],
 ].forEach(function (e) {
+  if (ITEM[e[0]]) return;     // the artifact has it already (its own drawing wins)
   var it = Object.assign({}, ITEM[e[4]], { id: e[0], name: e[1], slot: e[2], cat: e[3], color: e[5], group: '' });
   ITEMS.push(it); ITEM[it.id] = it; PRICES[it.id] = e[6]; TAGS[it.id] = e[7];
 });
-TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
+TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear';
+// the artifact's menswear goes under the Menswear tab of the wardrobe and the shop
+['shirt', 'polo', 'hoodie', 'chinos', 'suitpants', 'suit', 'tux', 'tie', 'bowtie', 'oxfords', 'loafers', 'cap'].forEach(function (id) { if (ITEM[id]) ITEM[id].cat = 'men'; }); TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
 ['corset', 'biker', 'choker', 'kneeboots', 'ankleboots', 'lbd', 'crossbody'].forEach(function (id) { if (TAGS[id]) TAGS[id].push('goth'); });   // older pieces that suit the look
 
 const SL = {

@@ -7,7 +7,8 @@ public class SLModelImport : AssetPostprocessor {
     static readonly string[] Men = { "kai", "leo", "jin", "theo", "omar" };
     void OnPreprocessModel() {
         if (!assetPath.StartsWith("Assets/Starlets/") && !assetPath.StartsWith("Assets/Hair/")) return;
-        ((ModelImporter)assetImporter).isReadable = true;
+        var mi = (ModelImporter)assetImporter; mi.isReadable = true;
+        mi.meshCompression = ModelImporterMeshCompression.Medium;      // Read/Write keeps a second copy of every mesh; compression keeps the game's size down
     }
     void OnPreprocessTexture() {
         if (!assetPath.StartsWith("Assets/Starlets/")) return;
@@ -18,5 +19,5 @@ public class SLModelImport : AssetPostprocessor {
         bool skin = file.StartsWith("body") || file.StartsWith("head");
         ((TextureImporter)assetImporter).maxTextureSize = man ? (skin ? 2048 : 1024) : (skin ? 1024 : 512);
     }
-    public override uint GetVersion() { return 2; }
+    public override uint GetVersion() { return 3; }
 }

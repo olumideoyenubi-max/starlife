@@ -21,8 +21,8 @@ public static class SLWardrobe3D {
         { "sneakers", "ivy" }, { "pumps", "pigtail" }, { "ankleboots", "mary" }, { "kneeboots", "mary" }, { "flats", "cute" }, { "sandals", "charlotte" },
         // sports gear and workwear
         { "sportsbra", "basics:tank" }, { "gymtank", "ivy" }, { "leggings", "ivy" }, { "gymshorts", "rosie" }, { "tennisskirt", "lina" }, { "tracktop", "lucy:top" },
-        { "trainers", "jenny" }, { "runners", "lina" }, { "polo", "ivy" }, { "scrubtop", "ivy" }, { "scrubpants", "pigtail" }, { "workpants", "pigtail" },
-        { "chefcoat", "pigtail:top" }, { "workboots", "mary" }, { "hoodie", "alice:top!" }, { "joggers", "alice" }, { "hightops", "alice" },
+        { "trainers", "jenny" }, { "runners", "lina" }, { "staffpolo", "ivy" }, { "polo", "ivy" }, { "scrubtop", "ivy" }, { "scrubpants", "pigtail" }, { "workpants", "pigtail" },
+        { "chefcoat", "pigtail:top" }, { "workboots", "mary" }, { "rainbowhoodie", "alice:top!" }, { "hoodie", "alice:top" }, { "joggers", "alice" }, { "hightops", "alice" },
         // the goth collection; its accessories (goth:...) are made pieces, and metal parts (..._m) keep their silver
         { "gothgown", "eve:top+bottom" }, { "gothcoat", "pigtail:top" }, { "harness", "cute:top" }, { "meshtop", "goth:meshtop" },
         { "kilt", "goth:fishnets!+lina:bottom+goth:belt!+belt_m" }, { "platforms", "kelly:shoes" }, { "creepers", "mary:shoes" },
@@ -37,9 +37,9 @@ public static class SLWardrobe3D {
     // one of those sets. Dresses become a suit; accessories have no 3D piece on a man yet.
     static readonly Dictionary<string, string> MenMap = new Dictionary<string, string> {
         { "tee", "m_tee" }, { "gymtank", "m_casual" }, { "cami", "m_casual" }, { "corset", "m_casual" }, { "sportsbra", "m_casual" }, { "harness", "m_casual" }, { "meshtop", "m_casual" }, { "scrubtop", "m_tee" },
-        { "blouse", "m_shirt" }, { "shirt", "m_shirt" }, { "breton", "m_shirt" }, { "turtle", "m_polo" }, { "polo", "m_polo" },
+        { "blouse", "m_shirt" }, { "shirt", "m_shirt" }, { "breton", "m_shirt" }, { "turtle", "m_polo" }, { "polo", "m_polo" }, { "staffpolo", "m_polo" },
         { "blazer", "m_suit:top" }, { "trench", "m_tweed:top" }, { "suit", "m_suit:top" }, { "tux", "m_suit:top" }, { "gothcoat", "m_suit:top" }, { "chefcoat", "m_shirt:top" },
-        { "denimjk", "m_hoodie:top" }, { "biker", "m_hoodie:top" }, { "cardigan", "m_hoodie:top" }, { "puffer", "m_hoodie:top" }, { "tracktop", "m_hoodie:top" }, { "hoodie", "m_hoodie:top" },
+        { "denimjk", "m_hoodie:top" }, { "biker", "m_hoodie:top" }, { "cardigan", "m_hoodie:top" }, { "puffer", "m_hoodie:top" }, { "tracktop", "m_hoodie:top" }, { "hoodie", "m_hoodie:top" }, { "rainbowhoodie", "m_hoodie:top" },
         { "jeans", "m_hoodie" }, { "leggings", "m_hoodie" }, { "shorts", "m_tee" }, { "gymshorts", "m_tee" }, { "mini", "m_tee" }, { "tennisskirt", "m_tee" },
         { "pleated", "m_polo" }, { "wide", "m_polo" }, { "chinos", "m_polo" }, { "joggers", "m_casual" }, { "scrubpants", "m_polo" },
         { "pencil", "m_shirt" }, { "suitpants", "m_suit" }, { "workpants", "m_shirt" }, { "kilt", "m_casual" },
