@@ -12,7 +12,7 @@ public sealed class SLRig {
     public static readonly string[] Joints = { "Hips", "Spine", "Spine1", "Spine2", "Neck", "Head",
         "LeftShoulder", "LeftArm", "LeftForeArm", "LeftHand", "RightShoulder", "RightArm", "RightForeArm", "RightHand",
         "LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase", "RightUpLeg", "RightLeg", "RightFoot", "RightToeBase" };
-    public const int Hips = 0, Spine = 1, Spine1 = 2, Spine2 = 3, Neck = 4, Head = 5, LArm = 7, LFore = 8, LHand = 9, RArm = 11, RFore = 12, RHand = 13,
+    public const int Hips = 0, Spine = 1, Spine1 = 2, Spine2 = 3, Neck = 4, Head = 5, LShoulder = 6, RShoulder = 10, LArm = 7, LFore = 8, LHand = 9, RArm = 11, RFore = 12, RHand = 13,
         LUp = 14, LLeg = 15, LFoot = 16, RUp = 18, RLeg = 19, RFoot = 20;
     const string Base = "olivia";
 
@@ -111,63 +111,121 @@ public sealed class SLRig {
     }
 }
 
-/// <summary>Poses a rigged starlet every frame. Angles follow Starlife Town on the web (its bones are in a right-handed
-/// space with x to her left), so y and z turns change sign here. The walk phase moves with distance, so feet don't slide.</summary>
+// Motion-capture clips (Resources/Motion, from Lagos Run): for every sample, each bone's rotation away from a standing
+// reference pose in the character's own space, the arms as directions per segment, and the hips' offset. They play on
+// any skeleton whose bones stand like the reference, which the starlets' do (the arms are aimed, not rotated).
+[Serializable] public class SLClip { public string name; public int samples; public bool loop, standRef; public float seconds; public float[] q, pelvis, arms; }
+[Serializable] public class SLClipFile { public string[] bones; public SLClip[] clips; }
+public static class SLMoves {
+    static readonly Dictionary<string, (SLClip c, int[] slot)> clips = new Dictionary<string, (SLClip, int[])>();
+    // the clips' (game-engine) bone for each of SLRig.Joints, or null: clavicles and arms are handled by the arm directions
+    static readonly string[] Map = { "pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "head", null, null, null, null, null, null, null, null,
+        "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r" };
+    public static (SLClip c, int[] slot) Get(string name) {
+        if (clips.Count == 0)
+            foreach (var path in new[] { "Motion/m2m_base", "Motion/pack" }) {     // later files win
+                var ta = Resources.Load<TextAsset>(path); if (ta == null) continue;
+                var f = JsonUtility.FromJson<SLClipFile>(ta.text);
+                foreach (var c in f.clips) { var slot = new int[Map.Length]; for (int j = 0; j < Map.Length; j++) slot[j] = Map[j] == null ? -1 : Array.IndexOf(f.bones, Map[j]); clips[c.name] = (c, slot); }
+            }
+        return clips.TryGetValue(name, out var r) ? r : (null, null);
+    }
+}
+
+/// <summary>Poses a rigged starlet every frame: motion-capture walking, running and standing (SLMoves), cross-faded by
+/// speed with the cycle moved on by the distance covered so the feet don't slide; a talking idle in conversation; and
+/// on top, by hand, sitting, waving and holding a take-away cup.</summary>
 public sealed class SLRigMotion {
-    public readonly Transform[] bones; readonly Quaternion[] rest; readonly Vector3 hipsRest;
-    public string pose = "stand"; public float seatDrop = 0.47f, lookX, lookY; public bool cup;
-    float t, amp, phase; readonly Vector3[] cur;
+    public readonly Transform[] bones; readonly Transform root; readonly Quaternion[] rest, bindRoot; readonly Vector3 hipsRest; readonly float hipsHeight;
+    public string pose = "stand"; public float seatDrop = 0.47f, lookX, lookY; public bool cup, talking;
+    float t, cycle, idleT, runW, moveW, sitW;
+    readonly Vector3[] cur; readonly Quaternion[] a = new Quaternion[22], b = new Quaternion[22], c3 = new Quaternion[22];
     public Transform CupHolder { get; private set; }
     public SLRigMotion(Transform[] bones) {
-        this.bones = bones; rest = new Quaternion[bones.Length]; cur = new Vector3[bones.Length];
-        for (int i = 0; i < bones.Length; i++) rest[i] = bones[i].localRotation;
-        hipsRest = bones[SLRig.Hips].localPosition;
-        t = UnityEngine.Random.value * 10;
+        this.bones = bones; root = bones[0].parent; rest = new Quaternion[bones.Length]; bindRoot = new Quaternion[bones.Length]; cur = new Vector3[bones.Length];
+        var inv = Quaternion.Inverse(root.rotation);
+        for (int i = 0; i < bones.Length; i++) { rest[i] = bones[i].localRotation; bindRoot[i] = inv * bones[i].rotation; }
+        hipsRest = bones[SLRig.Hips].localPosition; hipsHeight = Mathf.Max(0.5f, bones[SLRig.Hips].position.y - root.position.y);
+        t = UnityEngine.Random.value * 10; idleT = UnityEngine.Random.value;
     }
+    // ---- clips
+    Vector3 Sample(string name, float ct, Quaternion rr, Quaternion[] outRot, out bool ok) {
+        var (c, slot) = SLMoves.Get(name); ok = c != null; if (!ok) return Vector3.zero;
+        float x = Mathf.Repeat(ct, 1) * c.samples; int i0 = Mathf.Min((int)x, c.samples - 1), i1 = (i0 + 1) % c.samples; float f = x - i0;
+        int stride = c.q.Length / c.samples;
+        for (int j = 0; j < slot.Length; j++) {
+            int ci = slot[j]; if (ci < 0) { outRot[j] = Quaternion.identity; continue; }
+            int p = i0 * stride + ci * 4, q = i1 * stride + ci * 4;
+            outRot[j] = Quaternion.Slerp(new Quaternion(c.q[p], c.q[p + 1], c.q[p + 2], c.q[p + 3]), new Quaternion(c.q[q], c.q[q + 1], c.q[q + 2], c.q[q + 3]), f);
+        }
+        // arm directions: [side][upper, fore] in the character's space, kept in the spare slots of outRot as look rotations
+        for (int side = 0; side < 2; side++) for (int seg = 0; seg < 2; seg++) {
+            int p = i0 * 18 + side * 9 + seg * 3, q = i1 * 18 + side * 9 + seg * 3;
+            var d = Vector3.Slerp(new Vector3(c.arms[p], c.arms[p + 1], c.arms[p + 2]), new Vector3(c.arms[q], c.arms[q + 1], c.arms[q + 2]), f);
+            outRot[(side == 0 ? SLRig.LArm : SLRig.RArm) + seg] = Quaternion.LookRotation(d);
+        }
+        int pa = i0 * 3, pb = i1 * 3;
+        var lift = Vector3.Lerp(new Vector3(c.pelvis[pa], c.pelvis[pa + 1], c.pelvis[pa + 2]), new Vector3(c.pelvis[pb], c.pelvis[pb + 1], c.pelvis[pb + 2]), f);
+        lift.z = 0; return lift;
+    }
+    static readonly int[] ArmSegs = { SLRig.LArm, SLRig.LFore, SLRig.RArm, SLRig.RFore };
+    void Blend(Quaternion[] into, Quaternion[] from, float w) { if (w <= 0) return; for (int j = 0; j < into.Length; j++) into[j] = Quaternion.Slerp(into[j], from[j], w); }
+    void Put(Quaternion[] r, Quaternion rr, Vector3 lift) {
+        for (int j = 0; j < bones.Length; j++) {
+            if (j == SLRig.LShoulder || j == SLRig.RShoulder || j == SLRig.LHand || j == SLRig.RHand || Array.IndexOf(ArmSegs, j) >= 0) { bones[j].localRotation = rest[j]; continue; }
+            bones[j].rotation = rr * r[j] * bindRoot[j];
+        }
+        // aim each arm segment along the clip's direction (the starlets stand with their arms down, unlike the reference)
+        foreach (int j in ArmSegs) {
+            var tip = bones[j + 1]; var want = rr * (r[j] * Vector3.forward);
+            bones[j].rotation = Quaternion.FromToRotation(tip.position - bones[j].position, want) * bones[j].rotation;
+        }
+        bones[SLRig.Hips].localPosition = hipsRest; bones[SLRig.Hips].position += rr * lift * hipsHeight;
+    }
+    // ---- hand-made poses on top
     void Rot(int j, float x, float y, float z, float k) {
         cur[j] = Vector3.Lerp(cur[j], new Vector3(x, y, z), k); var e = cur[j] * Mathf.Rad2Deg;
         bones[j].localRotation = rest[j] * Quaternion.AngleAxis(e.x, Vector3.right) * Quaternion.AngleAxis(-e.y, Vector3.up) * Quaternion.AngleAxis(-e.z, Vector3.forward);
     }
-    float hipsY;
+    readonly Quaternion[] keep = new Quaternion[22]; Vector3 keepHips;
     public void Animate(float dt, float speed) {
-        float k = 1 - Mathf.Exp(-dt * 14); t += dt;
-        float running = Mathf.Clamp01((speed - 1.6f) / 2.4f);
-        float targetAmp = speed > 0.05f ? Mathf.Lerp(0.48f, 0.78f, running) : 0;
-        amp = Mathf.Lerp(amp, targetAmp, 1 - Mathf.Exp(-dt * 8));
-        float cycle = Mathf.Lerp(1.7f, 2.5f, running);
-        phase += speed * dt / cycle * Mathf.PI * 2;
-        float p = phase, A = amp, breathe = Mathf.Sin(t * 1.7f) * 0.012f;
-        if (pose == "sit") {
-            hipsY = Mathf.Lerp(hipsY, seatDrop - hipsRest.y + 0.04f, k);
-            bones[SLRig.Hips].localPosition = hipsRest + new Vector3(0, hipsY, -0.06f);
-            Rot(SLRig.LUp, -1.5f, 0, 0.04f, k); Rot(SLRig.RUp, -1.5f, 0, -0.04f, k);
-            Rot(SLRig.LLeg, 1.5f, 0, 0, k); Rot(SLRig.RLeg, 1.5f, 0, 0, k);
-            Rot(SLRig.LFoot, 0, 0, 0, k); Rot(SLRig.RFoot, 0, 0, 0, k);
-            Rot(SLRig.LArm, -0.45f, 0, 0.1f, k); Rot(SLRig.RArm, cup ? -0.3f : -0.45f, 0, -0.1f, k);
-            Rot(SLRig.LFore, -0.9f, 0, 0, k); Rot(SLRig.RFore, cup ? -1.35f : -0.9f, 0, 0, k);
-            Rot(SLRig.Spine, -0.05f + breathe, 0, 0, k); Rot(SLRig.Head, Mathf.Sin(t * 0.4f) * 0.08f, Mathf.Sin(t * 0.27f) * 0.25f, 0, k * 0.5f);
-            Rot(SLRig.Hips, 0, 0, 0, k);
-            return;
+        t += dt; float k = 1 - Mathf.Exp(-dt * 12);
+        var rr = root.rotation;
+        sitW = Mathf.MoveTowards(sitW, pose == "sit" ? 1 : 0, dt * 3.5f);
+        if (sitW >= 1) { Sit(dt); return; }
+        // walk and run: one cycle moved on by distance, so both clips keep their feet together while they blend
+        runW = Mathf.Lerp(runW, Mathf.Clamp01((speed - 1.9f) / 1.6f), 1 - Mathf.Exp(-dt * 6));
+        moveW = Mathf.Lerp(moveW, Mathf.Clamp01(speed / 0.6f), 1 - Mathf.Exp(-dt * 8));
+        float stride = Mathf.Lerp(1.38f, 2.5f, runW) * (hipsHeight / 0.9f);
+        cycle += speed * dt / stride; idleT += dt / 6.5f;
+        bool okA, okB;
+        var lift = Sample(talking ? "Idle_Talking" : "Idle", talking ? idleT * 6.5f / 3.67f : idleT * 6.5f / 1.6f, rr, a, out okA);
+        if (moveW > 0.01f) {
+            var l2 = Sample("Walk", cycle, rr, b, out okB);
+            if (runW > 0.01f) { var l3 = Sample("Run", cycle, rr, c3, out _); Blend(b, c3, runW); l2 = Vector3.Lerp(l2, l3, runW); }
+            if (okB) { Blend(a, b, moveW); lift = Vector3.Lerp(lift, l2, moveW); }
         }
-        float bob = Mathf.Cos(2 * p) * 0.016f * A * 2;
-        hipsY = Mathf.Lerp(hipsY, bob - A * 0.03f * running, k);
-        bones[SLRig.Hips].localPosition = hipsRest + new Vector3(0, hipsY, 0);
-        float hipL = -Mathf.Sin(p) * A, hipR = Mathf.Sin(p) * A;
-        float kneeK = Mathf.Lerp(0.95f, 1.5f, running);
-        float knL = 0.05f + kneeK * Mathf.Pow(Mathf.Max(0, Mathf.Cos(p)), 1.6f) * (A / 0.6f) + 0.15f * running;
-        float knR = 0.05f + kneeK * Mathf.Pow(Mathf.Max(0, Mathf.Cos(p + Mathf.PI)), 1.6f) * (A / 0.6f) + 0.15f * running;
-        Rot(SLRig.LUp, hipL, 0, 0.02f, k); Rot(SLRig.RUp, hipR, 0, -0.02f, k);
-        Rot(SLRig.LLeg, knL, 0, 0, k); Rot(SLRig.RLeg, knR, 0, 0, k);
-        Rot(SLRig.LFoot, -(hipL + knL) * 0.55f + (A > 0.1f ? Mathf.Max(0, -Mathf.Sin(p)) * 0.25f : 0), 0, 0, k);
-        Rot(SLRig.RFoot, -(hipR + knR) * 0.55f + (A > 0.1f ? Mathf.Max(0, Mathf.Sin(p)) * 0.25f : 0), 0, 0, k);
-        Rot(SLRig.LArm, Mathf.Sin(p) * A * 0.75f + (A < 0.05f ? Mathf.Sin(t * 1.1f) * 0.02f : 0), 0, 0.05f, k);
-        Rot(SLRig.LFore, -0.12f - A * 0.45f - running * 0.9f, 0, 0, k);
+        if (!okA) { for (int j = 0; j < a.Length; j++) a[j] = Quaternion.identity; }
+        Put(a, rr, lift);
+        // waving, or the cup in the right hand, on top
         if (pose == "wave") { Rot(SLRig.RArm, -0.2f, 0, -2.5f, k); Rot(SLRig.RFore, 0, Mathf.Sin(t * 9) * 0.5f, -0.5f, k); }
-        else if (cup) { Rot(SLRig.RArm, -0.15f - Mathf.Sin(p) * A * 0.2f, 0, -0.08f, k); Rot(SLRig.RFore, -1.35f, 0, 0, k); }
-        else { Rot(SLRig.RArm, -Mathf.Sin(p) * A * 0.75f, 0, -0.05f, k); Rot(SLRig.RFore, -0.12f - A * 0.45f - running * 0.9f, 0, 0, k); }
-        Rot(SLRig.Hips, 0, Mathf.Sin(p) * 0.09f * A, 0, k);
-        Rot(SLRig.Spine, 0.04f * running + breathe, -Mathf.Sin(p) * 0.13f * A, 0, k);
-        Rot(SLRig.Head, lookX, lookY, 0, k * 0.4f);
+        else if (cup) { Rot(SLRig.RArm, -0.15f, 0, -0.08f, k); Rot(SLRig.RFore, -1.35f, 0, 0, k); }
+        else { cur[SLRig.RArm] = cur[SLRig.RFore] = Vector3.zero; }
+        if (lookX != 0 || lookY != 0) bones[SLRig.Head].localRotation *= Quaternion.Euler(lookX * Mathf.Rad2Deg, -lookY * Mathf.Rad2Deg, 0);
+        // easing into a seat: blend from the standing pose toward sitting
+        if (sitW > 0) { for (int j = 0; j < bones.Length; j++) keep[j] = bones[j].localRotation; keepHips = bones[SLRig.Hips].localPosition; Sit(dt); 
+            for (int j = 0; j < bones.Length; j++) bones[j].localRotation = Quaternion.Slerp(keep[j], bones[j].localRotation, sitW);
+            bones[SLRig.Hips].localPosition = Vector3.Lerp(keepHips, bones[SLRig.Hips].localPosition, sitW); }
+    }
+    void Sit(float dt) {
+        float k = 1, breathe = Mathf.Sin(t * 1.7f) * 0.012f;
+        for (int j = 0; j < bones.Length; j++) { bones[j].localRotation = rest[j]; cur[j] = Vector3.zero; }
+        bones[SLRig.Hips].localPosition = hipsRest + new Vector3(0, seatDrop - hipsRest.y + 0.04f, -0.06f);
+        Rot(SLRig.LUp, -1.5f, 0, 0.04f, k); Rot(SLRig.RUp, -1.5f, 0, -0.04f, k);
+        Rot(SLRig.LLeg, 1.5f, 0, 0, k); Rot(SLRig.RLeg, 1.5f, 0, 0, k);
+        Rot(SLRig.LArm, -0.45f, 0, 0.1f, k); Rot(SLRig.RArm, cup ? -0.3f : -0.45f, 0, -0.1f, k);
+        Rot(SLRig.LFore, -0.9f, 0, 0, k); Rot(SLRig.RFore, cup ? -1.35f : -0.9f, 0, 0, k);
+        Rot(SLRig.Spine, -0.05f + breathe, 0, 0, k); Rot(SLRig.Head, Mathf.Sin(t * 0.4f) * 0.08f, Mathf.Sin(t * 0.27f) * 0.25f, 0, k);
     }
     /// <summary>A take-away cup in her right hand.</summary>
     public void Cup(bool on, Material cupM, Material sleeveM, Material lidM) {

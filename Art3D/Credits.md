@@ -58,3 +58,8 @@ Made with MPFB (MakeHuman for Blender) by `Tools/blender/make_men.py`: the MakeH
 CC0; the community clothes, hair, skins and beards are CC0 or CC-BY per asset (see the MPFB asset packs). Asset
 authors used: elvs, punkduck, toigo, mindfront, culturalibre, grinsegold, namuhekam, ews, cortu, drednicolson,
 dressupdoc, callharvey3d, cutoff3d, o4saken, and the "sl_" pack. Credit the MakeHuman community wherever the game is shared.
+
+## Motion (walking, running, standing, talking)
+
+- "Third Person Animations" (https://sketchfab.com/3d-models/third-person-animations-6e9b4493927b484291c5887a99a0a36e) by Artem_Dubinin, CC-BY-4.0: Walk, Run, Sprint and Idle, re-targeted (via Lagos Run, `Resources/Motion/pack.json`).
+- Mesh2Motion (https://github.com/Mesh2Motion/mesh2motion-app), CC0: Idle_Talking and the other clips in `Resources/Motion/m2m_base.json`.

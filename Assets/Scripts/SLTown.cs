@@ -305,7 +305,7 @@ public partial class SLApp {
             var c = town.Collide(new Vector2(player.pos.x, player.pos.z)); player.pos.x = c.x; player.pos.z = c.y;
         }
         player.pos.y = Mathf.Lerp(player.pos.y, town.HeightAt(player.pos.x, player.pos.z), 1 - Mathf.Exp(-dt * 14));
-        mo.Animate(dt, player.speed); Place(player);
+        mo.talking = talking != null; mo.Animate(dt, player.speed); Place(player);
     }
     void SitOn(SLTownWorld.Seat s) {
         player.seat = s; player.mo.pose = "sit"; player.mo.seatDrop = s.y - town.HeightAt(s.x, s.z) + 0.06f;
@@ -348,7 +348,7 @@ public partial class SLApp {
             StepPerson(pp, dt, busy != null ? dt * 30 : gm);
             float d = D(pp, player); bool vis = pp.state != "inside" && d < 280;
             if (pp.visible != vis) { pp.visible = vis; pp.go.gameObject.SetActive(vis); }
-            if (vis) pp.mo.Animate(dt, pp.state == "sit" ? 0 : pp.speed);
+            if (vis) { pp.mo.talking = pp.state == "talk"; pp.mo.Animate(dt, pp.state == "sit" ? 0 : pp.speed); }
         }
         UpdateCamera(dt);
         town.SetHour(Hour, SLTownWorld.W(player.pos.x, player.pos.y, player.pos.z)); if (tone != null) tone.exposure = town.Exposure;

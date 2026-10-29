@@ -59,9 +59,11 @@ public partial class SLApp {
         Go("theatre", 14, 12, 1.4f); cam.dist = 3.2f; cam.pitch = 0.08f;
         autoWalk = new Vector2(0, 1); autoFixed = true; for (float t = 0; t < 1.5f; t += Time.deltaTime) yield return null;
         cam.yaw = player.ry + Mathf.PI / 2; cam.lastDrag = Time.time + 60; yield return Snap("walk-side", 10);
+        for (int f = 0; f < 8; f++) { for (float w0 = Time.time; Time.time - w0 < 0.13f;) yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "strip-walk-" + f + ".png")); yield return null; }
         cam.yaw = player.ry; yield return Snap("walk-front", 6);
         autoRun = true; for (float t = 0; t < 1.2f; t += Time.deltaTime) yield return null;
         cam.yaw = player.ry + Mathf.PI / 2; yield return Snap("run-side", 4);
+        for (int f = 0; f < 8; f++) { for (float w0 = Time.time; Time.time - w0 < 0.08f;) yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "strip-run-" + f + ".png")); yield return null; }
         autoWalk = null; autoRun = false; autoFixed = false; cam.lastDrag = Time.time;
         // sitting on a park bench, and someone to talk to
         var seat = town.seats.FirstOrDefault(s => s.place == "park"); if (seat != null) { Go("park", 4, 12); SitOn(seat); cam.yaw = seat.ry + 0.5f; cam.dist = 3.5f; cam.cur = 0; yield return Snap("sitting", 40); StandUp(); }
