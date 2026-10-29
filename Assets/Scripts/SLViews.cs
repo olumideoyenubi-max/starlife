@@ -178,7 +178,7 @@ public partial class SLApp {
 
     void RenderWardrobe() {
         wardTabs.Clear();
-        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("goth", "Goth"), ("men", "Menswear"), ("basics", "Underwear") }) {
+        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("men", "Menswear"), ("basics", "Underwear") }) {
             string cat = k; var b = B(label, k == wardrobeCat ? "on" : null, () => { wardrobeCat = cat; RenderWardrobe(); }); wardTabs.Add(b);
         }
         if (wardrobeCat == "basics") { RenderBasics(); return; }
@@ -395,7 +395,7 @@ public partial class SLApp {
     }
     void RefreshShop() {
         shopTabs.Clear();
-        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("goth", "Goth"), ("men", "Menswear") }) {
+        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("men", "Menswear") }) {
             string cat = k; shopTabs.Add(B(label, k == shopCat ? "on" : null, () => { shopCat = cat; RefreshShop(); }));
         }
         var list = new List<DItem>(Array.FindAll(data.items, i => i.price > 0 && Allowed(i) && (shopCat == "all" || i.cat == shopCat)));

@@ -1,0 +1,32 @@
+{
+ "id": "f_trousers",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "bottom_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.5877,
+    0.3686,
+    0.2377
+   ],
+   "lum": 0.4187,
+   "zmin": 0.074,
+   "zmax": 1.013,
+   "xmax": 0.196,
+   "tris": 3392
+  }
+ ]
+}

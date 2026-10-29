@@ -1,0 +1,32 @@
+{
+ "id": "f_tube",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "top_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.951,
+    0.951,
+    0.94
+   ],
+   "lum": 0.951,
+   "zmin": 1.001,
+   "zmax": 1.304,
+   "xmax": 0.148,
+   "tris": 1756
+  }
+ ]
+}

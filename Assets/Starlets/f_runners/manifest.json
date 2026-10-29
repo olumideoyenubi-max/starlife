@@ -1,0 +1,32 @@
+{
+ "id": "f_runners",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.3811,
+    0.3694,
+    0.3356
+   ],
+   "lum": 0.3691,
+   "zmin": 0.003,
+   "zmax": 0.09,
+   "xmax": 0.202,
+   "tris": 2792
+  }
+ ]
+}

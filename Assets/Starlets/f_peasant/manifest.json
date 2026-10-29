@@ -1,0 +1,32 @@
+{
+ "id": "f_peasant",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.0576,
+    0.0939,
+    0.0906
+   ],
+   "lum": 0.0828,
+   "zmin": 0.885,
+   "zmax": 1.427,
+   "xmax": 0.289,
+   "tris": 2588
+  }
+ ]
+}

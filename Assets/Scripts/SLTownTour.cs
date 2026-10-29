@@ -35,6 +35,14 @@ public partial class SLApp {
                 foreach (var id in ids.Split(',')) if (itemById.ContainsKey(id)) look.worn.Add((itemById[id].slot, id, C(itemById[id].color)));
                 Dump(look, "menswear-" + tag + "-" + who + "-" + yaw, yaw);
             }
+        // the refitted garments (make_fashion.py) on a starlet, front and side
+        foreach (var (tag, ids) in new[] { ("gown", "gown,pumps"), ("haltermaxi", "haltermaxi,sandals"), ("ankara", "ankaramaxi,sandals"), ("jeans-silk", "silkcarre,jeans,flats"),
+                 ("leather-leopard", "leopardcami,leather,ankleboots"), ("suit", "womensuit,pumps"), ("keyhole", "keyholedress,flats"), ("sundress", "sundress,sandals"), ("tee-shorts", "tee,shorts,sneakers"), ("quilted", "quilted,kneeboots") })
+            foreach (var who in new[] { "lucy", "zuri" }) foreach (int yaw in new[] { 0, 90 }) {
+                var look = new Look3 { id = who, signature = false };
+                foreach (var id in ids.Split(',')) if (itemById.ContainsKey(id)) look.worn.Add((itemById[id].slot, id, C(itemById[id].color)));
+                Dump(look, "fashion-" + tag + "-" + who + "-" + yaw, yaw);
+            }
         pickSel = "zuri"; ClosePicker(true); CloseGuide();
         foreach (var id in new[] { "blouse", "pleated", "blazer", "pumps", "pearls" }) { core.Call("grant", "[\"" + id + "\"]"); core.Call("equip", id); }
         core.Call("earn", "600", "0");
@@ -90,6 +98,20 @@ public partial class SLApp {
             for (float w0 = Time.time; Time.time - w0 < 2.5f;) yield return null; yield return Snap("driving-night", 2); autoWalk = null;
             for (float w0 = Time.time; Time.time - w0 < 1.5f;) yield return null; GetOut();
         }
+        // Fashion Week: own the season's pieces, put on a show at the Grand Hall, read the reviews
+        foreach (var id in new[] { "haltermaxi", "ankaramaxi", "womensuit", "leather", "silkcarre", "leopardcami", "jeans", "sandals", "flats", "keyholedress", "gown" }) core.Call("grant", "[\"" + id + "\"]");
+        profile = core.Get<DProfile>("profile");
+        Go("hall", 9, 19, 0.2f); OpenPlace(PlaceBy("hall")); yield return Snap("hall-card", 20);
+        OpenFashionWeek(); yield return Snap("fw-theme", 10);
+        show.theme = 0; for (int k = 0; k < 4; k++) { var hero = OwnedClothes().Where(i => (i.slot == "dress" || i.slot == "top") && !show.heroes.Contains(i.id)).OrderByDescending(i => ThemeFits(i, 0)).First(); show.heroes.Add(hero.id); show.looks.Add(CompleteLook(hero)); }
+        CastAndGo(); yield return Snap("fw-cast", 10); CloseCard();
+        var models = people.Where(p => !p.crowd && !p.male).OrderBy(p => p.id).Take(4).Select(p => p.id).ToList();
+        var run = StartCoroutine(RunShow(models));
+        for (float w0 = Time.time; Time.time - w0 < 7.5f;) yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "town-fw-runway1.png"));
+        for (float w0 = Time.time; Time.time - w0 < 9f;) yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "town-fw-runway2.png"));
+        for (float w0 = Time.time; Time.time - w0 < 9f;) yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "town-fw-runway3.png"));
+        while (showRunning) yield return null;
+        yield return Snap("fw-reviews", 20); CloseCard();
         // evening and night
         Go("theatre", 9, 18.7f, 0.3f); cam.dist = 8; yield return Snap("theatre-sunset", 30);
         Go("club", 8, 22, 0.4f); cam.dist = 8; yield return Snap("club-night", 30);

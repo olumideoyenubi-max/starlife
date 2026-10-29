@@ -1,0 +1,32 @@
+{
+ "id": "f_midi",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "dress",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "dress.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.3206,
+    0.1466,
+    0.1804
+   ],
+   "lum": 0.2024,
+   "zmin": 0.322,
+   "zmax": 1.436,
+   "xmax": 0.197,
+   "tris": 5184
+  }
+ ]
+}

@@ -63,3 +63,8 @@ dressupdoc, callharvey3d, cutoff3d, o4saken, and the "sl_" pack. Credit the Make
 
 - "Third Person Animations" (https://sketchfab.com/3d-models/third-person-animations-6e9b4493927b484291c5887a99a0a36e) by Artem_Dubinin, CC-BY-4.0: Walk, Run, Sprint and Idle, re-targeted (via Lagos Run, `Resources/Motion/pack.json`).
 - Mesh2Motion (https://github.com/Mesh2Motion/mesh2motion-app), CC0: Idle_Talking and the other clips in `Resources/Motion/m2m_base.json`.
+
+## Cars and the refitted garments
+
+- "Generic passenger car pack" (https://sketchfab.com/3d-models/20f9af9b8a404d5cb022ac6fe87f21f5) by Comrade1280, CC-BY: the ten town cars and the limousine (made from the sedan).
+- The wardrobe's refitted garments (`Assets/Starlets/f_*`) are MPFB / MakeHuman community clothes (CC0 or CC-BY per asset; authors elvs, punkduck, toigo, mindfront, joepal, dressupdoc and the "sl_" pack).

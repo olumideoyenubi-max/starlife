@@ -1,0 +1,32 @@
+{
+ "id": "f_halter",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "dress",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "dress.png",
+   "normal": "dress_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.4205,
+    0.1464,
+    0.1775
+   ],
+   "lum": 0.2319,
+   "zmin": 0.2,
+   "zmax": 1.435,
+   "xmax": 0.243,
+   "tris": 15548
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+ "id": "f_ankara",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "dress",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "dress.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.6308,
+    0.4534,
+    0.3925
+   ],
+   "lum": 0.4986,
+   "zmin": -0.003,
+   "zmax": 1.436,
+   "xmax": 0.372,
+   "tris": 12852
+  }
+ ]
+}

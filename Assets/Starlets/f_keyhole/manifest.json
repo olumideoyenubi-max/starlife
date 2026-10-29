@@ -1,0 +1,32 @@
+{
+ "id": "f_keyhole",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "dress",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "dress.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.3055,
+    0.3055,
+    0.3055
+   ],
+   "lum": 0.3057,
+   "zmin": 0.468,
+   "zmax": 1.426,
+   "xmax": 0.242,
+   "tris": 17888
+  }
+ ]
+}

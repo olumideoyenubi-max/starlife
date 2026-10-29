@@ -10,17 +10,17 @@ public static class SLWardrobe3D {
     // item id -> "donor" (same part as the slot), or "donor:part+part" for dresses and the like
     static readonly Dictionary<string, string> Map = new Dictionary<string, string> {
         // tops
-        { "tee", "ivy" }, { "cami", "olivia" }, { "blouse", "songbird" }, { "turtle", "mary" }, { "corset", "cute" }, { "breton", "lucy" },
+        { "turtle", "mary" }, { "corset", "cute" }, { "breton", "lucy" },
         // bottoms
-        { "jeans", "ivy" }, { "shorts", "rosie" }, { "mini", "lina" }, { "pleated", "charlotte" }, { "wide", "cute" }, { "pencil", "olivia" },
+        { "mini", "lina" }, { "pleated", "charlotte" }, { "pencil", "olivia" },
         // dresses: a slip is one piece, the fuller ones are a bodice and a skirt
-        { "slip", "jenny:top" }, { "lbd", "jenny:top" }, { "sequin", "jenny:top" }, { "gown", "eve:top+bottom" }, { "wrap", "charlotte:top+bottom" }, { "sundress", "charlotte:top+bottom" },
+        
         // jackets (they come with what is worn under them, so they replace the top)
         { "blazer", "pigtail:top" }, { "trench", "pigtail:top" }, { "cardigan", "charlotte:top" }, { "biker", "lucy:top" }, { "denimjk", "lucy:top" }, { "puffer", "rosie:top" },
         // shoes
-        { "sneakers", "ivy" }, { "pumps", "pigtail" }, { "ankleboots", "mary" }, { "kneeboots", "mary" }, { "flats", "cute" }, { "sandals", "charlotte" },
+        { "pumps", "pigtail" }, { "ankleboots", "mary" }, { "kneeboots", "mary" }, 
         // sports gear and workwear
-        { "sportsbra", "basics:tank" }, { "gymtank", "ivy" }, { "leggings", "ivy" }, { "gymshorts", "rosie" }, { "tennisskirt", "lina" }, { "tracktop", "lucy:top" },
+        { "sportsbra", "basics:tank" }, { "leggings", "ivy" }, { "gymshorts", "rosie" }, { "tennisskirt", "lina" }, { "tracktop", "lucy:top" },
         { "trainers", "jenny" }, { "runners", "lina" }, { "staffpolo", "ivy" }, { "polo", "ivy" }, { "scrubtop", "ivy" }, { "scrubpants", "pigtail" }, { "workpants", "pigtail" },
         { "chefcoat", "pigtail:top" }, { "workboots", "mary" }, { "rainbowhoodie", "alice:top!" }, { "hoodie", "alice:top" }, { "joggers", "alice" }, { "hightops", "alice" },
         // the goth collection; its accessories (goth:...) are made pieces, and metal parts (..._m) keep their silver
@@ -28,6 +28,19 @@ public static class SLWardrobe3D {
         { "kilt", "goth:fishnets!+lina:bottom+goth:belt!+belt_m" }, { "platforms", "kelly:shoes" }, { "creepers", "mary:shoes" },
         { "spikecollar", "goth:collar+collar_m+cuffs+cuffs_m" }, { "crosschain", "goth:chain_m" }, { "choker", "goth:choker+choker_m" },
         { "horns", "goth:horns" }, { "catears", "goth:catears" }, { "crossear", "goth:earrings_m" }, { "coffinbag", "goth:bag+bag_m" },
+        // MPFB garments refitted to the shared body (Tools/blender/make_fashion.py): real cuts in place of borrowed outfits
+        { "tee", "f_tee" }, { "cami", "f_cami" }, { "blouse", "f_silk" }, { "gymtank", "f_tank" },
+        { "jeans", "f_jeans" }, { "shorts", "f_shorts" }, { "wide", "f_wideleg" },
+        { "gown", "f_gown:dress" }, { "slip", "f_midi:dress" }, { "lbd", "f_blackkey:dress" }, { "sequin", "f_fashion:dress" }, { "wrap", "f_wrap:dress" }, { "sundress", "f_tiered:dress" },
+        { "flats", "f_flats" }, { "sandals", "f_sandals" }, { "sneakers", "f_runners" },
+        // Ankara & Prints (their fabric keeps its print: "!")
+        { "ankaramaxi", "f_ankara:dress!" }, { "ankaracorset", "f_corset!" }, { "leopardcami", "f_leopard!" }, { "silkcarre", "f_silk!" }, { "discotop", "f_disco!" }, { "quilted", "f_quilted:dress!" },
+        // New Season
+        { "haltermaxi", "f_halter:dress" }, { "shiftdress", "f_shift:dress" }, { "keyholedress", "f_keyhole:dress" }, { "sixties", "f_sixties:dress" }, { "midihalter", "f_midi:dress" },
+        { "laceup", "f_lace" }, { "peasant", "f_peasant" }, { "offshoulder", "f_offshoulder" }, { "tubetop", "f_tube" }, { "highneck", "f_highneck" }, { "croptop", "f_crop" },
+        { "vneck", "f_vneck" }, { "buttertop", "f_butter" }, { "sagehalter", "f_sage" }, { "cobalttank", "f_cobalt" },
+        { "bootcut", "f_bootcut" }, { "leather", "f_leather" }, { "harem", "f_harem" }, { "trousers", "f_trousers" },
+        { "womensuit", "f_suit:dress" }, { "casualsuit", "f_casual:dress" },
         // menswear on a woman's figure: the nearest women's pieces (the men wear their own, see MenMap)
         { "shirt", "songbird" }, { "chinos", "cute" }, { "suitpants", "cute" }, { "suit", "pigtail:top" }, { "tux", "pigtail:top" }, { "oxfords", "cute" }, { "loafers", "cute" },
         // eyewear: one pair of frames, dyed

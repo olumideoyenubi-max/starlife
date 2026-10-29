@@ -18,10 +18,11 @@ public class SLModelImport : AssetPostprocessor {
         if (!assetPath.StartsWith("Assets/Starlets/")) return;
         var parts = assetPath.Split('/'); if (parts.Length < 4) return;
         string id = parts[2], file = parts[3];
+        if (id.StartsWith("f_")) { ((TextureImporter)assetImporter).maxTextureSize = 1024; return; }     // refitted garments (make_fashion.py)
         bool helper = id == "manbase" || id.StartsWith("m_") || id.StartsWith("p_"), man = System.Array.IndexOf(Men, id) >= 0;
         if (!helper && !man) return;
         bool skin = file.StartsWith("body") || file.StartsWith("head");
         ((TextureImporter)assetImporter).maxTextureSize = man ? (skin ? 2048 : 1024) : (skin ? 1024 : 512);
     }
-    public override uint GetVersion() { return 4; }
+    public override uint GetVersion() { return 5; }
 }

@@ -1,0 +1,32 @@
+{
+ "id": "f_flats",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.4977,
+    0.3016,
+    0.1553
+   ],
+   "lum": 0.3435,
+   "zmin": 0.011,
+   "zmax": 0.056,
+   "xmax": 0.203,
+   "tris": 57600
+  }
+ ]
+}

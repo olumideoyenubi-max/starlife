@@ -1,0 +1,32 @@
+{
+ "id": "f_wideleg",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.9401,
+    0.9055,
+    0.8423
+   ],
+   "lum": 0.9101,
+   "zmin": 0.052,
+   "zmax": 1.033,
+   "xmax": 0.197,
+   "tris": 2674
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+ "id": "f_sixties",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "dress",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "dress.png",
+   "normal": "dress_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.1482,
+    0.2354,
+    0.1506
+   ],
+   "lum": 0.1996,
+   "zmin": 0.63,
+   "zmax": 1.428,
+   "xmax": 0.325,
+   "tris": 2904
+  }
+ ]
+}

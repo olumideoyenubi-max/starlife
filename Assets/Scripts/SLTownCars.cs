@@ -168,9 +168,11 @@ public partial class SLApp {
     }
 
     // ---------------------------------------------------------------- traffic
+    bool trafficPaused, showCam;
     void TickTraffic(float dt) {
         foreach (var c in cars) {
             if (!c.traffic) continue;
+            if (trafficPaused) { c.v = Mathf.MoveTowards(c.v, 0, dt * 10); MoveCar(c, dt); continue; }
             if (c.path.Count == 0) {
                 if (c.holds >= 0 && junctionHeld.TryGetValue(c.holds, out var h) && h == c) junctionHeld.Remove(c.holds); c.holds = -1;
                 // at the stop line: wait for the junction, then turn into the next road

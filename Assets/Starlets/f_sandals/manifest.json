@@ -1,0 +1,32 @@
+{
+ "id": "f_sandals",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.6338,
+    0.5829,
+    0.5033
+   ],
+   "lum": 0.5889,
+   "zmin": 0.011,
+   "zmax": 0.133,
+   "xmax": 0.203,
+   "tris": 1384
+  }
+ ]
+}

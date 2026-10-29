@@ -239,6 +239,7 @@ public partial class SLApp {
     }
     void StepPerson(TP pp, float dt, float gm) {
         var mo = pp.mo;
+        if (pp.state == "watch") { pp.speed = 0; Place(pp); return; }      // watching the fashion show
         if (pp.state == "inside") { pp.timer -= gm; if (pp.timer <= 0 && !(Hour >= 2 && Hour < 7)) SendTo(pp, ChooseDest(pp)); return; }
         if (pp.state == "talk") { pp.speed = 0; pp.ry = Turn(pp.ry, Mathf.Atan2(player.pos.x - pp.pos.x, player.pos.z - pp.pos.z), dt * 6); mo.pose = pp.waveT > 0 ? "wave" : "stand"; pp.waveT -= dt; }
         else if (pp.state == "follow") {
@@ -354,7 +355,7 @@ public partial class SLApp {
             if (pp.visible != vis) { pp.visible = vis; pp.go.gameObject.SetActive(vis); }
             if (vis) { pp.mo.talking = pp.state == "talk"; pp.mo.Animate(dt, pp.state == "sit" ? 0 : pp.speed); }
         }
-        if (driving != null) UpdateCarCamera(dt); else { UpdateCamera(dt); tcam.fieldOfView = Mathf.Lerp(tcam.fieldOfView, 55, dt * 3); }
+        if (showCam) { } else if (driving != null) UpdateCarCamera(dt); else { UpdateCamera(dt); tcam.fieldOfView = Mathf.Lerp(tcam.fieldOfView, 55, dt * 3); }
         town.SetHour(Hour, SLTownWorld.W(player.pos.x, player.pos.y, player.pos.z)); if (tone != null) tone.exposure = town.Exposure;
         UpdateTags();
         near = FindNear();
@@ -529,6 +530,7 @@ public partial class SLApp {
             var act = a; opts.Add(new Opt { label = S(Get(a, "label")), note = note, disabled = !ok, run = () => DoActivity(p, act) });
         }
         if (p.id == "home") opts.AddRange(GarageOptions());
+        if (p.id == "hall") opts.Insert(0, new Opt { label = "Fashion Week: show your own collection", note = h >= 17 && h < 23 ? "four looks · a runway · the critics" : "5 PM – 11 PM", accent = h >= 17 && h < 23, disabled = !(h >= 17 && h < 23), run = OpenFashionWeek });
         if (p.id == "galleria") foreach (var q in town.places.Where(q => q.mall)) { var qq = q; opts.Add(new Opt { label = q.name, note = q.sub, run = () => { CloseCard(); SetWaypoint(new Waypoint { name = qq.name, x = qq.x, z = qq.z }); } }); }
         if (open && (p.hangout || new[] { "cafe", "bar", "park", "house" }.Contains(p.id))) {
             var pals = Pals(p);
@@ -765,7 +767,7 @@ public partial class SLApp {
             if (pp.crowd) continue;
             if (pp.tag == null) { pp.tag = El("t-tag", L(pp.First, "t-tagname"), L(pp.role, "t-tagsub")); pp.tag.pickingMode = PickingMode.Ignore; foreach (var c in pp.tag.Children()) c.pickingMode = PickingMode.Ignore; tagLayer.Add(pp.tag); }
             float d = D(pp, player); var w = SLTownWorld.W(pp.pos.x, pp.pos.y + 2.12f * pp.look.height, pp.pos.z); var s = tcam.WorldToScreenPoint(w);
-            bool show = pp.visible && d < 14 && d > 2.6f && busy == null && s.z > 0 && pnl != null;
+            bool show = pp.visible && d < 14 && d > 2.6f && busy == null && !showRunning && s.z > 0 && pnl != null;
             pp.tag.style.display = show ? DisplayStyle.Flex : DisplayStyle.None; if (!show) continue;
             var pos = RuntimePanelUtils.ScreenToPanel(pnl, new Vector2(s.x, Screen.height - s.y));
             pp.tag.style.left = pos.x - 60; pp.tag.style.top = pos.y - 34; pp.tag.style.opacity = Mathf.Clamp01((14 - d) / 4);

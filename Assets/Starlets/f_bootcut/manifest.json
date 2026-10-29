@@ -1,0 +1,32 @@
+{
+ "id": "f_bootcut",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.1565,
+    0.1552,
+    0.2086
+   ],
+   "lum": 0.1617,
+   "zmin": 0.023,
+   "zmax": 1.046,
+   "xmax": 0.241,
+   "tris": 5708
+  }
+ ]
+}

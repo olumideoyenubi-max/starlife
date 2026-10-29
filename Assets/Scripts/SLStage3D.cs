@@ -304,7 +304,7 @@ public sealed class SLStage3D {
     static Color? GenHair(string id) => id != null && (GenHairHex.TryGetValue(id, out var h) || id.StartsWith("m_") && GenHairHex.TryGetValue("manbase", out h)) ? H(h) : (Color?)null;
     public static bool IsMale(string id) => id != null && (MenIds.Contains(id) || id.StartsWith("m_"));
     /// <summary>Avatars that are only there to lend clothes (and the town's passers-by): not offered as faces or outfits.</summary>
-    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_");
+    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_") || id.StartsWith("f_");
     static readonly Dictionary<string, Color> ToneOf = new Dictionary<string, Color> {   // skin tones of the one-piece avatars
         { "aria", new Color(0.93f, 0.76f, 0.66f) }, { "mina", new Color(0.90f, 0.73f, 0.63f) }, { "luz", new Color(0.70f, 0.50f, 0.39f) } };
     static readonly Dictionary<string, Color> HairDye = new Dictionary<string, Color> {  // hairstyles whose own texture is only a pale strand pattern
@@ -386,7 +386,10 @@ public sealed class SLStage3D {
         Add(t, u, "hips", tone, null, 0.007f, true, 0, bottomOn ? Hidden : Skin);
         // her underwear is always on; under clothes it steps well back, so it only shows where nothing covers it
         string bra = L.bra == "bandeau" ? "bra" : L.bra == "tank" ? "tank" : null;
-        if (bra != null && !topOn) Add(t, u, bra, under); else Add(t, b, "top", under, null, 0, false, 0, topOn ? Hidden : 0);
+        // the refitted garments (f_*) have real necklines, halters and plunges: no underwear top under them
+        bool realTop = plan.Exists(g => g.donor.StartsWith("f_") && (g.slot == "top" || g.slot == "dress" || g.slot == "outer"));
+        if (realTop) { }
+        else if (bra != null && !topOn) Add(t, u, bra, under); else Add(t, b, "top", under, null, 0, false, 0, topOn ? Hidden : 0);
         Add(t, u, L.pants == "shorts" && !bottomOn ? "shorts" : "briefs", under, null, bottomOn ? 0.006f : 0, false, 0, bottomOn ? Hidden : 0);
         foreach (var g in plan) {
             // a top or jacket hangs over a bottom, so where the two lie together the bottom gives way

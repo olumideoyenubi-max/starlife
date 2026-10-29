@@ -1,0 +1,32 @@
+{
+ "id": "f_tank",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.2734,
+    0.1293,
+    0.4369
+   ],
+   "lum": 0.2076,
+   "zmin": 0.919,
+   "zmax": 1.428,
+   "xmax": 0.173,
+   "tris": 62624
+  }
+ ]
+}

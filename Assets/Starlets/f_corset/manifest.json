@@ -1,0 +1,32 @@
+{
+ "id": "f_corset",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.616,
+    0.432,
+    0.3728
+   ],
+   "lum": 0.4802,
+   "zmin": 1.001,
+   "zmax": 1.304,
+   "xmax": 0.148,
+   "tris": 1756
+  }
+ ]
+}

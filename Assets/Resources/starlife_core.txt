@@ -2622,6 +2622,35 @@ reward = function (coins, fame) {
   ['oxfords', 'Oxford Shoes', 'shoes', 'men', 'flats', '#3b2418', 60, ['office', 'chic', 'glam']],
   ['loafers', 'Loafers', 'shoes', 'men', 'flats', '#7a4a2a', 50, ['chic', 'casual']],
   ['cap', 'Baseball Cap', 'hat', 'men', 'beanie', '#2f5d8c', 20, ['casual', 'sport']],
+  // Ankara & Prints: the fabric keeps its print in 3D (Tools/blender/make_fashion.py)
+  ['ankaramaxi', 'Ankara Maxi Dress', 'dress', 'prints', 'gown', '#e0782f', 160, ['glam', 'summer', 'chic']],
+  ['ankaracorset', 'Ankara Corset', 'top', 'prints', 'corset', '#c8344a', 90, ['night', 'chic', 'edgy']],
+  ['leopardcami', 'Leopard Silk Cami', 'top', 'prints', 'cami', '#c9a24a', 70, ['night', 'chic']],
+  ['silkcarre', 'Silk Carré Blouse', 'top', 'prints', 'blouse', '#f1e6d2', 95, ['office', 'chic']],
+  ['discotop', 'Disco Top', 'top', 'prints', 'cami', '#b9bcc2', 75, ['night', 'glam']],
+  ['quilted', 'Quilted Mini Dress', 'dress', 'prints', 'lbd', '#2b3a67', 120, ['winter', 'chic']],
+  // New Season
+  ['haltermaxi', 'Halter Maxi Dress', 'dress', 'season', 'gown', '#a3122e', 140, ['glam', 'redcarpet', 'night']],
+  ['shiftdress', 'Shift Dress', 'dress', 'season', 'lbd', '#f2c6d2', 85, ['office', 'chic']],
+  ['keyholedress', 'Keyhole Dress', 'dress', 'season', 'lbd', '#1f6b4f', 95, ['night', 'chic']],
+  ['sixties', 'Sixties Dress', 'dress', 'season', 'sundress', '#f6c453', 80, ['summer', 'casual']],
+  ['midihalter', 'Halter Midi Dress', 'dress', 'season', 'slip', '#d8c39a', 110, ['glam', 'summer']],
+  ['laceup', 'Lace-up Blouse', 'top', 'season', 'blouse', '#ffffff', 60, ['casual', 'chic']],
+  ['peasant', 'Peasant Blouse', 'top', 'season', 'blouse', '#f4e9d8', 55, ['summer', 'casual']],
+  ['offshoulder', 'Off-shoulder Top', 'top', 'season', 'breton', '#1f1b22', 50, ['night', 'casual']],
+  ['tubetop', 'Tube Top', 'top', 'season', 'cami', '#f07aa8', 35, ['summer', 'night']],
+  ['highneck', 'High-neck Crop', 'top', 'season', 'turtle', '#f2efe8', 40, ['casual', 'edgy']],
+  ['croptop', 'Sleeveless Crop', 'top', 'season', 'tee', '#a98ad6', 30, ['summer', 'casual']],
+  ['vneck', 'V-neck Top', 'top', 'season', 'tee', '#24407a', 35, ['casual', 'office']],
+  ['buttertop', 'Butter Off-shoulder', 'top', 'season', 'breton', '#f3df9a', 65, ['summer', 'chic']],
+  ['sagehalter', 'Sage Halter', 'top', 'season', 'cami', '#a7b89a', 55, ['summer', 'chic']],
+  ['cobalttank', 'Cobalt Tank', 'top', 'season', 'tee', '#2b4fb8', 30, ['casual', 'summer']],
+  ['bootcut', 'Bootcut Jeans', 'bottom', 'season', 'jeans', '#4f6d9a', 60, ['casual']],
+  ['leather', 'Leather Trousers', 'bottom', 'season', 'jeans', '#151418', 120, ['night', 'edgy', 'chic']],
+  ['harem', 'Harem Pants', 'bottom', 'season', 'wide', '#c8a979', 55, ['summer', 'casual']],
+  ['trousers', 'Tailored Trousers', 'bottom', 'season', 'wide', '#3a3f4a', 70, ['office', 'chic']],
+  ['womensuit', 'Tailored Suit', 'dress', 'season', 'lbd', '#1f2a44', 220, ['office', 'chic', 'glam']],
+  ['casualsuit', 'Soft Suit', 'dress', 'season', 'lbd', '#c8b6e2', 150, ['office', 'casual']],
   // the goth collection (its accessories are made for 3D by Tools/blender/make_goth.py)
   ['gothgown', 'Fallen Angel Gown', 'dress', 'goth', 'gown', '#18151a', 110, ['goth', 'glam', 'night']],
   ['gothcoat', 'Midnight Trench', 'outer', 'goth', 'trench', '#18151a', 85, ['goth', 'winter', 'edgy']],
@@ -2641,7 +2670,7 @@ reward = function (coins, fame) {
   var it = Object.assign({}, ITEM[e[4]], { id: e[0], name: e[1], slot: e[2], cat: e[3], color: e[5], group: '' });
   ITEMS.push(it); ITEM[it.id] = it; PRICES[it.id] = e[6]; TAGS[it.id] = e[7];
 });
-TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear';
+TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.prints = 'Ankara & Prints'; TAG_LABEL.season = 'New Season';
 // the artifact's menswear goes under the Menswear tab of the wardrobe and the shop
 ['shirt', 'polo', 'hoodie', 'chinos', 'suitpants', 'suit', 'tux', 'tie', 'bowtie', 'oxfords', 'loafers', 'cap'].forEach(function (id) { if (ITEM[id]) ITEM[id].cat = 'men'; }); TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
 ['corset', 'biker', 'choker', 'kneeboots', 'ankleboots', 'lbd', 'crossbody'].forEach(function (id) { if (TAGS[id]) TAGS[id].push('goth'); });   // older pieces that suit the look

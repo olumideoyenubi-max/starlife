@@ -150,6 +150,17 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
   between arm and body by distance from the arm bones, and a corrective smooth irons out the shoulders once the arms
   are lowered (all in `make_men.py`).
 - **Size:** starlet and hair models use Medium mesh compression (`SLModelImport.cs`) and the Mac build LZ4HC.
+- **Cars** (`SLTownCars.cs`): `Tools/blender/make_cars.py` turns the Generic passenger car pack (CC-BY) into ten models
+  plus a limousine (`Resources/Cars`, wheels that turn and steer, paint recoloured in the game). Parked cars stand where
+  the web town had its boxes (`export.js` drops those); traffic drives the road grid on the right, turns at junctions,
+  keeps its distance and stops for people (the Avenue is car-free). Étoile Motors (north of Central Park's corner) sells
+  them in ten colours after a free test drive; your car waits by your door, others are in the garage (the home card).
+- **Clothes** (`Tools/blender/make_fashion.py`): 41 MPFB garments refitted onto the shared body (olivia), saved as
+  `Assets/Starlets/f_*`: the arms and legs of an MPFB woman are posed onto olivia's joints, the garment is bound to her
+  body and her body is shrink-wrapped onto olivia's. Most tops, trousers, dresses and flat shoes now use them
+  (`SLWardrobe3D.Map`), and two collections were added: Ankara & Prints (prints kept) and New Season.
+- **Fashion Week** (`SLTownFashion.cs`): at the Grand Hall in the evening, pick a theme, four hero pieces (the looks are
+  completed from your wardrobe), and put on a runway show with starlets as models; three critics score it.
 - **Passers-by** (`p_*`, also from `make_men.py`) walk the streets between all the places; they are not in the
   phone's friends list and do not stop to talk.
 - **Controls:** keyboard and mouse; a game controller (left stick walk, right stick look, shoulder buttons or a stick
