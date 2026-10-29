@@ -36,14 +36,14 @@ Shader "Starlife/Starlet" {
         float4x4 _ObjToActor, _ActorToObj; float4 _Shape, _Shape2; float _Shaped;
         float bell (float v, float c, float w) { float d = (v - c) / w; return exp(-d * d); }
         float3 Reshape (float3 p) {          // p in metres: x across, y up from the floor, z to her front
-            float w = _Shape.x, m = _Shape.y, sh = _Shape.z, hp = _Shape.w, bu = _Shape2.x, lg = _Shape2.y, hd = _Shape2.z;
+            float w = _Shape.x, m = _Shape.y, sh = _Shape.z, hp = _Shape.w, bu = _Shape2.x, lg = _Shape2.y, hd = _Shape2.z, bm = _Shape2.w;
             float side = p.x < 0 ? -1.0 : 1.0, ax = abs(p.x), y = p.y;
             float bnd = lerp(0.208, 0.158, smoothstep(1.0, 1.3, y));                                   // where the torso ends and an arm begins
             float arm = smoothstep(bnd - 0.012, bnd + 0.012, ax) * smoothstep(0.70, 0.78, y) * (1 - smoothstep(1.46, 1.52, y));
             float head = smoothstep(1.455, 1.50, y);
             float leg = (1 - smoothstep(0.86, 0.97, y)) * (1 - arm), torso = smoothstep(0.86, 0.97, y) * (1 - head) * (1 - arm);
             float belly = bell(y, 1.07, 0.16), chest = smoothstep(1.2, 1.36, y), hips = bell(y, 0.95, 0.11), thigh = smoothstep(0.15, 0.75, y);
-            float kx = 1 + w * (0.10 + 0.07 * belly) + m * 0.07 * chest + sh * 0.10 * smoothstep(1.26, 1.42, y) + hp * 0.13 * hips;
+            float kx = 1 + w * (0.10 + 0.07 * belly) + m * 0.07 * chest + sh * 0.10 * smoothstep(1.26, 1.42, y) + hp * 0.13 * hips + bu * 0.035 * bell(y, 1.29, 0.08) + bm * 0.05 * hips;
             float kz = 1 + w * (0.16 + 0.16 * belly) + m * 0.05 * chest + hp * 0.10 * hips;
             float3 qt = float3(p.x * kx, p.y, p.z * kz);
             float kl = 1 + w * (0.08 + 0.10 * thigh) + m * (0.05 + 0.09 * thigh) + hp * 0.08 * smoothstep(0.6, 0.9, y), lx = side * 0.092;      // each leg about its own axis
@@ -53,7 +53,9 @@ Shader "Starlife/Starlet" {
             float ka = 1 + w * 0.10 + m * (0.22 - 0.08 * t), carry = 0.17 * (w * 0.10 + m * 0.07 + sh * 0.10);
             float3 qa = float3(axx + (p.x - axx) * ka + side * carry, p.y, axz + (p.z - axz) * ka);
             q = lerp(q, qa, arm);
-            q.z += bu * 0.03 * bell(y, 1.30, 0.06) * bell(ax, 0.07, 0.07) * step(0.0, p.z) * (1 - arm) * (1 - head);
+            q.z += bu * 0.055 * bell(y, 1.295, 0.065) * bell(ax, 0.075, 0.075) * smoothstep(-0.01, 0.03, p.z) * (1 - arm) * (1 - head);     // bust: fuller at the front
+            q.y -= max(bu, 0) * 0.012 * bell(y, 1.27, 0.05) * smoothstep(0.0, 0.04, p.z) * (1 - arm);                                     // and sitting a little lower when bigger
+            q.z -= bm * 0.065 * bell(y, 0.90, 0.085) * bell(ax, 0.08, 0.075) * (1 - smoothstep(-0.02, 0.03, p.z)) * (1 - arm);           // bum: rounder at the back
             float3 neck = float3(0, 1.47, 0); q = lerp(q, neck + (q - neck) * (1 + hd * 0.08), head);
             float hipY = 0.93; q.y = q.y < hipY ? q.y * (1 + lg * 0.07) : q.y + hipY * lg * 0.07;         // longer or shorter legs
             return q;

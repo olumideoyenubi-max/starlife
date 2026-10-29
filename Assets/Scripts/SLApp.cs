@@ -109,8 +109,8 @@ public partial class SLApp : MonoBehaviour {
     void Start() {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         var args = Environment.GetCommandLineArgs();
-        for (int i = 0; i < args.Length - 1; i++) if (args[i] == "-slshots") shotsDir = args[i + 1];
-        string save = shotsDir != null ? "starlife-shots.json" : "starlife-save.json";
+        for (int i = 0; i < args.Length - 1; i++) if (args[i] == "-slshots") shotsDir = args[i + 1]; else if (args[i] == "-sltown") { shotsDir = args[i + 1]; townTour = true; }
+        string save = townTour ? "starlife-town-shots.json" : shotsDir != null ? "starlife-shots.json" : "starlife-save.json";
         if (shotsDir != null) { Directory.CreateDirectory(shotsDir); File.Delete(Path.Combine(Application.persistentDataPath, save)); }
         Application.targetFrameRate = 60;
 
@@ -132,7 +132,7 @@ public partial class SLApp : MonoBehaviour {
         SetView("home");
         if (shotsDir != null || PlayerPrefs.GetInt("sl3d", 1) == 1) Set3D(true, false);
         if (!profile.hasSave || !profile.guideSeen) OpenPicker();
-        if (shotsDir != null) StartCoroutine(Shots());
+        if (shotsDir != null) StartCoroutine(townTour ? TownShots() : Shots());
     }
 
     // One layout for wide screens (desktop, web, landscape tablets) and a narrow one for upright phones.
@@ -154,11 +154,12 @@ public partial class SLApp : MonoBehaviour {
     void Update() {
         Fit();
         SLArt.Pump();
-        if (dirty) { dirty = false; Reload(); RefreshView(); }
+        if (dirty) { dirty = false; Reload(); if (!inTown) RefreshView(); }
+        if (inTown) { TickTown(); return; }
         Tick3D(); TickSalon(); TickGym(); TickMakeup();
     }
-    void OnApplicationPause(bool p) { if (p) core?.Flush(); }
-    void OnApplicationQuit() { core?.Flush(); }
+    void OnApplicationPause(bool p) { if (p) { if (inTown) SaveLife(); core?.Flush(); } }
+    void OnApplicationQuit() { if (inTown) SaveLife(); core?.Flush(); }
     void LateUpdate() { if (Time.frameCount % 120 == 0) core?.Flush(); }
 
     void Reload() {
@@ -191,6 +192,7 @@ public partial class SLApp : MonoBehaviour {
             string v = id; navBtns[id] = B(label, null, () => SetView(v)); nav.Add(navBtns[id]);
             var pane = El("view"); views[id] = pane; page.Add(pane);
         }
+        var goOut = B("GO OUT ✦", "goout", GoOut); nav.Add(goOut);      // Starlife Town (SLTown.cs)
         root.Add(page);
         BuildHome(views["home"]); BuildSuite(views["suite"]); BuildParlor(views["parlor"]); BuildSalon(views["salon"]); BuildGym(views["gym"]); BuildCareer(views["career"]); BuildEvents(views["events"]); BuildShop(views["shop"]); BuildContests(views["contests"]); BuildAlbum(views["album"]);
         overlayHost = El(null); overlayHost.style.position = Position.Absolute; overlayHost.style.left = overlayHost.style.top = overlayHost.style.right = overlayHost.style.bottom = 0;
@@ -325,9 +327,9 @@ public partial class SLApp : MonoBehaviour {
         Dump(new Look3 { id = "charlotte", signature = false, underwear = C("#a9c6ef"), bra = "tank" }, "full", 400, 820, "life-2-underwear-tank");
         Dump(new Look3 { id = "lina", body = "jenny", height = 1.06f, hair = "h:boxbraids" }, "full", 400, 820, "life-3-custom");
         float[][] builds = { new float[] { 0, 0, 0, 0, 0, 0, 0 }, new float[] { -0.7f, 0, -0.2f, -0.4f, -0.3f, 0.2f, 0 }, new float[] { 1, 0, 0.3f, 0.8f, 0.6f, -0.1f, 0 }, new float[] { 0.2f, 1, 1, 0.2f, 0.2f, 0, -0.2f },
-            new float[] { 0.35f, 0, 0, 0.9f, 0.8f, 0, 0 }, new float[] { -0.5f, 0.1f, 0.1f, -0.2f, -0.1f, 0.8f, -0.3f } };
+            new float[] { 0.35f, 0, 0, 0.9f, 0.8f, 0, 0 }, new float[] { -0.5f, 0.1f, 0.1f, -0.2f, -0.1f, 0.8f, -0.3f }, new float[] { -0.15f, 0.1f, 0.1f, 1.4f, 1.4f, 0.1f, 0, 1.4f } };
         for (int k = 0; k < builds.Length; k++) foreach (var (tag, wear) in new[] { ("under", ""), ("dressed", "tee,jeans,sneakers"), ("dress", "lbd,pumps") }) foreach (int yaw in new[] { 0, 90 }) {
-            var look = new Look3 { id = "lucy", signature = false, underwear = C("#f4c7d3") }; Array.Copy(builds[k], look.shape, 7);
+            var look = new Look3 { id = "lucy", signature = false, underwear = C("#f4c7d3") }; Array.Copy(builds[k], look.shape, builds[k].Length);
             if (wear != "") foreach (var id in wear.Split(',')) look.worn.Add((itemById[id].slot, id, C(itemById[id].color)));
             Dump(look, "full", 400, 820, "build-" + k + "-" + tag + "-" + yaw.ToString("00"), yaw);
         }

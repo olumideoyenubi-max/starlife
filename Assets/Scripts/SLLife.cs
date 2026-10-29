@@ -14,12 +14,14 @@ public partial class SLApp {
     static string Today => DateTime.Now.ToString("yyyyMMdd");
     static string Json(IEnumerable<string> ids) => "[" + string.Join(",", new List<string>(ids).ConvertAll(s => "\"" + s + "\"")) + "]";
 
+    /// <summary>How far each build control goes: hips, bust and bum can go well past "as she came" for a curvy figure.</summary>
+    static float ShapeMax(int i) => i == 3 || i == 4 || i == 7 ? 1.6f : 1f;
     /// <summary>A starlet as she has been set up in the avatar studio and the salon, in her signature outfit.</summary>
     Look3 SigLook(string sid) {
         string face = core.Pref("face." + sid, sid == "custom" ? "lina" : sid), body = core.Pref("body." + sid, sid == "custom" ? "jenny" : sid);
         if (stage3d != null && !stage3d.Has(face)) face = "aria";
         var L = new Look3 { id = face, body = body == face ? null : body, height = Num(core.Pref("height." + sid, "1")) };
-        var sv = core.Pref("shape." + sid, "").Split(','); for (int i = 0; i < L.shape.Length && i < sv.Length; i++) L.shape[i] = Mathf.Clamp(Num(sv[i], 0), -1, 1);
+        var sv = core.Pref("shape." + sid, "").Split(','); for (int i = 0; i < L.shape.Length && i < sv.Length; i++) L.shape[i] = Mathf.Clamp(Num(sv[i], 0), -1, ShapeMax(i));
         string h = Hair3D(sid); L.hair = h == "" ? null : h;
         WearMakeup(L, sid);
         return L;
@@ -231,9 +233,27 @@ public partial class SLApp {
         core.SetPref("gym." + Today, (done + 1).ToString());
         int used = (int)Num(core.Pref("shifts." + Today, "0"), 0); bool back = used > 0; if (back) core.SetPref("shifts." + Today, (used - 1).ToString());
         core.Call("earn", 0d, (double)fame); gymJump = Time.time;
-        gymResult = name + " done: +" + fame + " fame" + (back ? ", and she has the energy for another shift at work." : ".");
+        // training shapes her: cardio slims, weights build muscle, yoga a little of both
+        string body = name == "Cardio" ? BodyChange(Av, -0.06f, 0.01f) : name == "Weights" ? BodyChange(Av, -0.02f, 0.05f) : BodyChange(Av, -0.03f, 0.02f);
+        gymResult = name + " done: +" + fame + " fame" + (back ? ", and she has the energy for another shift at work." : ".") + body;
         dirty = true;
     }
+    /// <summary>Food and exercise change her build a little at a time (weight -1..1, muscle 0..1, as in the avatar studio).
+    /// Returns a few words about it, or "" when nothing showed.</summary>
+    string BodyChange(string sid, float dWeight, float dMuscle) {
+        var sv = core.Pref("shape." + sid, "").Split(','); var sh = new float[8];
+        for (int i = 0; i < sh.Length && i < sv.Length; i++) sh[i] = Num(sv[i], 0);
+        float w0 = sh[0], m0 = sh[1];
+        sh[0] = Mathf.Clamp(sh[0] + dWeight, -1, 1); sh[1] = Mathf.Clamp(sh[1] + dMuscle, 0, 1);
+        if (sh[0] == w0 && sh[1] == m0) return "";
+        core.SetPref("shape." + sid, string.Join(",", Array.ConvertAll(sh, v => v.ToString("0.###", CultureInfo.InvariantCulture)))); dirty = true;
+        bodyDirty = true;
+        if (dWeight < 0 && sh[1] > m0) return " She looks leaner and more toned.";
+        if (dWeight < 0) return " She looks a little slimmer.";
+        if (dWeight > 0) return " She has filled out a little.";
+        return " She looks more toned.";
+    }
+    bool bodyDirty;
     void TickGym() {
         if (!On3 || view != "gym" || gymW < 16 || picker.ClassListContains("on")) return;
         float lift = 0; if (gymJump >= 0) { float t = Time.time - gymJump; if (t > 2.4f) gymJump = -1; else lift = Mathf.Abs(Mathf.Sin(t * 8f)) * 0.11f; }
@@ -271,14 +291,14 @@ public partial class SLApp {
         b.Add(fits);
         // her build: sliders, and a few ready-made builds to start from
         b.Add(L("Build", "h3")); b.Add(L("Height, weight, muscle and proportions. Her clothes change shape with her. Press Full length under the mirror to see all of her.", "muted"));
-        string[] names = { "Weight", "Muscle", "Shoulders", "Hips", "Bust", "Leg length", "Head size" };
+        string[] names = { "Weight", "Muscle", "Shoulders", "Hips", "Bust", "Leg length", "Head size", "Bum" };
         float[] cur = SigLook(me).shape; float height = Num(core.Pref("height." + me, "1"));
         void Save() { core.SetPref("shape." + me, string.Join(",", Array.ConvertAll(cur, v => v.ToString("0.###", CultureInfo.InvariantCulture)))); core.SetPref("height." + me, height.ToString("0.###", CultureInfo.InvariantCulture)); dirty = true; }
         var presets = El("row");
         foreach (var (label, h, v) in new[] { ("As she came", 1f, new float[] { 0, 0, 0, 0, 0, 0, 0 }), ("Petite", 0.93f, new float[] { -0.3f, 0, -0.2f, -0.1f, -0.2f, -0.3f, 0.3f }), ("Slim", 1f, new float[] { -0.7f, 0, -0.2f, -0.4f, -0.3f, 0.2f, 0 }),
-                ("Tall model", 1.08f, new float[] { -0.5f, 0.1f, 0.1f, -0.2f, -0.1f, 0.8f, -0.3f }), ("Athletic", 1.02f, new float[] { -0.1f, 0.55f, 0.4f, 0, 0, 0.2f, 0 }), ("Curvy", 1f, new float[] { 0.35f, 0, 0, 0.9f, 0.8f, 0, 0 }),
-                ("Bodybuilder", 1.03f, new float[] { 0.2f, 1f, 1f, 0.2f, 0.2f, 0, -0.2f }), ("Plus size", 1f, new float[] { 1f, 0, 0.3f, 0.8f, 0.6f, -0.1f, 0 }) }) {
-            float hh = h; var vv = v; presets.Add(B(label, "chip", () => { height = hh; Array.Copy(vv, cur, cur.Length); Save(); RefreshParlorPanel(); }));
+                ("Tall model", 1.08f, new float[] { -0.5f, 0.1f, 0.1f, -0.2f, -0.1f, 0.8f, -0.3f }), ("Athletic", 1.02f, new float[] { -0.1f, 0.55f, 0.4f, 0, 0, 0.2f, 0 }), ("Curvy", 1f, new float[] { 0.3f, 0, 0, 1.1f, 1.1f, 0, 0, 1.1f }), ("Hourglass", 1.01f, new float[] { -0.15f, 0.1f, 0.1f, 1.4f, 1.4f, 0.1f, 0, 1.4f }),
+                ("Bodybuilder", 1.03f, new float[] { 0.2f, 1f, 1f, 0.2f, 0.2f, 0, -0.2f }), ("Plus size", 1f, new float[] { 1f, 0, 0.3f, 0.9f, 0.9f, -0.1f, 0, 0.9f }) }) {
+            float hh = h; var vv = v; presets.Add(B(label, "chip", () => { height = hh; Array.Clear(cur, 0, cur.Length); Array.Copy(vv, cur, Mathf.Min(vv.Length, cur.Length)); Save(); RefreshParlorPanel(); }));
         }
         b.Add(presets);
         VisualElement Bar(string label, float min, float max, float value, Action<float> set) {
@@ -286,6 +306,6 @@ public partial class SLApp {
             var row = El("row", sl); row.style.flexWrap = Wrap.NoWrap; return Field(label, row);
         }
         b.Add(Bar("Height", 0.88f, 1.12f, height, v => height = v));
-        for (int k = 0; k < names.Length; k++) { int kk = k; b.Add(Bar(names[k], k == 1 ? 0 : -1, 1, cur[k], v => cur[kk] = v)); }
+        for (int k = 0; k < names.Length; k++) { int kk = k; b.Add(Bar(names[k], k == 1 ? 0 : -1, ShapeMax(k), cur[k], v => cur[kk] = v)); }
     }
 }

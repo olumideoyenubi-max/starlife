@@ -19,3 +19,4 @@ __pycache__/
 # Blender backups
 *.blend1
 .DS_Store
+Tools/town/.build/

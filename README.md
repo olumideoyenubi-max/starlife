@@ -106,6 +106,39 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
 - The MCP for Blender add-on fetches Sketchfab and Poly Haven models once a Sketchfab API key is entered in its settings.
 - Most of the art is CC-BY (see `Art3D/Credits.md`): credit the authors wherever the game is shared.
 
+## Starlife Town (GO OUT ✦)
+
+**GO OUT ✦** in the main menu walks your starlet out of the suite into the web game's 3D town (the artifact's
+`world.html`, Oct 2026). WASD or the arrows walk, Shift runs, drag to look, the wheel zooms, **E** interacts,
+**M** opens the phone, **My suite** goes home.
+
+- **The streets** are the web town's own. `node Tools/town/export.js` opens `Tools/town/world.html` in headless
+  Chrome with `Tools/town/dump.js` injected, lets it build, and saves the finished scene merged per material and per
+  48 m cell (`Resources/Town/towngeo.bytes`, about 315,000 triangles in 474 meshes), its 210 materials and 180 painted
+  canvas textures (`Resources/Town/Tex`: facades, shopfronts, signs, posters, interiors, ground), and all gameplay data
+  (`towndata.json`: 30 places, 118 seats, colliders, platforms, the walking graph, 293 street lamps, the activity,
+  boutique, café and conversation tables). To take a newer version of the town, replace `Tools/town/world.html` with
+  the artifact's and run the export again. `SLTownWorld.cs` builds it in Unity (`Resources/SLTown*.shader`: lit,
+  see-through, sky and tone mapping) with the web town's day/night keyframes, sun, sky, fog, lamps and fountain.
+- **The people** are the suite's 3D starlets (you, plus every other starlet with her avatar studio and salon
+  settings). The pieces are baked meshes, so `Tools/blender/rig_export.py` saves each avatar's 22 main joints and her
+  skin weights (`Resources/Rigs/<id>.bytes`), and `SLRig.cs` skins every piece to the joints of the avatar it was cut
+  from (salon hairstyles follow the head). Walking, running, sitting and waving are the web town's procedural motion
+  (`SLRigMotion`). The starlet meshes must stay Read/Write enabled for this.
+- **The life** (`SLTown.cs`): routines and walking routes for the other starlets, places with opening hours and
+  activities, chatting and friendships, hanging out and calling friends over, sitting on benches and terraces,
+  Velvet Avenue's boutiques (bought pieces go into the suite's wardrobe in the brand colour through the core's
+  `wearColor`; menswear is mapped to pieces the starlets can wear), Café Doré with coffee to go, the phone (map,
+  places, friends, speed, skills) and waypoints. Coins, fame and clothes are the suite's; the clock, needs, skills,
+  friendships and bought pieces are kept in the save under `host.town.*`.
+- **Body.** Food eaten in town fills her out a little and exercise (jogging, running, the gym) slims and tones her,
+  through the avatar studio's weight and muscle (`BodyChange` in `SLLife.cs`). The studio's Hips, Bust and the new Bum
+  control go to 1.6 for curvier figures (`Reshape` in `StarletTint.shader`).
+- **Check it:** `Builds/Mac/Starlife.app/Contents/MacOS/Starlife -sltown <dir> -screen-width 1440 -screen-height 900 -screen-fullscreen 0`
+  plays a tour on its own save (`starlife-town-shots.json`) and writes about 30 screenshots.
+- **Not ported:** the web town's anonymous crowd (only named starlets walk about), the five male starlets (no male 3D
+  avatars yet), the graphics-tier and FPS settings, and touch controls.
+
 ## Build and check
 
     Unity -batchmode -quit -projectPath ~/StarLife -executeMethod SLBuild.Setup      # once, creates the scene

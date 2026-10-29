@@ -30,6 +30,7 @@ public sealed class SLStage3D {
         room = Child(root, "Room"); furnRoot = Child(room, "Furniture"); actors = Child(root, "Actors");
         cam = new GameObject("Stage Camera").AddComponent<Camera>(); cam.transform.SetParent(root, false);
         cam.enabled = false; cam.allowHDR = false; cam.clearFlags = CameraClearFlags.SolidColor; cam.nearClipPlane = 1f; cam.farClipPlane = 40f;
+        cam.cullingMask = ~(1 << SLTownWorld.Layer);      // Starlife Town lives on its own layer, with its own sun
         Shader.SetGlobalVector("_HairLight", -(Quaternion.Euler(40, 24, 0) * Vector3.forward));     // where the key light comes from, for hair highlights
         Lamp("Key", new Vector3(40, 24, 0), new Color(1f, 0.97f, 0.93f), 0.80f, true);
         Lamp("Fill", new Vector3(18, -55, 0), new Color(0.93f, 0.95f, 1f), 0.26f, false);
@@ -44,7 +45,7 @@ public sealed class SLStage3D {
     static Transform Child(Transform p, string name) { var t = new GameObject(name).transform; t.SetParent(p, false); return t; }
     void Lamp(string name, Vector3 euler, Color c, float power, bool shadows) {
         var l = new GameObject(name).AddComponent<Light>(); l.transform.SetParent(root, false); l.transform.localEulerAngles = euler;
-        l.type = LightType.Directional; l.color = c; l.intensity = power; l.shadows = shadows ? LightShadows.Soft : LightShadows.None; l.shadowStrength = 0.42f; l.shadowBias = 0.03f;
+        l.type = LightType.Directional; l.cullingMask = ~(1 << SLTownWorld.Layer); l.color = c; l.intensity = power; l.shadows = shadows ? LightShadows.Soft : LightShadows.None; l.shadowStrength = 0.42f; l.shadowBias = 0.03f;
     }
 
     // ---------------------------------------------------------------- room coordinates
@@ -388,12 +389,26 @@ public sealed class SLStage3D {
                 foreach (var r in slots[i].GetComponentsInChildren<Renderer>()) {
                     var m = inv * r.localToWorldMatrix; r.GetPropertyBlock(block);
                     block.SetMatrix("_ObjToActor", m); block.SetMatrix("_ActorToObj", m.inverse); block.SetFloat("_Shaped", 1);
-                    block.SetVector("_Shape", new Vector4(sh[0], sh[1], sh[2], sh[3])); block.SetVector("_Shape2", new Vector4(sh[4], sh[5], sh[6], 0)); r.SetPropertyBlock(block);
+                    block.SetVector("_Shape", new Vector4(sh[0], sh[1], sh[2], sh[3])); block.SetVector("_Shape2", new Vector4(sh[4], sh[5], sh[6], sh[7])); r.SetPropertyBlock(block);
                 }
             }
             slots[i].localPosition = who[i].pos; slots[i].localRotation = Quaternion.Euler(0, Front + who[i].yaw, 0);
             var lk = who[i].look; slots[i].localScale = new Vector3(lk.build * lk.height, lk.height, lk.build * lk.height);
         }
+    }
+
+    /// <summary>A starlet built on her own, for Starlife Town: a new transform under parent holding her pieces, shaped and
+    /// sized like the suite's figures. SLRig.Attach gives her a skeleton.</summary>
+    public Transform Figure(Look3 look, Transform parent, string name) {
+        var t = Child(parent, name); Compose(t, look);
+        var sh = look.shape; var block = new MaterialPropertyBlock(); var inv = t.worldToLocalMatrix;
+        foreach (var r in t.GetComponentsInChildren<Renderer>()) {
+            var m = inv * r.localToWorldMatrix; r.GetPropertyBlock(block);
+            block.SetMatrix("_ObjToActor", m); block.SetMatrix("_ActorToObj", m.inverse); block.SetFloat("_Shaped", 1);
+            block.SetVector("_Shape", new Vector4(sh[0], sh[1], sh[2], sh[3])); block.SetVector("_Shape2", new Vector4(sh[4], sh[5], sh[6], sh[7])); r.SetPropertyBlock(block);
+        }
+        t.localScale = new Vector3(look.build * look.height, look.height, look.build * look.height);
+        return t;
     }
 
     // ---------------------------------------------------------------- cameras and pictures
@@ -602,7 +617,7 @@ public sealed class Look3 {
     public Color? hairColor, underwear; // null: as it comes
     public Color skinTint = Color.white;
     public float height = 1, build = 1; // overall size
-    public readonly float[] shape = new float[7];   // weight, muscle, shoulders, hips, bust, leg length, head size: each -1..1 (0 = as she came)
+    public readonly float[] shape = new float[8];   // weight, muscle, shoulders, hips, bust, leg length, head size, bum: about -1..1 (0 = as she came; hips, bust and bum go to 1.6)
     public string bra = "halter", pants = "briefs";   // underwear styles
     public Texture2D makeup; public int makeupVer;   // the makeup painted on her face, and how many times it has been changed
     public bool signature = true;       // with nothing on from the wardrobe: her signature outfit (true) or her underwear (false)

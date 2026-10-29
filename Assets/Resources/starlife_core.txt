@@ -2213,6 +2213,8 @@ const SL = {
   earn(coins, fame) { reward(Number(coins) || 0, Number(fame) || 0); },
   grant(idsJson) { JSON.parse(idsJson).forEach(function (id) { if (PRICES[id] && !profile.owned.includes(id)) profile.owned.push(id); }); saveProfile(); },
   takeOff(idsJson) { const ids = JSON.parse(idsJson); let any = false; for (const k of Object.keys(state.outfit)) if (ids.includes(state.outfit[k])) { state.outfit[k] = null; any = true; } if (any) update(true); },
+  // Starlife Town's boutiques: a piece bought in store goes into the wardrobe and on, in the brand's colour
+  wearColor(id, color) { if (!ITEM[id]) return; if (!profile.owned.includes(id)) { profile.owned.push(id); saveProfile(); } wearOn(state, id); if (color) state.colors[id] = color; update(true); },
   rename(name) { const x = STARLETS.find(v => v.id === 'custom'); if (x && name) x.name = String(name); },
   // ---- art ----
   doll(vb) { UID = 0; return renderDoll(state, { vb: vb || '0 0 400 820' }); },
