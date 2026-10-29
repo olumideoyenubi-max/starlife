@@ -392,8 +392,9 @@ public sealed class SLStage3D {
         else if (bra != null && !topOn) Add(t, u, bra, under); else Add(t, b, "top", under, null, 0, false, 0, topOn ? Hidden : 0);
         Add(t, u, L.pants == "shorts" && !bottomOn ? "shorts" : "briefs", under, null, bottomOn ? 0.006f : 0, false, 0, bottomOn ? Hidden : 0);
         foreach (var g in plan) {
+            // mary's knee boots were made for a slimmer calf: eased outward so the shared body's leg stays inside
             // a top or jacket hangs over a bottom, so where the two lie together the bottom gives way
-            Add(t, "Starlets/" + g.donor, g.part, Dye(g), null, 0, false, 0, g.part == "fishnets" ? 34000 : g.slot == "bottom" && topOn && g.donor != "goth" ? 20000 : 0, SLWardrobe3D.IsClothing(g.slot) && g.slot != "shoes" && !(g.donor == "lina" && g.part == "bottom"));   // that skirt's two-colour print dyes badly: one colour   // tights sit under the skirt   // shoes and frames take the dye whole; clothes keep their trims
+            Add(t, "Starlets/" + g.donor, g.part, Dye(g), null, g.donor == "mary" && g.part == "shoes" ? -0.008f : 0, false, 0, g.part == "fishnets" ? 34000 : g.slot == "bottom" && topOn && g.donor != "goth" ? 20000 : 0, SLWardrobe3D.IsClothing(g.slot) && g.slot != "shoes" && !(g.donor == "lina" && g.part == "bottom"));   // that skirt's two-colour print dyes badly: one colour   // tights sit under the skirt   // shoes and frames take the dye whole; clothes keep their trims
             if (g.part == "shoes") { shoes = true; Add(t, "Starlets/" + g.donor, "feet", tone, null, 0, true, 0, Skin); }
         }
         if (!shoes) Add(t, b, "feet", tone, null, 0, true);

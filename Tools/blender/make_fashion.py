@@ -71,6 +71,8 @@ SETS = {
     'f_tieredsk': [('toigo_dress_with_tiered_skirt', 'split')],
     'f_sixtiessk': [('elvs_simple_60s_dress', 'split')],
     'f_shiftsk':  [('toigo_shift_dress', 'split')],
+    # a coat: the long-sleeved A-line sixties dress worn whole over the rest, in plain twill
+    'f_trench':   [('elvs_simple_60s_dress', 'outer')],
     # boots
     'f_chelsea':  [('sl_suede_chelsea', 'shoes')],
     'f_workboot': [('toigo_ankle_boots_male', 'shoes')],
@@ -80,7 +82,7 @@ SETS = {
     'f_runners':  [('punkduck_running_shoes_01', 'shoes')],
 }
 # sets whose source print would show through any dye (the dye shades by brightness): their pieces get a plain twill instead
-PLAIN = {'f_sixtiessk'}
+PLAIN = {'f_sixtiessk', 'f_trench'}
 
 def plain_weave(dst, normal, size=1024):
     """A plain 2/2 twill, mid grey, for the game to dye: the colour map (or, with normal=True, its normal map)."""

@@ -38,7 +38,7 @@ public static class SLWardrobe3D {
         // menswear on a woman's figure: the nearest women's pieces (the men wear their own, see MenMap)
         { "shirt", "f_silk" }, { "chinos", "f_trousers" }, { "suitpants", "f_trousers" }, { "suit", "f_blazer:top" }, { "tux", "f_blazer:top" }, { "oxfords", "cute" }, { "loafers", "cute" },
         // jackets and skirts cut at the waist from suits and dresses, and boots (make_fashion.py)
-        { "blazer", "f_blazer:top" }, { "trench", "f_tweed:top" }, { "biker", "f_hoodiejk:outer" }, { "denimjk", "f_hoodiejk:outer" }, { "puffer", "f_hoodiejk:outer" }, { "tracktop", "f_hoodiejk:outer" },
+        { "blazer", "f_blazer:top" }, { "trench", "f_trench:outer" }, { "biker", "f_hoodiejk:outer" }, { "denimjk", "f_hoodiejk:outer" }, { "puffer", "f_hoodiejk:outer" }, { "tracktop", "f_hoodiejk:outer" },
         { "cardigan", "f_monohood:outer" }, { "pencil", "f_blazer:bottom" }, { "pleated", "f_tieredsk:bottom" }, { "mini", "f_sixtiessk:bottom" }, { "tennisskirt", "f_sixtiessk:bottom" },
         { "ankleboots", "f_chelsea" }, { "workboots", "f_workboot" },
         // eyewear: one pair of frames, dyed

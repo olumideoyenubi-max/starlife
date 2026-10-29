@@ -1,0 +1,32 @@
+{
+ "id": "f_trench",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "outer",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "outer.png",
+   "normal": "outer_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "lum": 0.5,
+   "zmin": 0.63,
+   "zmax": 1.433,
+   "xmax": 0.325,
+   "tris": 2904
+  }
+ ]
+}
