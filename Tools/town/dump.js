@@ -124,6 +124,7 @@ window.__export = async () => {
     colliders: colliders.map(c => [c.x0, c.z0, c.x1, c.z1, c.y1 ?? 40]), platforms: platforms.map(p => [p.x0, p.z0, p.x1, p.z1, p.y]),
     nodes: nodes.map(n => [n.x, n.z]), edges: edges.map(e => e.map(([v]) => v)),
     lamps: lampHeads.map(v => [v.x, v.y, v.z]), mannequins: mannequinSpots.map(m => [m[0], m[1], m[2], m[3], m[4] ?? 0.5]), mannequinLooks: MANNEQUIN_LOOKS,
+    parked: (window.__parked || []).map(c => [c[0], c[1], c[2], c[3]]),
     fountains, home: (() => { const h = places.find(p => p.id === 'home'); return [h.x, h.z, h.ry]; })(),
     ACTS, BLURB, LINES, COFFEE, BRANDS, HAUNTS, STARLETS, SKY, SLOT, DECAY, NEEDS,
     meshes, materials: [...mats.values()], textures: [...texs.values()].map(t => ({ id: t.id, repeat: t.repeat, w: t.w, h: t.h })),

@@ -111,6 +111,7 @@ public partial class SLApp {
             var n0 = town.nodes[trng.Next(town.nodes.Count)]; pp.pos = new Vector3(n0.x, 0, n0.y); people.Add(pp);
         }
         Mannequins();
+        SetUpCars();
         ((Label)loading[1]).text = "Turning on the lights…"; yield return null;
         // the town camera and the town's light; the suite's interface steps aside
         mainCam = Camera.main; if (mainCam != null) mainCam.enabled = false;
@@ -136,6 +137,8 @@ public partial class SLApp {
         inTown = false; town.root.gameObject.SetActive(false); tcam.gameObject.SetActive(false); if (mainCam != null) mainCam.enabled = true;
         foreach (var t in people) Destroy(t.go.gameObject); people.Clear(); if (player != null) { Destroy(player.go.gameObject); player = null; }
         foreach (var m in mannequins) Destroy(m.gameObject); mannequins.Clear();
+        if (driving != null) GetOut();
+        foreach (var c in cars) Destroy(c.go.gameObject); cars.Clear(); myCar = testCar = null;
         RenderSettings.fog = savedFog; RenderSettings.skybox = savedSkybox; QualitySettings.shadowDistance = savedShadowDist; QualitySettings.shadowCascades = savedCascades;
         RenderSettings.ambientMode = savedAmbient; RenderSettings.ambientSkyColor = savedSky; RenderSettings.ambientEquatorColor = savedEq; RenderSettings.ambientGroundColor = savedGround;
         Shader.SetGlobalVector("_HairLight", -(Quaternion.Euler(40, 24, 0) * Vector3.forward));
@@ -302,7 +305,7 @@ public partial class SLApp {
         if (player.speed > 0.01f) {
             player.pos.x += Mathf.Sin(player.ry) * player.speed * dt; player.pos.z += Mathf.Cos(player.ry) * player.speed * dt;
             if (player.speed > 3) { runMetres += player.speed * dt; if (runMetres >= 500) { runMetres = 0; ShowToast("Half a kilometre of running." + BodyChange(Me, -0.02f, 0.01f)); if (bodyDirty) { bodyDirty = false; player.look = MyLook(null); Dress(player); } } }
-            var c = town.Collide(new Vector2(player.pos.x, player.pos.z)); player.pos.x = c.x; player.pos.z = c.y;
+            var c = KeepOutOfCars(town.Collide(new Vector2(player.pos.x, player.pos.z)), 0.3f); player.pos.x = c.x; player.pos.z = c.y;
         }
         player.pos.y = Mathf.Lerp(player.pos.y, town.HeightAt(player.pos.x, player.pos.z), 1 - Mathf.Exp(-dt * 14));
         mo.talking = talking != null; mo.Animate(dt, player.speed); Place(player);
@@ -342,7 +345,8 @@ public partial class SLApp {
             if (player.seat != null) { Bump("energy", 0.12f * gm); Bump("fun", 0.12f * gm); if (people.Any(p => !p.crowd && p.seat != null && D(p, player) < 3)) Bump("social", 0.25f * gm); }
         }
         TownInput();
-        UpdatePlayer(dt);
+        if (driving != null) TickDriving(dt); else UpdatePlayer(dt);
+        TickTraffic(dt);
         if (coffeeT > 0) { coffeeT -= gm; if (coffeeT <= 0) { CupOn(player, false); ShowToast("Coffee finished."); } }
         foreach (var pp in people) {
             StepPerson(pp, dt, busy != null ? dt * 30 : gm);
@@ -350,7 +354,7 @@ public partial class SLApp {
             if (pp.visible != vis) { pp.visible = vis; pp.go.gameObject.SetActive(vis); }
             if (vis) { pp.mo.talking = pp.state == "talk"; pp.mo.Animate(dt, pp.state == "sit" ? 0 : pp.speed); }
         }
-        UpdateCamera(dt);
+        if (driving != null) UpdateCarCamera(dt); else { UpdateCamera(dt); tcam.fieldOfView = Mathf.Lerp(tcam.fieldOfView, 55, dt * 3); }
         town.SetHour(Hour, SLTownWorld.W(player.pos.x, player.pos.y, player.pos.z)); if (tone != null) tone.exposure = town.Exposure;
         UpdateTags();
         near = FindNear();
@@ -469,9 +473,11 @@ public partial class SLApp {
     Near FindNear() {
         if (busy != null || modal != null) return null;
         if (player.seat != null) return new Near { kind = "stand", label = "Stand up" };
+        if (driving != null) return Mathf.Abs(driving.v) < 1.5f ? new Near { kind = "getout", label = driving == testCar ? "Bring the car back" : "Get out" } : null;
         Near best = null; float bd = 1e9f;
         foreach (var pp in people) { if (!pp.visible || pp.crowd) continue; float d = D(pp, player); if (d < 2.3f && d < bd) { bd = d; best = new Near { kind = "person", pp = pp, label = "Talk to " + pp.First }; } }
         if (best != null) return best;
+        if (myCar != null && new Vector2(myCar.x - player.pos.x, myCar.z - player.pos.z).magnitude < myCar.Len * 0.5f + 1.4f) return new Near { kind = "car", label = "Drive your " + ModelName(myCar.spec.id) };
         foreach (var s in town.seats) { float d = new Vector2(s.x - player.pos.x, s.z - player.pos.z).magnitude; if (d < 1.1f && d < bd && !SeatTaken(s)) { bd = d; best = new Near { kind = "seat", s = s, label = "Sit down" }; } }
         if (best != null) return best;
         foreach (var p in town.places) { float d = new Vector2(p.x - player.pos.x, p.z - player.pos.z).magnitude; if (d < 2.6f && d < bd) { bd = d; best = new Near { kind = "place", p = p, label = p.name, sub = IsOpen(p) ? p.sub : "Closed now" }; } }
@@ -479,9 +485,11 @@ public partial class SLApp {
     }
     void Interact() {
         if (modal != null || !inTown) return;
+        if (driving != null) { if (near != null && near.kind == "getout") GetOut(); return; }
         if (player.seat != null) { StandUp(); return; }
         var n = near; if (n == null) return;
         if (n.kind == "person") TalkTo(n.pp); else if (n.kind == "seat") SitOn(n.s); else if (n.kind == "place") OpenPlace(n.p);
+        else if (n.kind == "car") GetIn(myCar); else if (n.kind == "getout") GetOut();
     }
     int OutfitScore() {
         var w = player.look.worn; bool Has(string slot, params string[] ids) => w.Any(x => x.slot == slot && ids.Contains(x.item));
@@ -507,6 +515,7 @@ public partial class SLApp {
             OpenBoutique(p); return;
         }
         if (p.id == "dore") { OpenCoffee(p); return; }
+        if (p.id == "motors") { OpenDealer(p); return; }
         float h = Hour; bool open = IsOpen(p, h); var friend = people.FirstOrDefault(x => x.state == "follow");
         var opts = new List<Opt>();
         foreach (var o in A(Get(data_town("ACTS"), p.id))) {
@@ -519,6 +528,7 @@ public partial class SLApp {
             string note = !open ? "closed now" : !InHours(a, h) ? HoursTxt((int)F(hr[0]), (int)F(hr[1])) : cost > 0 ? cost + " coins · " + min + " min" : min + " min";
             var act = a; opts.Add(new Opt { label = S(Get(a, "label")), note = note, disabled = !ok, run = () => DoActivity(p, act) });
         }
+        if (p.id == "home") opts.AddRange(GarageOptions());
         if (p.id == "galleria") foreach (var q in town.places.Where(q => q.mall)) { var qq = q; opts.Add(new Opt { label = q.name, note = q.sub, run = () => { CloseCard(); SetWaypoint(new Waypoint { name = qq.name, x = qq.x, z = qq.z }); } }); }
         if (open && (p.hangout || new[] { "cafe", "bar", "park", "house" }.Contains(p.id))) {
             var pals = Pals(p);

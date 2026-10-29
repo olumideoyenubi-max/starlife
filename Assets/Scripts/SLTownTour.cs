@@ -69,6 +69,27 @@ public partial class SLApp {
         var seat = town.seats.FirstOrDefault(s => s.place == "park"); if (seat != null) { Go("park", 4, 12); SitOn(seat); cam.yaw = seat.ry + 0.5f; cam.dist = 3.5f; cam.cur = 0; yield return Snap("sitting", 40); StandUp(); }
         var friend = people.FirstOrDefault(x => x.state != "inside" && x.male && !x.crowd) ?? people.FirstOrDefault(x => x.state != "inside" && !x.crowd);
         if (friend != null) { var c = town.Collide(new Vector2(friend.pos.x + Mathf.Sin(friend.ry) * 1.6f, friend.pos.z + Mathf.Cos(friend.ry) * 1.6f)); player.pos = new Vector3(c.x, town.HeightAt(c.x, c.y), c.y); player.ry = friend.ry + Mathf.PI; cam.yaw = friend.ry + 1.3f; cam.dist = 4; cam.pitch = 0.12f; cam.cur = 0; yield return null; TalkTo(friend); yield return Snap("talk", 30); CloseCard(); }
+        // cars: the showroom, buying one, driving it, traffic from above, a night drive
+        core.Call("earn", "6000", "0"); profile = core.Get<DProfile>("profile");
+        Go("motors", 6, 11, 0.6f); cam.dist = 10; cam.pitch = 0.25f; yield return Snap("dealer", 40);
+        OpenPlace(PlaceBy("motors")); yield return Snap("dealer-card");
+        DealerModel(PlaceBy("motors"), Models.First(m => m.id == "sport")); yield return Snap("dealer-model");
+        BuyCar(Models.First(m => m.id == "sport"), "#a3122e", "Ruby red"); yield return null;
+        if (myCar != null) {
+            player.pos = new Vector3(myCar.x + 2, 0, myCar.z); cam.cur = 0; yield return Snap("my-car", 20);
+            GetIn(myCar); autoWalk = new Vector2(0, 1);
+            for (float w0 = Time.time; Time.time - w0 < 2.5f;) yield return null; yield return Snap("driving", 2);
+            autoWalk = new Vector2(0.8f, 0.7f); for (float w0 = Time.time; Time.time - w0 < 1.2f;) yield return null; yield return Snap("driving-turn", 2);
+            autoWalk = new Vector2(0, -1); for (float w0 = Time.time; Time.time - w0 < 2f;) yield return null; autoWalk = null; for (float w0 = Time.time; Time.time - w0 < 1f;) yield return null;
+            GetOut(); yield return Snap("parked-mine", 10);
+        }
+        if (roads != null) { player.pos = new Vector3(roads[3] + 7.5f, 0.15f, roads[3] + 7.5f); cam.yaw = 0.8f + Mathf.PI; cam.pitch = 0.62f; cam.dist = 14; cam.cur = 0; lifeMin = Mathf.Floor(lifeMin / 1440) * 1440 + 13 * 60;
+            for (float w0 = Time.time; Time.time - w0 < 3f;) yield return null; yield return Snap("traffic", 2); }
+        if (myCar != null) {
+            lifeMin = Mathf.Floor(lifeMin / 1440) * 1440 + 21.5f * 60; player.pos = new Vector3(myCar.x + 2, 0, myCar.z); GetIn(myCar); autoWalk = new Vector2(0, 1);
+            for (float w0 = Time.time; Time.time - w0 < 2.5f;) yield return null; yield return Snap("driving-night", 2); autoWalk = null;
+            for (float w0 = Time.time; Time.time - w0 < 1.5f;) yield return null; GetOut();
+        }
         // evening and night
         Go("theatre", 9, 18.7f, 0.3f); cam.dist = 8; yield return Snap("theatre-sunset", 30);
         Go("club", 8, 22, 0.4f); cam.dist = 8; yield return Snap("club-night", 30);

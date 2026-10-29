@@ -10,7 +10,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   // a copy of the page with the dump code inside its module, so it can see the town's variables
   const build = path.join(here, '.build'); fs.mkdirSync(build, { recursive: true });
-  const page = fs.readFileSync(path.join(here, 'world.html'), 'utf8');
+  let page = fs.readFileSync(path.join(here, 'world.html'), 'utf8');
+  // the web town's parked cars are boxes: Unity puts real cars in their places, so only their spots are kept
+  const carsAt = page.indexOf('  const bodyIM = instanced(body,'), carsEnd = page.indexOf("  instanced(lights, M.glow, cars,");
+  if (carsAt < 0 || carsEnd < 0) throw new Error('the parked-car block of world.html has changed');
+  page = page.slice(0, carsAt) + '  window.__parked = cars;\n' + page.slice(page.indexOf('\n', carsEnd) + 1);
   const at = page.indexOf('// test hook'); if (at < 0) throw new Error('world.html has no test hook line');
   fs.writeFileSync(path.join(build, 'world.html'), page.slice(0, at) + fs.readFileSync(path.join(here, 'dump.js'), 'utf8') + '\n' + page.slice(at));
   const srv = spawn('python3', ['-m', 'http.server', '8766', '--bind', '127.0.0.1'], { cwd: build, stdio: 'ignore' });

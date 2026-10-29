@@ -1,0 +1,211 @@
+[
+ {
+  "id": "compact",
+  "length": 3.26,
+  "width": 1.61,
+  "height": 1.32,
+  "wheel": 0.243,
+  "wheelbase": 2.08,
+  "materials": [
+   "Paint_compact",
+   "Glass_compact",
+   "Lights_compact"
+  ],
+  "tex": {
+   "paint": "compact_paint.png",
+   "lights": "compact_lights.png",
+   "wheel": "compact_wheel.png"
+  },
+  "tris": 5101
+ },
+ {
+  "id": "coupe",
+  "length": 4.24,
+  "width": 1.88,
+  "height": 1.28,
+  "wheel": 0.3,
+  "wheelbase": 2.41,
+  "materials": [
+   "Paint_coupe",
+   "Glass_coupe",
+   "Lights_coupe"
+  ],
+  "tex": {
+   "paint": "coupe_paint.png",
+   "lights": "coupe_lights.png",
+   "wheel": "coupe_wheel.png"
+  },
+  "tris": 4082
+ },
+ {
+  "id": "hatch",
+  "length": 3.96,
+  "width": 1.74,
+  "height": 1.35,
+  "wheel": 0.3,
+  "wheelbase": 2.4,
+  "materials": [
+   "Paint_hatch",
+   "Glass_hatch",
+   "Lights_hatch"
+  ],
+  "tex": {
+   "paint": "hatch_paint.png",
+   "lights": "hatch_lights.png",
+   "wheel": "hatch_wheel.png"
+  },
+  "tris": 4540
+ },
+ {
+  "id": "van",
+  "length": 4.61,
+  "width": 1.87,
+  "height": 1.76,
+  "wheel": 0.318,
+  "wheelbase": 2.84,
+  "materials": [
+   "Paint_van",
+   "Glass_van",
+   "Lights_van"
+  ],
+  "tex": {
+   "paint": "van_paint.png",
+   "lights": "van_lights.png",
+   "wheel": "van_wheel.png"
+  },
+  "tris": 4994
+ },
+ {
+  "id": "offroad",
+  "length": 3.94,
+  "width": 1.96,
+  "height": 1.57,
+  "wheel": 0.358,
+  "wheelbase": 2.32,
+  "materials": [
+   "Paint_offroad",
+   "Glass_offroad",
+   "Lights_offroad"
+  ],
+  "tex": {
+   "paint": "offroad_paint.png",
+   "lights": "offroad_lights.png",
+   "wheel": "offroad_wheel.png"
+  },
+  "tris": 4334
+ },
+ {
+  "id": "pickup",
+  "length": 5.18,
+  "width": 2.07,
+  "height": 1.7,
+  "wheel": 0.376,
+  "wheelbase": 3.19,
+  "materials": [
+   "Paint_pickup",
+   "Glass_pickup",
+   "Lights_pickup"
+  ],
+  "tex": {
+   "paint": "pickup_paint.png",
+   "lights": "pickup_lights.png",
+   "wheel": "pickup_wheel.png"
+  },
+  "tris": 4581
+ },
+ {
+  "id": "sedan",
+  "length": 4.36,
+  "width": 1.94,
+  "height": 1.34,
+  "wheel": 0.304,
+  "wheelbase": 2.61,
+  "materials": [
+   "Paint_sedan",
+   "Glass_sedan",
+   "Lights_sedan"
+  ],
+  "tex": {
+   "paint": "sedan_paint.png",
+   "lights": "sedan_lights.png",
+   "wheel": "sedan_wheel.png"
+  },
+  "tris": 4754
+ },
+ {
+  "id": "sport",
+  "length": 3.91,
+  "width": 1.77,
+  "height": 1.04,
+  "wheel": 0.317,
+  "wheelbase": 2.45,
+  "materials": [
+   "Paint_sport",
+   "Glass_sport",
+   "Lights_sport"
+  ],
+  "tex": {
+   "paint": "sport_paint.png",
+   "lights": "sport_lights.png",
+   "wheel": "sport_wheel.png"
+  },
+  "tris": 3856
+ },
+ {
+  "id": "suv",
+  "length": 4.61,
+  "width": 2.07,
+  "height": 1.73,
+  "wheel": 0.376,
+  "wheelbase": 2.73,
+  "materials": [
+   "Paint_suv",
+   "Glass_suv",
+   "Lights_suv"
+  ],
+  "tex": {
+   "paint": "suv_paint.png",
+   "lights": "suv_lights.png",
+   "wheel": "suv_wheel.png"
+  },
+  "tris": 5614
+ },
+ {
+  "id": "wagon",
+  "length": 4.38,
+  "width": 1.95,
+  "height": 1.38,
+  "wheel": 0.304,
+  "wheelbase": 2.63,
+  "materials": [
+   "Paint_wagon",
+   "Glass_wagon",
+   "Lights_wagon"
+  ],
+  "tex": {
+   "paint": "wagon_paint.png",
+   "lights": "wagon_lights.png",
+   "wheel": "wagon_wheel.png"
+  },
+  "tris": 4614
+ },
+ {
+  "id": "limo",
+  "length": 6.26,
+  "width": 1.94,
+  "height": 1.34,
+  "wheel": 0.304,
+  "wheelbase": 4.51,
+  "materials": [
+   "Paint_limo",
+   "Glass_limo",
+   "Lights_limo"
+  ],
+  "tex": {
+   "paint": "limo_paint.png",
+   "lights": "limo_lights.png",
+   "wheel": "limo_wheel.png"
+  },
+  "tris": 4754
+ }
+]

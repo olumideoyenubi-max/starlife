@@ -6,11 +6,15 @@ using UnityEditor;
 public class SLModelImport : AssetPostprocessor {
     static readonly string[] Men = { "kai", "leo", "jin", "theo", "omar" };
     void OnPreprocessModel() {
+        if (assetPath.StartsWith("Assets/Resources/Cars/")) { var cm = (ModelImporter)assetImporter; cm.animationType = ModelImporterAnimationType.None; cm.importAnimation = false; cm.meshCompression = ModelImporterMeshCompression.Medium; return; }
         if (!assetPath.StartsWith("Assets/Starlets/") && !assetPath.StartsWith("Assets/Hair/")) return;
         var mi = (ModelImporter)assetImporter; mi.isReadable = true;
         mi.meshCompression = ModelImporterMeshCompression.Medium;      // Read/Write keeps a second copy of every mesh; compression keeps the game's size down
     }
     void OnPreprocessTexture() {
+        if (assetPath.StartsWith("Assets/Resources/Cars/")) {     // the game reads each car's paint to recolour it
+            var ti = (TextureImporter)assetImporter; ti.isReadable = true; ti.maxTextureSize = 1024; return;
+        }
         if (!assetPath.StartsWith("Assets/Starlets/")) return;
         var parts = assetPath.Split('/'); if (parts.Length < 4) return;
         string id = parts[2], file = parts[3];
@@ -19,5 +23,5 @@ public class SLModelImport : AssetPostprocessor {
         bool skin = file.StartsWith("body") || file.StartsWith("head");
         ((TextureImporter)assetImporter).maxTextureSize = man ? (skin ? 2048 : 1024) : (skin ? 1024 : 512);
     }
-    public override uint GetVersion() { return 3; }
+    public override uint GetVersion() { return 4; }
 }
