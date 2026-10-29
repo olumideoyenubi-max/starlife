@@ -1,0 +1,22 @@
+{
+ "id": "armchair",
+ "label": "armchair",
+ "parts": [
+  {
+   "mesh": "part0",
+   "material": "Armchair_01",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 5626
+  }
+ ]
+}

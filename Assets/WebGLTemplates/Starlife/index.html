@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>{{{ PRODUCT_NAME }}}</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #cfe6f7; touch-action: none; }
+  #unity-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #cfe6f7; outline: none; }
+  #loading { position: fixed; inset: 0; display: grid; place-items: center; font: 800 18px system-ui, sans-serif; color: #2b2138; pointer-events: none; text-align: center; }
+  #bar { width: min(260px, 60vw); height: 10px; border: 3px solid #2b2138; border-radius: 8px; background: #ffffff; overflow: hidden; margin: 12px auto 0; }
+  #fill { height: 100%; width: 0; background: #8a5be8; }
+</style>
+</head>
+<body>
+<canvas id="unity-canvas" tabindex="-1"></canvas>
+<div id="loading"><div><div id="loading-text">Loading Starlife…</div><div id="bar"><div id="fill"></div></div></div></div>
+<script src="Build/{{{ LOADER_FILENAME }}}"></script>
+<script>
+  // Starlife fills the window and follows it when a phone rotates
+  createUnityInstance(document.getElementById("unity-canvas"), {
+    dataUrl: "Build/{{{ DATA_FILENAME }}}",
+    frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+    codeUrl: "Build/{{{ CODE_FILENAME }}}",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+    productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+    productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+    matchWebGLToCanvasSize: true,
+    devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
+  }, function (p) { document.getElementById("fill").style.width = (p * 100) + "%"; })
+    .then(function () { document.getElementById("loading").remove(); })
+    .catch(function (e) { document.getElementById("loading-text").textContent = "Could not start: " + e; });
+</script>
+</body>
+</html>

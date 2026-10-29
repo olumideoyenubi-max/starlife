@@ -1,0 +1,6 @@
+<linker>
+  <!-- the script engine and its host object are reached by reflection; keep them through IL2CPP stripping -->
+  <assembly fullname="Jint" preserve="all"/>
+  <assembly fullname="Acornima" preserve="all"/>
+  <assembly fullname="Assembly-CSharp" preserve="all"/>
+</linker>

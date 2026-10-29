@@ -1,0 +1,38 @@
+{
+ "id": "bantu",
+ "label": "Bantu knots",
+ "parts": [
+  {
+   "mesh": "hair0",
+   "material": "HairMat",
+   "tex": "hair0.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 40000
+  },
+  {
+   "mesh": "hair1",
+   "material": "Cap.001",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.035,
+    0.028,
+    0.025,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 358
+  }
+ ]
+}

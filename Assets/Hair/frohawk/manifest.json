@@ -1,0 +1,38 @@
+{
+ "id": "frohawk",
+ "label": "Frohawk",
+ "parts": [
+  {
+   "mesh": "hair0",
+   "material": "Hair",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.022,
+    0.016,
+    0.013,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 352560
+  },
+  {
+   "mesh": "hair1",
+   "material": "Cap.002",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.022,
+    0.016,
+    0.013,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 1670
+  }
+ ]
+}

@@ -1,0 +1,21 @@
+# Unity generated
+/Library/
+/Temp/
+/Obj/
+/Logs/
+/UserSettings/
+/Builds/
+*.csproj
+*.slnx
+*.sln
+
+# Tool build output
+/Tools/harness/obj/
+/Tools/harness/bin/
+/Tools/test/bin/
+__pycache__/
+*.pyc
+
+# Blender backups
+*.blend1
+.DS_Store

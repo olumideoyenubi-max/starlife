@@ -1,0 +1,128 @@
+{
+ "id": "luz",
+ "scale": 1.0225,
+ "marks": {
+  "hips": [
+   0.0,
+   -0.0362,
+   1.0107
+  ],
+  "head": [
+   -0.0,
+   -0.0216,
+   1.5155
+  ],
+  "headTop": [
+   -0.0,
+   -0.0462,
+   1.6899
+  ],
+  "eyeL": [
+   0.0322,
+   -0.1021,
+   1.5825
+  ],
+  "eyeR": [
+   -0.0316,
+   -0.1021,
+   1.5825
+  ],
+  "handL": [
+   0.2211,
+   0.022,
+   0.9131
+  ],
+  "handR": [
+   -0.2211,
+   0.022,
+   0.9131
+  ],
+  "armL": [
+   0.123,
+   0.022,
+   1.4127
+  ],
+  "footL": [
+   0.0927,
+   -0.0132,
+   0.1216
+  ]
+ },
+ "parts": [
+  {
+   "mesh": "hair",
+   "material": "Wolf3D_Avatar",
+   "tex": "hair.png",
+   "normal": "hair_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.74,
+   "metal": 0.0,
+   "tone": [
+    0.4469,
+    0.3137,
+    0.269
+   ],
+   "lum": 0.3486,
+   "zmin": 1.408,
+   "zmax": 1.732,
+   "xmax": 0.13,
+   "tris": 1387
+  },
+  {
+   "mesh": "head",
+   "material": "Wolf3D_Avatar.001",
+   "tex": "head.png",
+   "normal": "head_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.74,
+   "metal": 0.0,
+   "tone": [
+    0.445,
+    0.3124,
+    0.2679
+   ],
+   "lum": 0.3472,
+   "zmin": 1.395,
+   "zmax": 1.69,
+   "xmax": 0.089,
+   "tris": 18336
+  },
+  {
+   "mesh": "suit",
+   "material": "Wolf3D_Avatar",
+   "tex": "hair.png",
+   "normal": "hair_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.74,
+   "metal": 0.0,
+   "tone": [
+    0.4469,
+    0.3137,
+    0.269
+   ],
+   "lum": 0.3486,
+   "zmin": -0.006,
+   "zmax": 1.498,
+   "xmax": 0.254,
+   "tris": 3598
+  }
+ ]
+}

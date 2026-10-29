@@ -1,0 +1,54 @@
+{
+ "id": "highpuff",
+ "label": "High puff",
+ "parts": [
+  {
+   "mesh": "hair0",
+   "material": "Hair",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.022,
+    0.016,
+    0.013,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 374720
+  },
+  {
+   "mesh": "hair1",
+   "material": "Cap.001",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.022,
+    0.016,
+    0.013,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 1670
+  },
+  {
+   "mesh": "hair2",
+   "material": "Bead",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.83,
+    0.56,
+    0.12,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 268
+  }
+ ]
+}

@@ -1,0 +1,38 @@
+{
+ "id": "cornrows",
+ "label": "Cornrows",
+ "parts": [
+  {
+   "mesh": "hair0",
+   "material": "Material_002.001",
+   "tex": "hair0.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 8590
+  },
+  {
+   "mesh": "hair1",
+   "material": "Material.016",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.5559,
+    0.2603,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 3168
+  }
+ ]
+}

@@ -1,0 +1,38 @@
+{
+ "id": "coils",
+ "label": "Curly afro",
+ "parts": [
+  {
+   "mesh": "hair0",
+   "material": "GoZMesh_Import_Material",
+   "tex": "hair0.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.03,
+    0.025,
+    0.022,
+    1
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 40000
+  },
+  {
+   "mesh": "hair1",
+   "material": "Cap.004",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.03,
+    0.025,
+    0.022,
+    1
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 358
+  }
+ ]
+}

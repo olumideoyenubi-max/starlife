@@ -1,0 +1,38 @@
+{
+ "id": "locpony",
+ "label": "Loc ponytail",
+ "parts": [
+  {
+   "mesh": "hair0",
+   "material": "Dreads_Solid_Color_Bake1_baked",
+   "tex": "hair0.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 26444
+  },
+  {
+   "mesh": "hair1",
+   "material": "Cap.003",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.06,
+    0.045,
+    0.04,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 358
+  }
+ ]
+}

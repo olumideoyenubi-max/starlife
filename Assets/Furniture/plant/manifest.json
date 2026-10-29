@@ -1,0 +1,38 @@
+{
+ "id": "plant",
+ "label": "plant",
+ "parts": [
+  {
+   "mesh": "part0",
+   "material": "potted_plant_02_pot",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 29282
+  },
+  {
+   "mesh": "part1",
+   "material": "potted_plant_02_leaves",
+   "tex": "tex1.png",
+   "normal": "nrm1.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 4560
+  }
+ ]
+}
