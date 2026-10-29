@@ -24,6 +24,17 @@ public partial class SLApp {
             player.ry = p.ry + Mathf.PI; cam.yaw = p.ry + yawOff; cam.pitch = 0.2f; cam.dist = 6; cam.cur = 0; lifeMin = Mathf.Floor(lifeMin / 1440) * 1440 + hour * 60;
         }
         for (int i = 0; i < 10; i++) yield return null;
+        // the men and passers-by as generated, and the men in menswear on their shared body, front and side
+        if (stage3d == null) Set3D(true, false);
+        void Dump(Look3 look, string file, float yaw = 0) { var t2 = SLStage3D.Read(stage3d.Shot(look, "full", 400, 820, yaw)); File.WriteAllBytes(Path.Combine(shotsDir, file + ".png"), t2.EncodeToPNG()); Destroy(t2); }
+        foreach (var e in stage3d.Starlets) if (SLStage3D.IsMale(e.id) || e.id.StartsWith("p_")) Dump(new Look3 { id = e.id, height = SLStage3D.IsMale(e.id) ? 1.06f : 1 }, "man-" + e.id);
+        foreach (var (tag, ids) in new[] { ("suit", "suit,shirt,suitpants,oxfords"), ("shirt", "shirt,chinos,loafers"), ("polo", "polo,chinos,sneakers"), ("hoodie", "hoodie,jeans,sneakers"), ("tee", "tee,shorts,sandals"), ("tux", "tux,suitpants,oxfords") })
+            foreach (var who in new[] { "kai", "jin" }) foreach (int yaw in new[] { 0, 90 }) {
+                if (!stage3d.Has(who)) continue;
+                var look = new Look3 { id = who, height = 1.06f, signature = false };
+                foreach (var id in ids.Split(',')) if (itemById.ContainsKey(id)) look.worn.Add((itemById[id].slot, id, C(itemById[id].color)));
+                Dump(look, "menswear-" + tag + "-" + who + "-" + yaw, yaw);
+            }
         pickSel = "zuri"; ClosePicker(true); CloseGuide();
         foreach (var id in new[] { "blouse", "pleated", "blazer", "pumps", "pearls" }) { core.Call("grant", "[\"" + id + "\"]"); core.Call("equip", id); }
         core.Call("earn", "600", "0");
@@ -54,7 +65,7 @@ public partial class SLApp {
         autoWalk = null; autoRun = false; autoFixed = false; cam.lastDrag = Time.time;
         // sitting on a park bench, and someone to talk to
         var seat = town.seats.FirstOrDefault(s => s.place == "park"); if (seat != null) { Go("park", 4, 12); SitOn(seat); cam.yaw = seat.ry + 0.5f; cam.dist = 3.5f; cam.cur = 0; yield return Snap("sitting", 40); StandUp(); }
-        var friend = people.FirstOrDefault(x => x.state != "inside");
+        var friend = people.FirstOrDefault(x => x.state != "inside" && x.male && !x.crowd) ?? people.FirstOrDefault(x => x.state != "inside" && !x.crowd);
         if (friend != null) { var c = town.Collide(new Vector2(friend.pos.x + Mathf.Sin(friend.ry) * 1.6f, friend.pos.z + Mathf.Cos(friend.ry) * 1.6f)); player.pos = new Vector3(c.x, town.HeightAt(c.x, c.y), c.y); player.ry = friend.ry + Mathf.PI; cam.yaw = friend.ry + 1.3f; cam.dist = 4; cam.pitch = 0.12f; cam.cur = 0; yield return null; TalkTo(friend); yield return Snap("talk", 30); CloseCard(); }
         // evening and night
         Go("theatre", 9, 18.7f, 0.3f); cam.dist = 8; yield return Snap("theatre-sunset", 30);
@@ -65,7 +76,7 @@ public partial class SLApp {
         phoneTab = "friends"; RenderPhone(); yield return Snap("phone-friends");
         TogglePhone(false);
         // the people of the town, as they are right now
-        foreach (var pp in people.Where(x => x.state != "inside").Take(5)) {
+        foreach (var pp in people.Where(x => x.state != "inside" && (x.male || x.crowd)).Take(8)) {
             var c = town.Collide(new Vector2(pp.pos.x + Mathf.Sin(pp.ry) * 2.2f, pp.pos.z + Mathf.Cos(pp.ry) * 2.2f));
             player.pos = new Vector3(c.x, town.HeightAt(c.x, c.y), c.y); player.ry = pp.ry + Mathf.PI; cam.yaw = pp.ry + 1.2f; cam.dist = 3.6f; cam.pitch = 0.12f; cam.cur = 0;
             yield return Snap("starlet-" + pp.id, 12);

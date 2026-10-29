@@ -304,8 +304,9 @@ Button { margin: 0; border-width: 0; background-color: rgba(0,0,0,0); color: #2b
 .town Label { color: #f7f7f8; }
 .glass { background-color: rgba(22,22,28,0.62); border-width: 1px; border-color: rgba(255,255,255,0.14); border-radius: 14px; }
 .town-tags { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
-.t-tag { position: absolute; width: 120px; -unity-text-align: middle-center; background-color: rgba(20,20,26,0.55); border-radius: 18px; padding: 3px 0 4px 0; font-size: 14px; -unity-font-definition: resource("Fonts/DMSans-Bold"); -unity-font-style: normal; }
-.t-tagsub { font-size: 10.5px; color: rgba(255,255,255,0.7); -unity-font-definition: resource("Fonts/DMSans-Regular"); }
+.t-tag { position: absolute; width: 120px; align-items: center; background-color: rgba(20,20,26,0.55); border-radius: 18px; padding: 3px 0 4px 0; }
+.t-tagname { font-size: 14px; -unity-text-align: middle-center; -unity-font-definition: resource("Fonts/DMSans-Bold"); -unity-font-style: normal; }
+.t-tagsub { -unity-text-align: middle-center; font-size: 10.5px; color: rgba(255,255,255,0.7); -unity-font-definition: resource("Fonts/DMSans-Regular"); }
 .town-hud { position: absolute; left: 14px; top: 14px; padding: 10px 14px; min-width: 220px; }
 .t-row { flex-direction: row; align-items: center; }
 .t-clock { -unity-font-definition: resource("Fonts/DMSans-Bold"); -unity-font-style: normal; margin-right: 10px; }
@@ -330,7 +331,7 @@ Button { margin: 0; border-width: 0; background-color: rgba(0,0,0,0); color: #2b
 .t-ctext { font-size: 12.5px; }
 .t-x { background-color: rgba(0,0,0,0); color: rgba(247,247,248,0.6); border-width: 0; font-size: 16px; margin-left: 6px; padding: 0 4px; }
 .town-prompt { position: absolute; bottom: 30px; left: 50%; translate: -50% 0; flex-direction: row; align-items: center; padding: 8px 16px 8px 8px; }
-.t-kbd { width: 26px; height: 26px; border-radius: 8px; background-color: #ff4f8b; -unity-text-align: middle-center; font-size: 12px; -unity-font-definition: resource("Fonts/DMSans-Bold"); margin-right: 10px; }
+.t-kbd { min-width: 26px; padding: 0 7px; height: 26px; border-radius: 8px; background-color: #ff4f8b; -unity-text-align: middle-center; font-size: 12px; -unity-font-definition: resource("Fonts/DMSans-Bold"); margin-right: 10px; }
 .t-ptext { -unity-font-definition: resource("Fonts/DMSans-Bold"); -unity-font-style: normal; }
 .t-psub { margin-left: 6px; font-size: 12.5px; color: rgba(247,247,248,0.5); }
 .town-hint { position: absolute; bottom: 96px; left: 50%; translate: -50% 0; padding: 10px 16px; font-size: 12.5px; color: rgba(247,247,248,0.72); transition-property: opacity; transition-duration: 0.8s; }
@@ -397,3 +398,11 @@ Button { margin: 0; border-width: 0; background-color: rgba(0,0,0,0); color: #2b
 .town-load-t { font-size: 34px; color: #ffd1e1; -unity-font-definition: resource("Fonts/DMSans-Bold"); -unity-font-style: italic; letter-spacing: 3px; }
 .town-load-s { margin-top: 10px; color: rgba(255,255,255,0.7); }
 .in-town .toast { bottom: auto; top: 70px; background-color: rgba(22,22,28,0.8); }
+.t-joy { position: absolute; width: 120px; height: 120px; border-radius: 60px; border-width: 1px; border-color: rgba(255,255,255,0.35); background-color: rgba(255,255,255,0.08); align-items: center; justify-content: center; }
+.t-joyknob { width: 46px; height: 46px; border-radius: 23px; background-color: rgba(255,255,255,0.55); }
+.t-opt:focus { border-color: #ff4f8b; background-color: rgba(255,79,139,0.25); }
+.pc-thumb:focus, .pc-btn:focus, .t-place:focus { border-color: #ff4f8b; border-width: 2px; }
+.narrow .town-card { width: 410px; }
+.narrow .town-phone { width: 400px; right: 15px; height: 520px; }
+.narrow .town-btq { left: 10px; right: 10px; top: auto; height: 46%; width: auto; }
+.narrow .town-hud { min-width: 180px; }

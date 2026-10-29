@@ -20,7 +20,7 @@ public partial class SLApp {
     Look3 SigLook(string sid) {
         string face = core.Pref("face." + sid, sid == "custom" ? "lina" : sid), body = core.Pref("body." + sid, sid == "custom" ? "jenny" : sid);
         if (stage3d != null && !stage3d.Has(face)) face = "aria";
-        var L = new Look3 { id = face, body = body == face ? null : body, height = Num(core.Pref("height." + sid, "1")) };
+        var L = new Look3 { id = face, body = body == face ? null : body, height = Num(core.Pref("height." + sid, SLStage3D.IsMale(face) ? "1.06" : "1")) };
         var sv = core.Pref("shape." + sid, "").Split(','); for (int i = 0; i < L.shape.Length && i < sv.Length; i++) L.shape[i] = Mathf.Clamp(Num(sv[i], 0), -1, ShapeMax(i));
         string h = Hair3D(sid); L.hair = h == "" ? null : h;
         WearMakeup(L, sid);
@@ -272,7 +272,7 @@ public partial class SLApp {
         }
         b.Add(L("Face", "h3")); var faces = El("grid");
         foreach (var e in stage3d.Starlets) {
-            if (!Array.Exists(e.parts, q => q.mesh == "head")) continue; string id = e.id;
+            if (!Array.Exists(e.parts, q => q.mesh == "head") || SLStage3D.IsHelper(e.id) || SLStage3D.IsMale(e.id) != SLStage3D.IsMale(mine.id)) continue; string id = e.id;
             var look = SigLook(me); look.id = id; look.body = look.body ?? mine.id; if (look.body == id) look.body = null;
             var card = El("hair-card" + (mine.id == id ? " on" : ""), new SvgImage().Set3D("3d:studio-face:" + look.Key, (w, h) => stage3d.Shot(look, "portrait", w, h)));
             card.RegisterCallback<ClickEvent>(_ => { string keep = core.Pref("body." + me, me == "custom" ? "jenny" : me); core.SetPref("body." + me, keep); core.SetPref("face." + me, id); dirty = true; RefreshParlorPanel(); });
@@ -282,7 +282,7 @@ public partial class SLApp {
         b.Add(L("Arrives wearing", "h3")); var fits = El("grid"); string curBody = mine.body ?? mine.id;
         foreach (var e in stage3d.Starlets) {
             if (!Array.Exists(e.parts, q => q.mesh == "top" || q.mesh == "suit")) continue; string id = e.id;
-            if (id == "basics") continue;
+            if (SLStage3D.IsHelper(id) || SLStage3D.IsMale(id) != SLStage3D.IsMale(mine.id)) continue;
             var look = SigLook(me); look.body = id == look.id ? null : id; look.hair = mine.hair;
             var card = El("hair-card" + (curBody == id ? " on" : ""), new SvgImage().Set3D("3d:studio-fit:" + look.Key, (w, h) => stage3d.Shot(look, "full", w, h)));
             card.RegisterCallback<ClickEvent>(_ => { core.SetPref("body." + me, id); core.Call("undress"); SetP("sig", "1"); RefreshParlorPanel(); });

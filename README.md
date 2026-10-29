@@ -136,8 +136,19 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
   control go to 1.6 for curvier figures (`Reshape` in `StarletTint.shader`).
 - **Check it:** `Builds/Mac/Starlife.app/Contents/MacOS/Starlife -sltown <dir> -screen-width 1440 -screen-height 900 -screen-fullscreen 0`
   plays a tour on its own save (`starlife-town-shots.json`) and writes about 30 screenshots.
-- **Not ported:** the web town's anonymous crowd (only named starlets walk about), the five male starlets (no male 3D
-  avatars yet), the graphics-tier and FPS settings, and touch controls.
+- **Men.** Kai, Leo, Jin, Theo and Omar (the web game's men) are generated with MPFB by `Tools/blender/make_men.py`
+  (run `Tools/blender/make_men.sh [ids]`: generate, cut into pieces, save the skeleton). Their bodies have their own
+  shared body (`manbase`) and every item of the wardrobe maps to menswear made on that body (`m_suit`, `m_shirt`,
+  `m_polo`, `m_hoodie`, `m_tee`, `m_casual`, `m_tweed`; `MenMap` in `SLWardrobe3D.cs`), so all of it fits all of them.
+  The wardrobe and shop have a Menswear tab (shirt, chinos, suit trousers, suit, tuxedo, tie, bow tie, oxfords,
+  loafers, cap). The avatar studio only offers men's faces and outfits to men, and women's to women.
+- **Passers-by** (`p_*`, also from `make_men.py`) walk the streets between all the places; they are not in the
+  phone's friends list and do not stop to talk.
+- **Controls:** keyboard and mouse; a game controller (left stick walk, right stick look, shoulder buttons or a stick
+  press run, A use, B back, Y or Start phone, the d-pad moves through a card's options; the right stick reads the
+  `Joy Axis` inputs added to the Input Manager); touch (drag on the left to walk with a joystick, on the right to
+  look, pinch to zoom, tap a starlet to talk). Starlet and hair models must stay Read/Write (`SLModelImport.cs`).
+- **Not ported:** the graphics-tier and FPS settings.
 
 ## Build and check
 

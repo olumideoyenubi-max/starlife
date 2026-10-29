@@ -51,3 +51,10 @@ Coffee table: `coffee_table_round_01` (Ulan Cabanilla). Moving box: `cardboard_b
 `avatars/<id>.blend`, `hair/<id>.blend` and `furniture/<kind>.blend` are the imports as they were fitted in Blender.
 Not used by the game any more: `sketchfab/valery/` and `starlet/` ("Valery tpose blender rigged woman" by xander.dice, CC Attribution,
 https://sketchfab.com/3d-models/1cce3c0410634a9497fec3afc1fb8eda).
+
+## The men, menswear and Starlife Town's passers-by (generated 2026-10-29)
+
+Made with MPFB (MakeHuman for Blender) by `Tools/blender/make_men.py`: the MakeHuman base mesh and system assets are
+CC0; the community clothes, hair, skins and beards are CC0 or CC-BY per asset (see the MPFB asset packs). Asset
+authors used: elvs, punkduck, toigo, mindfront, culturalibre, grinsegold, namuhekam, ews, cortu, drednicolson,
+dressupdoc, callharvey3d, cutoff3d, o4saken, and the "sl_" pack. Credit the MakeHuman community wherever the game is shared.

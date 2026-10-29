@@ -27,6 +27,12 @@ reward = function (coins, fame) {
   { id: 'songbird', name: 'Melody Song', role: 'Singer', skin: '#fde3d3', hair: 'long', hairColor: '#f09ad0', eyeShape: 'almond', eyeColor: '#8a6b35', brow: 'arched', preset: 'Night Out', underwear: '#ffffff', bg: 'night', fame: 88 },
   { id: 'eve', name: 'Eve Seraphine', role: 'Fantasy queen', skin: '#fde3d3', hair: 'waves', hairColor: '#e9e6f2', eyeShape: 'upturned', eyeColor: '#4a78b5', brow: 'arched', preset: 'Editorial', underwear: '#e9c46a', bg: 'boutique', fame: 29 },
   { id: 'cute', name: 'Coco Banks', role: 'Stylist', skin: '#fde3d3', hair: 'bob', hairColor: '#1c1412', eyeShape: 'doe', eyeColor: '#3b2414', brow: 'straight', preset: 'Night Out', underwear: '#1f1b22', bg: 'boutique', fame: 45 },
+  // the men (generated with MPFB by Tools/blender/make_men.py; in the drawn game they borrow the women's drawing)
+  { id: 'kai', name: 'Kai Mensah', role: 'Musician', skin: '#5a3420', hair: 'pixie', hairColor: '#1c1412', eyeShape: 'almond', eyeColor: '#3b2414', brow: 'bold', preset: 'Natural', underwear: '#1f1b22', bg: 'night', fame: 66, gender: 'm' },
+  { id: 'leo', name: 'Leo Castillo', role: 'Actor', skin: '#c28552', hair: 'pixie', hairColor: '#3b2416', eyeShape: 'almond', eyeColor: '#3b2414', brow: 'straight', preset: 'Natural', underwear: '#2b3a67', bg: 'runway', fame: 74, gender: 'm' },
+  { id: 'jin', name: 'Jin Takeda', role: 'Dancer', skin: '#f6cfb3', hair: 'pixie', hairColor: '#1c1412', eyeShape: 'almond', eyeColor: '#3b2414', brow: 'straight', preset: 'Natural', underwear: '#ffffff', bg: 'night', fame: 58, gender: 'm' },
+  { id: 'theo', name: 'Theo Brooks', role: 'Athlete', skin: '#a5683d', hair: 'pixie', hairColor: '#1c1412', eyeShape: 'round', eyeColor: '#3b2414', brow: 'bold', preset: 'Natural', underwear: '#3f7f6b', bg: 'garden', fame: 81, gender: 'm' },
+  { id: 'omar', name: 'Omar Haddad', role: 'Chef', skin: '#d9a273', hair: 'pixie', hairColor: '#2a1a12', eyeShape: 'almond', eyeColor: '#3b2414', brow: 'bold', preset: 'Natural', underwear: '#c8b48c', bg: 'boutique', fame: 47, gender: 'm' },
   { id: 'pigtail', name: 'Ruby Tanaka', role: 'Executive', skin: '#fde3d3', hair: 'ponytail', hairColor: '#8f3b3b', eyeShape: 'round', eyeColor: '#8a6b35', brow: 'natural', preset: 'Natural', underwear: '#c8b6e2', bg: 'runway', fame: 36 },
 ].forEach(function (x) { STARLETS.push(x); STARLET_FAME[x.id] = x.fame; if (typeof STARLET_BY !== 'undefined') STARLET_BY[x.id] = x; });
 
@@ -54,6 +60,17 @@ reward = function (coins, fame) {
   ['workpants', 'Work Trousers', 'bottom', 'work', 'wide', '#3a3f4a', 15, ['work', 'office']],
   ['chefcoat', 'Chef Jacket', 'outer', 'work', 'blazer', '#ffffff', 20, ['work']],
   ['workboots', 'Work Boots', 'shoes', 'work', 'ankleboots', '#5b3b2a', 20, ['work', 'winter']],
+  // menswear (Starlife Town's Hartwell & Sons and the male starlets); in 3D the men wear their own avatars' pieces
+  ['shirt', 'Poplin Shirt', 'top', 'men', 'blouse', '#dfe8f5', 30, ['office', 'chic']],
+  ['chinos', 'Chinos', 'bottom', 'men', 'wide', '#c8b48c', 35, ['casual', 'office']],
+  ['suitpants', 'Suit Trousers', 'bottom', 'men', 'wide', '#1f2a44', 45, ['office', 'chic']],
+  ['suit', 'Suit Jacket', 'outer', 'men', 'blazer', '#1f2a44', 90, ['office', 'chic', 'glam']],
+  ['tux', 'Tuxedo Jacket', 'outer', 'men', 'blazer', '#141218', 140, ['glam', 'night', 'redcarpet']],
+  ['tie', 'Silk Tie', 'necklace', 'men', 'pendant', '#8c1c2c', 20, ['office', 'chic']],
+  ['bowtie', 'Bow Tie', 'necklace', 'men', 'pendant', '#141218', 20, ['glam', 'night', 'redcarpet']],
+  ['oxfords', 'Oxford Shoes', 'shoes', 'men', 'flats', '#3b2418', 60, ['office', 'chic', 'glam']],
+  ['loafers', 'Loafers', 'shoes', 'men', 'flats', '#7a4a2a', 50, ['chic', 'casual']],
+  ['cap', 'Baseball Cap', 'hat', 'men', 'beanie', '#2f5d8c', 20, ['casual', 'sport']],
   // the goth collection (its accessories are made for 3D by Tools/blender/make_goth.py)
   ['gothgown', 'Fallen Angel Gown', 'dress', 'goth', 'gown', '#18151a', 110, ['goth', 'glam', 'night']],
   ['gothcoat', 'Midnight Trench', 'outer', 'goth', 'trench', '#18151a', 85, ['goth', 'winter', 'edgy']],
@@ -72,7 +89,7 @@ reward = function (coins, fame) {
   var it = Object.assign({}, ITEM[e[4]], { id: e[0], name: e[1], slot: e[2], cat: e[3], color: e[5], group: '' });
   ITEMS.push(it); ITEM[it.id] = it; PRICES[it.id] = e[6]; TAGS[it.id] = e[7];
 });
-TAG_LABEL.sport = 'Sporty'; TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
+TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
 ['corset', 'biker', 'choker', 'kneeboots', 'ankleboots', 'lbd', 'crossbody'].forEach(function (id) { if (TAGS[id]) TAGS[id].push('goth'); });   // older pieces that suit the look
 
 const SL = {

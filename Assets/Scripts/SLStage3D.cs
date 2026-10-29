@@ -294,6 +294,17 @@ public sealed class SLStage3D {
     // Every avatar is cut into pieces in one shared space (same neck joint), so a starlet is put together per look:
     // her own head, her hair or another, and either her own outfit or the wardrobe's pieces over a shared body.
     const string Base = "olivia";    // the body (and swimwear, used as underwear) worn under wardrobe pieces
+    const string ManBase = "manbase"; // the men's shared body (make_men.py), in athletic shorts; all menswear is made on it
+    static readonly HashSet<string> MenIds = new HashSet<string> { "kai", "leo", "jin", "theo", "omar", "manbase", "p_sam", "p_femi", "p_ken" };
+    // MakeHuman's hair, beards and brows are pale strand textures meant to be tinted: each generated person's own colour
+    static readonly Dictionary<string, string> GenHairHex = new Dictionary<string, string> {
+        { "kai", "#1c1412" }, { "leo", "#3b2416" }, { "jin", "#14100e" }, { "theo", "#1c1412" }, { "omar", "#2a1a12" }, { "manbase", "#2a1a12" },
+        { "p_ada", "#1c1412" }, { "p_grace", "#b9b3ad" }, { "p_mei", "#14100e" }, { "p_priya", "#1c1412" }, { "p_sam", "#6b3a1f" }, { "p_femi", "#3a3532" },
+        { "p_ken", "#14100e" }, { "p_rosa", "#d8d4cf" } };
+    static Color? GenHair(string id) => id != null && (GenHairHex.TryGetValue(id, out var h) || id.StartsWith("m_") && GenHairHex.TryGetValue("manbase", out h)) ? H(h) : (Color?)null;
+    public static bool IsMale(string id) => id != null && (MenIds.Contains(id) || id.StartsWith("m_"));
+    /// <summary>Avatars that are only there to lend clothes (and the town's passers-by): not offered as faces or outfits.</summary>
+    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_");
     static readonly Dictionary<string, Color> ToneOf = new Dictionary<string, Color> {   // skin tones of the one-piece avatars
         { "aria", new Color(0.93f, 0.76f, 0.66f) }, { "mina", new Color(0.90f, 0.73f, 0.63f) }, { "luz", new Color(0.70f, 0.50f, 0.39f) } };
     static readonly Dictionary<string, Color> HairDye = new Dictionary<string, Color> {  // hairstyles whose own texture is only a pale strand pattern
@@ -334,24 +345,33 @@ public sealed class SLStage3D {
         string me = "Starlets/" + (HasPart(L.id, "head") ? L.id : "aria"), id = HasPart(L.id, "head") ? L.id : "aria";
         Color? skinTint = L.skinTint == Color.white ? (Color?)null : L.skinTint; Color tone = Tone(id) * L.skinTint;
         Add(t, me, "head", null, skinTint); Add(t, me, "eyes"); Add(t, me, "teeth"); Add(t, me, "extra");
+        Add(t, me, "brows", L.hairColor ?? GenHair(id)); Add(t, me, "lashes", new Color(0.08f, 0.06f, 0.05f)); Add(t, me, "beard", L.hairColor ?? GenHair(id));      // the generated men's (and passers-by's) brows, lashes and beards
         foreach (Transform c in t) if (c.name == me + "/head") {      // her face: marked for the makeup studio, and wearing whatever has been painted
             var hm = c.GetComponent<Renderer>().material; hm.SetFloat("_IsHead", 1);
             if (L.makeup != null) { hm.SetTexture("_MakeupTex", L.makeup); hm.SetFloat("_Makeup", 1); }
         }
-        if (string.IsNullOrEmpty(L.hair)) Add(t, me, "hair", L.hairColor);
+        if (string.IsNullOrEmpty(L.hair)) Add(t, me, "hair", L.hairColor ?? GenHair(id));
         else if (L.hair.StartsWith("s:")) Add(t, "Starlets/" + L.hair.Substring(2), "hair", L.hairColor);
         else if (entries.TryGetValue("Hair/" + L.hair.Substring(2), out var he)) {
             Color? dye = L.hairColor ?? (HairDye.TryGetValue(he.id, out var hd) ? hd : (Color?)null);
             foreach (var p in he.parts) Add(t, "Hair/" + he.id, p.mesh, p.material != null && p.material.StartsWith("Bead") ? (Color?)null : dye);   // beads and bands keep their gold
         }
 
-        var plan = SLWardrobe3D.Plan(L.worn, HasPart); bool clothed = plan.Exists(g => SLWardrobe3D.IsClothing(g.slot));
+        bool male = IsMale(id);
+        var plan = SLWardrobe3D.Plan(L.worn, HasPart, male); bool clothed = plan.Exists(g => SLWardrobe3D.IsClothing(g.slot));
         Color? Dye(SLWardrobe3D.Piece g) { if (g.part == "fishnets") return new Color(0.07f, 0.06f, 0.07f);   /* tights are always black */ var info = Info("Starlets/" + g.donor, g.part); return g.keep || (info != null && info.material != null && info.material.StartsWith("Bead")) ? (Color?)null : g.color; }   // metal keeps its own colour
         if (!clothed && L.signature) {    // nothing from the wardrobe: a signature outfit, exactly as an avatar came (her own, or the one chosen for her)
             string from = L.body != null && HasPart(L.body, "top") || L.body != null && HasPart(L.body, "suit") ? L.body : id, f = "Starlets/" + from;
             foreach (var part in new[] { "body", "feet" }) { if (from == id) Add(t, f, part, null, skinTint); else Add(t, f, part, tone); }
             foreach (var part in new[] { "top", "bottom", "shoes", "suit" }) Add(t, f, part);
             foreach (var g in plan) Add(t, "Starlets/" + g.donor, g.part, Dye(g));      // accessories over her own outfit
+            return;
+        }
+        if (male && HasPart(ManBase, "body")) {     // a man on the men's shared body: every piece of menswear was made on it, so all of it fits
+            string mb = "Starlets/" + ManBase; bool topM = plan.Exists(g => g.slot == "top" || g.slot == "dress" || g.slot == "outer"), botM = plan.Exists(g => g.slot == "bottom" || g.slot == "dress");
+            Add(t, mb, "body", tone, null, 0.003f, true, 0, 24000);
+            if (!botM) Add(t, mb, "bottom", L.underwear);
+            foreach (var g in plan) Add(t, "Starlets/" + g.donor, g.part, Dye(g), null, 0, false, 0, 0, SLWardrobe3D.IsClothing(g.slot) && g.slot != "shoes");      // made on one body, already layered
             return;
         }
         // Otherwise she is built on a shared body. The avatars' bodies have no skin where their own clothes were, so the

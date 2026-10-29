@@ -178,7 +178,7 @@ public partial class SLApp {
 
     void RenderWardrobe() {
         wardTabs.Clear();
-        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("goth", "Goth"), ("basics", "Underwear") }) {
+        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("goth", "Goth"), ("men", "Menswear"), ("basics", "Underwear") }) {
             string cat = k; var b = B(label, k == wardrobeCat ? "on" : null, () => { wardrobeCat = cat; RenderWardrobe(); }); wardTabs.Add(b);
         }
         if (wardrobeCat == "basics") { RenderBasics(); return; }
@@ -371,7 +371,7 @@ public partial class SLApp {
         var african = new List<(string, string)>(); var more = new List<(string, string)> { ("", "Her own") };
         foreach (var e in stage3d.Hair) if (Made.Contains(e.id)) african.Add(("h:" + e.id, e.label));
         foreach (var e in stage3d.Hair) if (!Made.Contains(e.id)) african.Add(("h:" + e.id, e.label));
-        foreach (var e in stage3d.Starlets) if (e.id != me && Array.Exists(e.parts, q => q.mesh == "hair")) more.Add(("s:" + e.id, char.ToUpperInvariant(e.id[0]) + e.id.Substring(1) + "'s"));
+        foreach (var e in stage3d.Starlets) if (e.id != me && !SLStage3D.IsHelper(e.id) && Array.Exists(e.parts, q => q.mesh == "hair")) more.Add(("s:" + e.id, char.ToUpperInvariant(e.id[0]) + e.id.Substring(1) + "'s"));
         Section("African styles", african);
         b.Add(L("Colour", "h3")); var row = El("row"); string hc = core.Call("get", "hairColor");
         row.Add(B("Natural", "chip" + (hc == hairColor0 ? " on" : ""), () => core.Call("set", "hairColor", hairColor0)));
@@ -395,7 +395,7 @@ public partial class SLApp {
     }
     void RefreshShop() {
         shopTabs.Clear();
-        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("goth", "Goth") }) {
+        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("goth", "Goth"), ("men", "Menswear") }) {
             string cat = k; shopTabs.Add(B(label, k == shopCat ? "on" : null, () => { shopCat = cat; RefreshShop(); }));
         }
         var list = new List<DItem>(Array.FindAll(data.items, i => i.price > 0 && Allowed(i) && (shopCat == "all" || i.cat == shopCat)));

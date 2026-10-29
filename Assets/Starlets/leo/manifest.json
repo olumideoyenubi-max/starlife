@@ -1,0 +1,291 @@
+{
+ "id": "leo",
+ "scale": 0.9532,
+ "marks": {
+  "hips": [
+   0.0,
+   0.0072,
+   0.8938
+  ],
+  "head": [
+   0.0,
+   -0.0313,
+   1.5213
+  ],
+  "headTop": null,
+  "eyeL": null,
+  "eyeR": null,
+  "handL": [
+   0.2968,
+   -0.0519,
+   0.8969
+  ],
+  "handR": [
+   -0.2968,
+   -0.0519,
+   0.8969
+  ],
+  "armL": [
+   0.1768,
+   -0.0057,
+   1.3307
+  ],
+  "footL": [
+   0.1879,
+   -0.0018,
+   0.0687
+  ]
+ },
+ "parts": [
+  {
+   "mesh": "beard",
+   "material": "SL_Beard",
+   "tex": "beard.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.4994,
+    0.4981,
+    0.7712
+   ],
+   "lum": 0.5296,
+   "zmin": 1.487,
+   "zmax": 1.517,
+   "xmax": 0.035,
+   "tris": 120
+  },
+  {
+   "mesh": "body",
+   "material": "Wolf3D_Body",
+   "tex": "body.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.8795,
+    0.6603,
+    0.5373
+   ],
+   "lum": 0.7131,
+   "zmin": 0.154,
+   "zmax": 1.439,
+   "xmax": 0.322,
+   "tris": 27600
+  },
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.1674,
+    0.1673,
+    0.1675
+   ],
+   "lum": 0.1677,
+   "zmin": 0.059,
+   "zmax": 0.883,
+   "xmax": 0.245,
+   "tris": 2098
+  },
+  {
+   "mesh": "brows",
+   "material": "SL_Eyebrow",
+   "tex": "brows.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.2121,
+    0.138,
+    0.1378
+   ],
+   "lum": 0.1602,
+   "zmin": 1.563,
+   "zmax": 1.576,
+   "xmax": 0.057,
+   "tris": 192
+  },
+  {
+   "mesh": "eyes",
+   "material": "Wolf3D_Eye",
+   "tex": "eyes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.6355,
+    0.6186,
+    0.599
+   ],
+   "lum": 0.621,
+   "zmin": 1.546,
+   "zmax": 1.573,
+   "xmax": 0.043,
+   "tris": 172
+  },
+  {
+   "mesh": "hair",
+   "material": "Wolf3D_Hair",
+   "tex": "hair.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.2957,
+    0.2464,
+    0.206
+   ],
+   "lum": 0.2564,
+   "zmin": 1.484,
+   "zmax": 1.679,
+   "xmax": 0.088,
+   "tris": 3344
+  },
+  {
+   "mesh": "head",
+   "material": "Wolf3D_Skin",
+   "tex": "body.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.8795,
+    0.6603,
+    0.5373
+   ],
+   "lum": 0.7131,
+   "zmin": 1.395,
+   "zmax": 1.664,
+   "xmax": 0.083,
+   "tris": 34320
+  },
+  {
+   "mesh": "lashes",
+   "material": "SL_Eyelash",
+   "tex": "lashes.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1,
+   "zmin": 1.55,
+   "zmax": 1.564,
+   "xmax": 0.047,
+   "tris": 368
+  },
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "shoes_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.9235,
+    0.4394,
+    0.0812
+   ],
+   "lum": 0.5445,
+   "zmin": -0.017,
+   "zmax": 0.174,
+   "xmax": 0.241,
+   "tris": 5192
+  },
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "bottom.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.1674,
+    0.1673,
+    0.1675
+   ],
+   "lum": 0.1677,
+   "zmin": 0.795,
+   "zmax": 1.463,
+   "xmax": 0.335,
+   "tris": 12858
+  }
+ ]
+}

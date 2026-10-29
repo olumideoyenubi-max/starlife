@@ -7,6 +7,7 @@ import bpy, bmesh, sys, os, json, re
 from mathutils import Matrix, Vector
 
 sid, assets = sys.argv[sys.argv.index('--') + 1:][:2]
+SCULPT = '--nosculpt' not in sys.argv      # the generated men (make_men.py) already have detailed faces
 out = os.path.join(assets, sid); os.makedirs(out, exist_ok=True)
 NECK = Vector((0.0, 0.0, 1.43))
 
@@ -23,7 +24,7 @@ marks = {key: mark(b) for key, b in (('hips', 'Hips'), ('head', 'Head'), ('headT
 
 def kind(mat):
     n = (mat or '').lower()
-    for key, part in (('outfit_top', 'top'), ('outfit_bottom', 'bottom'), ('outfit_footwear', 'shoes'), ('hair', 'hair'), ('eye', 'eyes'), ('teeth', 'teeth'),
+    for key, part in (('sl_eyebrow', 'brows'), ('sl_eyelash', 'lashes'), ('sl_beard', 'beard'), ('outfit_top', 'top'), ('outfit_bottom', 'bottom'), ('outfit_footwear', 'shoes'), ('hair', 'hair'), ('eye', 'eyes'), ('teeth', 'teeth'),
                       ('skin', 'head'), ('head', 'head'), ('body', 'body'), ('facewear', 'extra'), ('glasses', 'extra'), ('headwear', 'extra'), ('avatar', 'suit')):
         if key in n: return part
     return 'extra'
@@ -142,7 +143,7 @@ for name in sorted(pieces):
     if name in ('head', 'body', 'feet'):       # skin: all quads where the triangles pair up, then one level of subdivision, so light curves over it smoothly
         bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.tris_convert_to_quads(uvs=True, seam=True); bpy.ops.object.mode_set(mode='OBJECT')
         m = o.modifiers.new('smooth', 'SUBSURF'); m.levels = 1; m.boundary_smooth = 'PRESERVE_CORNERS'; bpy.ops.object.modifier_apply(modifier='smooth')
-    if name == 'head':                          # sculpt her face and bake the sculpt onto the game head (face_sculpt.py)
+    if name == 'head' and SCULPT:               # sculpt her face and bake the sculpt onto the game head (face_sculpt.py)
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import face_sculpt
         try: face_sculpt.run(o, marks, sid, os.path.normpath(os.path.join(assets, '..', '..', 'Art3D')))
         except Exception as e: import traceback; traceback.print_exc(); print('SCULPT FAILED', sid, e)

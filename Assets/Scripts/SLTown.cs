@@ -19,7 +19,7 @@ public partial class SLApp {
         public string id, name, role; public Look3 look; public Transform go, fig; public SLRigMotion mo;
         public Vector3 pos; public float ry, speed, walkSpeed = 1.3f, timer, waveT; public float? faceTo;
         public List<Vector2> path = new List<Vector2>(); public string state = "idle", prevState;
-        public SLTownWorld.Place at, dest, meetup; public SLTownWorld.Seat seat; public Label tag; public bool visible = true;
+        public SLTownWorld.Place at, dest, meetup; public SLTownWorld.Seat seat; public VisualElement tag; public bool visible = true, crowd, male;
         public string First => name.Split(' ')[0];
     }
     SLTownWorld town; Camera tcam; SLTownTone tone; bool inTown, townBusyLoading; TP player; readonly List<TP> people = new List<TP>();
@@ -104,6 +104,12 @@ public partial class SLApp {
             people.Add(pp);
             if (++k % 3 == 0) { ((Label)loading[1]).text = "Waking up the starlets… " + k; yield return null; }
         }
+        // passers-by: the town's own people (make_men.py), each going about their day
+        foreach (var e in stage3d.Starlets) {
+            if (!e.id.StartsWith("p_")) continue;
+            var pp = Spawn(e.id, null, new Look3 { id = e.id, height = SLStage3D.IsMale(e.id) ? 1.06f : 1f }); pp.crowd = true; pp.walkSpeed = 1.15f + R() * 0.4f; pp.timer = R() * 5;
+            var n0 = town.nodes[trng.Next(town.nodes.Count)]; pp.pos = new Vector3(n0.x, 0, n0.y); people.Add(pp);
+        }
         Mannequins();
         ((Label)loading[1]).text = "Turning on the lights…"; yield return null;
         // the town camera and the town's light; the suite's interface steps aside
@@ -141,7 +147,7 @@ public partial class SLApp {
 
     // ---------------------------------------------------------------- figures
     TP Spawn(string id, DStarlet s, Look3 look) {
-        var pp = new TP { id = id, name = s != null ? s.name : id, role = s != null ? s.role : "", look = look };
+        var pp = new TP { id = id, name = s != null ? s.name : id, role = s != null ? s.role : "", look = look, male = SLStage3D.IsMale(look.id) };
         pp.go = new GameObject("Starlet " + id).transform; pp.go.SetParent(town.root, false);
         Dress(pp);
         return pp;
@@ -184,8 +190,7 @@ public partial class SLApp {
             SLTownWorld.SetLayer(go); mannequins.Add(go);
         }
     }
-    // the web town's menswear, as the nearest pieces the starlets can wear
-    static readonly Dictionary<string, string> Swaps = new Dictionary<string, string> { { "tux", "blazer" }, { "suit", "blazer" }, { "suitpants", "wide" }, { "shirt", "blouse" }, { "oxfords", "flats" }, { "loafers", "flats" }, { "polo", "tee" }, { "hoodie", "cardigan" }, { "chinos", "wide" }, { "cap", "beret" }, { "tie", null }, { "bowtie", null } };
+    static readonly Dictionary<string, string> Swaps = new Dictionary<string, string>();     // the web town's items that the game does not have (none since menswear came in)
     static string Swap(string id) => id != null && Swaps.TryGetValue(id, out var s) ? s : id;
 
     // ================================================================ walking about
@@ -199,7 +204,7 @@ public partial class SLApp {
     SLTownWorld.Place ChooseDest(TP pp) {
         float h = Hour;
         if (h >= 2 && h < 7) return PlaceBy("home");
-        var list = Haunts(pp.id).Select(PlaceBy).Where(p => p != null && IsOpen(p, h) && p != pp.at).ToList();
+        var list = (pp.crowd ? town.places.Select(p => p.id).ToList() : Haunts(pp.id)).Select(PlaceBy).Where(p => p != null && IsOpen(p, h) && p != pp.at).ToList();
         bool night = h >= 20 || h < 2;
         string[] nightSpots = { "club", "bar", "house", "hall", "theatre", "skygarden", "lounge" }, daySpots = { "cafe", "park", "books", "boutique", "foodcourt", "avenue", "gelato", "patisserie" };
         var w = list.Select(p => (night && nightSpots.Contains(p.id) ? 3f : 1f) + (!night && daySpots.Contains(p.id) ? 1.5f : 0)).ToList();
@@ -277,8 +282,15 @@ public partial class SLApp {
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) ix -= 1;
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) ix += 1;
         }
+        bool run = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || autoRun;
+        if (ix == 0 && iz == 0) {
+            // a game controller's left stick (the shoulder buttons or a stick press run), or the touch joystick
+            float px = Input.GetAxis("Horizontal"), pz = Input.GetAxis("Vertical");
+            if (new Vector2(px, pz).magnitude > 0.2f) { ix = px; iz = pz; run |= PadRun(); }
+            if (joy != null && joy.Value.magnitude > 0.12f) { ix = joy.Value.x; iz = joy.Value.y; run |= joy.Value.magnitude > 0.92f; }
+        }
         if (autoWalk != null) { var a = autoWalk.Value; ix = a.x; iz = a.y; }
-        float mag = Mathf.Min(1, new Vector2(ix, iz).magnitude); bool run = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || autoRun;
+        float mag = Mathf.Min(1, new Vector2(ix, iz).magnitude);
         if (busy != null || modal != null) mag = 0;
         if (mag > 0.05f) HideHint();
         if (player.seat != null && mag > 0.1f) StandUp();
@@ -327,7 +339,7 @@ public partial class SLApp {
         else if (tSpeed > 0) { gm = dt * tSpeed * (player.seat != null ? 3 : 1); lifeMin += gm; }
         if (gm > 0) {
             for (int i = 0; i < 5; i++) needs[i] = Mathf.Clamp(needs[i] - Decay[i] * gm, 0, 100);
-            if (player.seat != null) { Bump("energy", 0.12f * gm); Bump("fun", 0.12f * gm); if (people.Any(p => p.seat != null && D(p, player) < 3)) Bump("social", 0.25f * gm); }
+            if (player.seat != null) { Bump("energy", 0.12f * gm); Bump("fun", 0.12f * gm); if (people.Any(p => !p.crowd && p.seat != null && D(p, player) < 3)) Bump("social", 0.25f * gm); }
         }
         TownInput();
         UpdatePlayer(dt);
@@ -365,12 +377,26 @@ public partial class SLApp {
         var pick = pnl.Pick(RuntimePanelUtils.ScreenToPanel(pnl, new Vector2(screen.x, Screen.height - screen.y)));
         return pick != null && pick != townUI && pick != root && pick != overlayHost;
     }
+    // ---- game controllers (legacy input: buttons by number, the right stick on axes defined in InputManager)
+    static bool PadRun() => Input.GetKey(KeyCode.JoystickButton4) || Input.GetKey(KeyCode.JoystickButton5) || Input.GetKey(KeyCode.JoystickButton8) || Input.GetKey(KeyCode.JoystickButton9) || Input.GetKey(KeyCode.JoystickButton10) || Input.GetKey(KeyCode.JoystickButton11);
+    static Vector2 PadLook() {
+        bool mac = Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor;
+        float x = Input.GetAxis(mac ? "Joy Axis 3" : "Joy Axis 4"), y = Input.GetAxis(mac ? "Joy Axis 4" : "Joy Axis 5");
+        return new Vector2(Mathf.Abs(x) > 0.15f ? x : 0, Mathf.Abs(y) > 0.15f ? y : 0);
+    }
+    bool padUsed;
     void TownInput() {
-        if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Return) && modal == null) Interact();
-        if (Input.GetKeyDown(KeyCode.Escape)) { if (shop != null) CloseBoutique(); else if (modal != null) CloseCard(); else if (phone.style.display == DisplayStyle.Flex) TogglePhone(false); }
-        if (Input.GetKeyDown(KeyCode.M)) TogglePhone(phone.style.display != DisplayStyle.Flex);
+        bool padA = Input.GetKeyDown(KeyCode.JoystickButton0), padB = Input.GetKeyDown(KeyCode.JoystickButton1), padMenu = Input.GetKeyDown(KeyCode.JoystickButton3) || Input.GetKeyDown(KeyCode.JoystickButton7) || Input.GetKeyDown(KeyCode.JoystickButton9) && Application.platform == RuntimePlatform.OSXPlayer;
+        if (padA || padB || padMenu) padUsed = true;
+        if (Input.GetKeyDown(KeyCode.E) || (Input.GetKeyDown(KeyCode.Return) || padA) && modal == null && !PhoneOpen && Time.frameCount - cardClosedAt > 2) Interact();
+        if (Input.GetKeyDown(KeyCode.Escape) || padB) { if (shop != null) CloseBoutique(); else if (modal != null) CloseCard(); else if (PhoneOpen) TogglePhone(false); }
+        if (Input.GetKeyDown(KeyCode.M) || padMenu) TogglePhone(!PhoneOpen);
+        var look = PadLook();
+        if (look != Vector2.zero && modal == null) { cam.yaw -= look.x * 2.4f * Time.deltaTime; cam.pitch = Mathf.Clamp(cam.pitch + look.y * 1.6f * Time.deltaTime, -0.15f, 1.2f); cam.lastDrag = Time.time; HideHint(); padUsed = true; }
+        TouchInput();
         float wheel = Input.mouseScrollDelta.y;
         if (wheel != 0 && !OverUI(Input.mousePosition)) cam.dist = Mathf.Clamp(cam.dist * (1 - Mathf.Sign(wheel) * 0.12f), 2, 14);
+        if (Input.touchCount > 0) return;      // fingers are handled by TouchInput
         if (Input.GetMouseButtonDown(0) && !OverUI(Input.mousePosition)) { dragging = true; dragMoved = false; dragFrom = Input.mousePosition; dragT = Time.time; HideHint(); }
         if (dragging && Input.GetMouseButton(0)) {
             Vector2 m = Input.mousePosition, d = m - dragFrom; dragFrom = m;
@@ -382,11 +408,49 @@ public partial class SLApp {
         }
         if (dragging && Input.GetMouseButtonUp(0)) { dragging = false; if (!dragMoved && Time.time - dragT < 0.3f) TapPick(Input.mousePosition); }
     }
+    // ---- touch: drag on the left to walk (a joystick appears where the finger lands), drag on the right to look,
+    // pinch to zoom, tap a starlet to talk to her
+    Vector2? joy; int joyId = -1, lookId = -1; Vector2 joyOrigin, lookLast, lookStart; float lookT, pinch; VisualElement joyRing, joyKnob;
+    bool PhoneOpen => phone != null && phone.style.display == DisplayStyle.Flex;
+    void TouchInput() {
+        if (Input.touchCount == 0) { if (joyId >= 0) EndJoy(); lookId = -1; pinch = 0; return; }
+        Input.simulateMouseWithTouches = false;
+        if (Input.touchCount >= 2 && joyId < 0) {
+            var a = Input.GetTouch(0).position; var b = Input.GetTouch(1).position; float d = (a - b).magnitude;
+            if (pinch > 0) cam.dist = Mathf.Clamp(cam.dist * pinch / Mathf.Max(d, 1), 2, 14); pinch = d; lookId = -1; return;
+        }
+        pinch = 0;
+        float R = 60f * Mathf.Max(1, Screen.dpi / 160f);
+        foreach (var t in Input.touches) {
+            if (t.phase == TouchPhase.Began) {
+                if (OverUI(t.position)) continue;
+                HideHint();
+                if (t.position.x < Screen.width * 0.45f && joyId < 0 && modal == null) { joyId = t.fingerId; joyOrigin = t.position; joy = Vector2.zero; ShowJoy(t.position, Vector2.zero, R); }
+                else if (lookId < 0) { lookId = t.fingerId; lookLast = lookStart = t.position; lookT = Time.time; }
+            } else if (t.fingerId == joyId) {
+                if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled) { EndJoy(); continue; }
+                var v = (t.position - joyOrigin) / R; if (v.magnitude > 1) v.Normalize(); joy = v; ShowJoy(joyOrigin, v, R);
+            } else if (t.fingerId == lookId) {
+                if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled) { lookId = -1; if ((t.position - lookStart).magnitude < 12 && Time.time - lookT < 0.3f) TapPick(t.position); continue; }
+                var d = t.position - lookLast; lookLast = t.position; float k = 900f / Mathf.Max(600, Screen.height);
+                cam.yaw -= d.x * 0.0055f * k; cam.pitch = Mathf.Clamp(cam.pitch - d.y * 0.004f * k, -0.15f, 1.2f); cam.lastDrag = Time.time;
+            }
+        }
+    }
+    void ShowJoy(Vector2 at, Vector2 v, float R) {
+        var pnl = root.panel; if (pnl == null || townUI == null) return;
+        if (joyRing == null) { joyRing = El("t-joy"); joyKnob = El("t-joyknob"); joyRing.Add(joyKnob); joyRing.pickingMode = PickingMode.Ignore; joyKnob.pickingMode = PickingMode.Ignore; }
+        if (joyRing.parent != townUI) townUI.Add(joyRing);
+        var p = RuntimePanelUtils.ScreenToPanel(pnl, new Vector2(at.x, Screen.height - at.y)); float size = 120;
+        joyRing.style.display = DisplayStyle.Flex; joyRing.style.left = p.x - size / 2; joyRing.style.top = p.y - size / 2;
+        joyKnob.style.translate = new Translate(v.x * 38, -v.y * 38);
+    }
+    void EndJoy() { joyId = -1; joy = null; if (joyRing != null) joyRing.style.display = DisplayStyle.None; }
     void TapPick(Vector2 screen) {
         if (modal != null || busy != null) return;
         var ray = tcam.ScreenPointToRay(screen); TP best = null; float bd = 1e9f;
         foreach (var pp in people) {
-            if (!pp.visible) continue;
+            if (!pp.visible || pp.crowd) continue;
             var p = SLTownWorld.W(pp.pos.x, pp.pos.y + 1.1f, pp.pos.z);
             float d = Vector3.Cross(ray.direction, p - ray.origin).magnitude, far = (p - tcam.transform.position).magnitude;
             if (d < 0.45f && far < 30 && far < bd) { bd = far; best = pp; }
@@ -406,7 +470,7 @@ public partial class SLApp {
         if (busy != null || modal != null) return null;
         if (player.seat != null) return new Near { kind = "stand", label = "Stand up" };
         Near best = null; float bd = 1e9f;
-        foreach (var pp in people) { if (!pp.visible) continue; float d = D(pp, player); if (d < 2.3f && d < bd) { bd = d; best = new Near { kind = "person", pp = pp, label = "Talk to " + pp.First }; } }
+        foreach (var pp in people) { if (!pp.visible || pp.crowd) continue; float d = D(pp, player); if (d < 2.3f && d < bd) { bd = d; best = new Near { kind = "person", pp = pp, label = "Talk to " + pp.First }; } }
         if (best != null) return best;
         foreach (var s in town.seats) { float d = new Vector2(s.x - player.pos.x, s.z - player.pos.z).magnitude; if (d < 1.1f && d < bd && !SeatTaken(s)) { bd = d; best = new Near { kind = "seat", s = s, label = "Sit down" }; } }
         if (best != null) return best;
@@ -433,7 +497,7 @@ public partial class SLApp {
     }
     static Dictionary<string, object> Fx(params (string k, float v)[] f) { var d = new Dictionary<string, object>(); foreach (var x in f) d[x.k] = (double)x.v; return d; }
     bool InHours(Dictionary<string, object> a, float h) { var hr = Get(a, "hours") as List<object>; return hr == null || (h >= F(hr[0]) && h < F(hr[1])); }
-    List<TP> Pals(SLTownWorld.Place p) => people.Where(x => x.visible && D(x, player) < 9 && (Rel(x.id) >= 15 || x.state == "follow" || x.meetup == p)).ToList();
+    List<TP> Pals(SLTownWorld.Place p) => people.Where(x => x.visible && !x.crowd && D(x, player) < 9 && (Rel(x.id) >= 15 || x.state == "follow" || x.meetup == p)).ToList();
     string Names(IEnumerable<TP> l) => string.Join(" & ", l.Select(x => x.First));
     void OpenPlace(SLTownWorld.Place p) {
         if (busy != null) return;
@@ -472,7 +536,7 @@ public partial class SLApp {
     }
     void CallFriends(SLTownWorld.Place p) {
         CloseCard();
-        var pals = people.Where(x => x.state != "inside" && x.state != "follow" && Rel(x.id) >= 15).OrderByDescending(x => Rel(x.id)).Take(3).ToList();
+        var pals = people.Where(x => !x.crowd && x.state != "inside" && x.state != "follow" && Rel(x.id) >= 15).OrderByDescending(x => Rel(x.id)).Take(3).ToList();
         if (pals.Count == 0) { ShowToast("No friends to call yet. Chat with starlets around town until they’re your friends."); return; }
         foreach (var x in pals) { x.meetup = p; if (x.seat != null) { x.seat = null; x.mo.pose = "stand"; } SendTo(x, p); }
         ShowToast("You texted " + string.Join(", ", pals.Select(x => x.First)) + ". They’re on their way to " + p.name + "!");
@@ -499,7 +563,7 @@ public partial class SLApp {
         string bodyNote = exercise ? BodyChange(Me, -0.04f, 0.03f) : food > 0 ? BodyChange(Me, food * 0.0012f, 0) : "";
         if (b.group != null) { foreach (var x in b.group) { Befriend(x.id, 6); x.meetup = null; } msg = "Great time with " + Names(b.group) + "! Friendships grew."; }
         if (b.friend != null) { Befriend(b.friend.id, 8); Bump("social", 8); msg += " " + b.friend.First + " had a great time with you."; }
-        foreach (var pp in people) if (pp != b.friend && pp.at == b.p && D(pp, player) < 25) Befriend(pp.id, 3);
+        foreach (var pp in people) if (!pp.crowd && pp != b.friend && pp.at == b.p && D(pp, player) < 25) Befriend(pp.id, 3);
         msg += bodyNote; if (bodyDirty) { bodyDirty = false; player.look = MyLook(null); Dress(player); }
         busyEl.style.display = DisplayStyle.None; busy = null; ShowToast(msg); SaveLife(); UpdateHud(true);
     }
@@ -518,9 +582,9 @@ public partial class SLApp {
         bool following = pp.prevState == "follow"; float r = Rel(pp.id);
         var opts = new List<Opt> {
             new Opt { label = "Chat", note = "+social", run = () => { Bump("social", 8); Befriend(pp.id, 3); lifeMin += 10; TalkMenu(pp, Say("chat")); } },
-            new Opt { label = "Compliment her look", note = "+charisma", run = () => { Befriend(pp.id, 2); AddSkill("charisma", 0.15f); Bump("social", 3); TalkMenu(pp, Say("compliment")); } },
+            new Opt { label = "Compliment " + (pp.male ? "his" : "her") + " look", note = "+charisma", run = () => { Befriend(pp.id, 2); AddSkill("charisma", 0.15f); Bump("social", 3); TalkMenu(pp, Say("compliment")); } },
             following ? new Opt { label = "Say goodbye", run = () => { pp.prevState = "idle"; CloseCard(); ShowToast(pp.First + " heads off. See you soon!"); } }
-                : new Opt { label = "Want to hang out?", note = r < 15 ? "get to know her first" : "she’ll come with you", accent = r >= 15, run = () => {
+                : new Opt { label = "Want to hang out?", note = r < 15 ? "get to know " + (pp.male ? "him" : "her") + " first" : (pp.male ? "he" : "she") + "’ll come with you", accent = r >= 15, run = () => {
                     if (r >= 15) { foreach (var x in people) if (x.state == "follow") x.state = "idle"; pp.prevState = "follow"; pp.seat = null; pp.mo.pose = "stand"; CloseCard(); ShowToast(pp.First + " is coming with you. Go somewhere fun!"); }
                     else { Befriend(pp.id, 1); TalkMenu(pp, Say("no")); } } },
         };
@@ -635,8 +699,8 @@ public partial class SLApp {
         // waypoint compass
         compass = El("town-compass glass", compassArrow = L("↑", "t-arrow"), compassTxt = L("", "t-ctext"), B("×", "t-x", () => SetWaypoint(null))); compass.style.display = DisplayStyle.None; townUI.Add(compass);
         // the prompt to interact
-        prompt = El("town-prompt glass", L("E", "t-kbd"), promptL = L("", "t-ptext"), promptSub = L("", "t-psub")); prompt.RegisterCallback<ClickEvent>(_ => Interact()); prompt.style.display = DisplayStyle.None; townUI.Add(prompt);
-        hint = L("WASD or arrow keys to walk · Shift to run · drag to look · E to interact · M for your phone", "town-hint glass"); hint.pickingMode = PickingMode.Ignore; townUI.Add(hint);
+        prompt = El("town-prompt glass", L(Application.isMobilePlatform ? "Tap" : Input.GetJoystickNames().Any(n => !string.IsNullOrEmpty(n)) ? "A" : "E", "t-kbd"), promptL = L("", "t-ptext"), promptSub = L("", "t-psub")); prompt.RegisterCallback<ClickEvent>(_ => Interact()); prompt.style.display = DisplayStyle.None; townUI.Add(prompt);
+        hint = L(Input.touchSupported && Application.isMobilePlatform ? "Drag on the left to walk · drag on the right to look · tap a starlet to talk" : Input.GetJoystickNames().Any(n => !string.IsNullOrEmpty(n)) ? "Left stick to walk · right stick to look · A to interact · B to go back · Y for your phone" : "WASD or arrow keys to walk · Shift to run · drag to look · E to interact · M for your phone", "town-hint glass"); hint.pickingMode = PickingMode.Ignore; townUI.Add(hint);
         // a card for places and conversations
         cardEl = El("town-card glass", cardTitle = L("", "t-ctitle"), cardSub = L("", "t-csub"), cardRel = El("t-rel"), cardSay = L("", "t-csay"), cardOpts = El("t-opts"), B("×", "t-close", CloseCard));
         cardEl.style.display = DisplayStyle.None; townUI.Add(cardEl);
@@ -676,8 +740,11 @@ public partial class SLApp {
             b.Add(L(o.label, "t-olab")); if (!string.IsNullOrEmpty(o.note)) b.Add(L(o.note, "t-onote")); b.SetEnabled(!o.disabled); cardOpts.Add(b);
         }
         cardEl.style.display = DisplayStyle.Flex; prompt.style.display = DisplayStyle.None;
+        if (padUsed) { var first = cardOpts.Children().FirstOrDefault(c => c.enabledSelf); first?.schedule.Execute(() => first.Focus()); }
     }
+    int cardClosedAt;
     void CloseCard() {
+        cardClosedAt = Time.frameCount;
         if (talking != null) { talking.state = talking.prevState == "follow" || talking.prevState == "sit" ? talking.prevState : "idle"; talking.timer = 8; talking = null; }
         if (shop == null) modal = null; if (cardEl != null) cardEl.style.display = DisplayStyle.None;
     }
@@ -685,7 +752,8 @@ public partial class SLApp {
     void UpdateTags() {
         var pnl = root.panel;
         foreach (var pp in people) {
-            if (pp.tag == null) { pp.tag = L(pp.First, "t-tag"); pp.tag.Add(L(pp.role, "t-tagsub")); pp.tag.pickingMode = PickingMode.Ignore; tagLayer.Add(pp.tag); }
+            if (pp.crowd) continue;
+            if (pp.tag == null) { pp.tag = El("t-tag", L(pp.First, "t-tagname"), L(pp.role, "t-tagsub")); pp.tag.pickingMode = PickingMode.Ignore; foreach (var c in pp.tag.Children()) c.pickingMode = PickingMode.Ignore; tagLayer.Add(pp.tag); }
             float d = D(pp, player); var w = SLTownWorld.W(pp.pos.x, pp.pos.y + 2.12f * pp.look.height, pp.pos.z); var s = tcam.WorldToScreenPoint(w);
             bool show = pp.visible && d < 14 && d > 2.6f && busy == null && s.z > 0 && pnl != null;
             pp.tag.style.display = show ? DisplayStyle.Flex : DisplayStyle.None; if (!show) continue;
@@ -709,7 +777,7 @@ public partial class SLApp {
         } else if (phoneTab == "places") {
             foreach (var p in town.places.Where(p => !p.mall)) { var pp = p; var b = B("", "t-place", () => { SetWaypoint(new Waypoint { name = pp.name, x = pp.x, z = pp.z }); TogglePhone(false); }); var dot = El("t-pdot"); dot.style.backgroundColor = C(p.color); b.Add(dot); b.Add(L(p.name, "t-pname")); b.Add(L(IsOpen(p, h) ? p.sub : "closed", "t-psub2")); phonePanes.Add(b); }
         } else if (phoneTab == "friends") {
-            foreach (var pp in people) {
+            foreach (var pp in people.Where(q => !q.crowd)) {
                 var x = pp; float r = Rel(pp.id);
                 var nearP = town.places.Select(p => (p, d: new Vector2(p.x - pp.pos.x, p.z - pp.pos.z).magnitude)).Where(t => t.d < 30).OrderBy(t => t.d).Select(t => t.p).FirstOrDefault();
                 string where = pp.state == "inside" ? "at home" : pp.state == "follow" ? "with you" : nearP != null ? "near " + nearP.name : "out and about";
@@ -741,7 +809,7 @@ public partial class SLApp {
         var ave = O(data_town("AVE")); Box(ToMap(F(ave["x0"]), F(ave["z0"])), ToMap(F(ave["x1"]), F(ave["z1"])), new Color32(0x8a, 0x73, 0x40, 255));
         var mall = O(data_town("MALL")); Box(ToMap(F(mall["cx"]) - town.Half, -town.Half), ToMap(F(mall["cx"]) + town.Half, town.Half), new Color32(0x6a, 0x60, 0x70, 255));
         foreach (var p in town.places) Disc(ToMap(p.x, p.z), 6, (Color32)C(p.color));
-        foreach (var pp in people) if (pp.visible) Disc(ToMap(pp.pos.x, pp.pos.z), 3.5f, new Color32(0xff, 0xd1, 0xe1, 255));
+        foreach (var pp in people) if (pp.visible && !pp.crowd) Disc(ToMap(pp.pos.x, pp.pos.z), 3.5f, new Color32(0xff, 0xd1, 0xe1, 255));
         if (waypoint != null) { var w = WpPos(); Disc(ToMap(w.x, w.y), 12, new Color32(0xff, 0x4f, 0x8b, 255), 9); }
         // you: an arrow pointing where you face
         var me = ToMap(player.pos.x, player.pos.z); float a = player.ry; var fwd = new Vector2(Mathf.Sin(a), Mathf.Cos(a)); var side = new Vector2(fwd.y, -fwd.x);

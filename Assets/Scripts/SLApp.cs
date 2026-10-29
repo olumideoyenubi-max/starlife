@@ -321,7 +321,7 @@ public partial class SLApp : MonoBehaviour {
         yield return Snap("dressed");
         Set3D(false, false); yield return Snap("dressed-drawn"); Set3D(true, false);
         void Dump(Look3 look, string shot, int w, int h, string file, float yaw = 0) { var t2 = SLStage3D.Read(stage3d.Shot(look, shot, w, h, yaw)); File.WriteAllBytes(Path.Combine(shotsDir, file + ".png"), t2.EncodeToPNG()); Destroy(t2); }
-        foreach (var e in stage3d.Starlets) if (e.id != "basics") Dump(new Look3 { id = e.id }, "full", 400, 820, "avatar-" + e.id);      // every avatar as she came
+        foreach (var e in stage3d.Starlets) if (e.id != "basics" && e.id != "goth") Dump(new Look3 { id = e.id }, "full", 400, 820, "avatar-" + e.id);      // every avatar as she came
         Dump(new Look3 { id = "zuri", signature = false, underwear = C("#f4c7d3") }, "full", 400, 820, "life-0-underwear-halter-briefs");
         Dump(new Look3 { id = "lucy", signature = false, underwear = C("#1f1b22"), bra = "bandeau", pants = "shorts" }, "full", 400, 820, "life-1-underwear-bandeau-shorts");
         Dump(new Look3 { id = "charlotte", signature = false, underwear = C("#a9c6ef"), bra = "tank" }, "full", 400, 820, "life-2-underwear-tank");
