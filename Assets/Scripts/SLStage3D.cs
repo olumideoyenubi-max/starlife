@@ -295,12 +295,14 @@ public sealed class SLStage3D {
     // her own head, her hair or another, and either her own outfit or the wardrobe's pieces over a shared body.
     const string Base = "olivia";    // the body (and swimwear, used as underwear) worn under wardrobe pieces
     const string ManBase = "manbase"; // the men's shared body (make_men.py), in athletic shorts; all menswear is made on it
-    static readonly HashSet<string> MenIds = new HashSet<string> { "kai", "leo", "jin", "theo", "omar", "manbase", "p_sam", "p_femi", "p_ken" };
+    static readonly HashSet<string> MenIds = new HashSet<string> { "kai", "leo", "jin", "theo", "omar", "manbase", "p_sam", "p_femi", "p_ken", "p_tunde", "p_raj", "p_marco", "p_kwame", "p_hiro", "p_luis" };
     // MakeHuman's hair, beards and brows are pale strand textures meant to be tinted: each generated person's own colour
     static readonly Dictionary<string, string> GenHairHex = new Dictionary<string, string> {
         { "kai", "#1c1412" }, { "leo", "#3b2416" }, { "jin", "#14100e" }, { "theo", "#1c1412" }, { "omar", "#2a1a12" }, { "manbase", "#2a1a12" },
         { "p_ada", "#1c1412" }, { "p_grace", "#b9b3ad" }, { "p_mei", "#14100e" }, { "p_priya", "#1c1412" }, { "p_sam", "#6b3a1f" }, { "p_femi", "#3a3532" },
-        { "p_ken", "#14100e" }, { "p_rosa", "#d8d4cf" } };
+        { "p_ken", "#14100e" }, { "p_rosa", "#d8d4cf" },
+        { "p_amara", "#1c1412" }, { "p_chioma", "#14100e" }, { "p_lena", "#b8925c" }, { "p_yuki", "#14100e" }, { "p_sofia", "#3b2416" }, { "p_nadia", "#2a1a12" },
+        { "p_bisi", "#b9b3ad" }, { "p_tunde", "#14100e" }, { "p_raj", "#14100e" }, { "p_marco", "#4a3c32" }, { "p_kwame", "#cfcac4" }, { "p_hiro", "#2a1a12" }, { "p_luis", "#1c1412" } };
     static Color? GenHair(string id) => id != null && (GenHairHex.TryGetValue(id, out var h) || id.StartsWith("m_") && GenHairHex.TryGetValue("manbase", out h)) ? H(h) : (Color?)null;
     public static bool IsMale(string id) => id != null && (MenIds.Contains(id) || id.StartsWith("m_"));
     /// <summary>Avatars that are only there to lend clothes (and the town's passers-by): not offered as faces or outfits.</summary>

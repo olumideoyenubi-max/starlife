@@ -1,0 +1,266 @@
+{
+ "id": "p_lena",
+ "scale": 1.0331,
+ "marks": {
+  "hips": [
+   0.0,
+   -0.0213,
+   0.8803
+  ],
+  "head": [
+   0.0,
+   -0.042,
+   1.5444
+  ],
+  "headTop": null,
+  "eyeL": null,
+  "eyeR": null,
+  "handL": [
+   0.2808,
+   -0.0674,
+   0.9163
+  ],
+  "handR": [
+   -0.2808,
+   -0.0674,
+   0.9163
+  ],
+  "armL": [
+   0.1629,
+   -0.0221,
+   1.3425
+  ],
+  "footL": [
+   0.1773,
+   -0.0252,
+   0.0733
+  ]
+ },
+ "parts": [
+  {
+   "mesh": "body",
+   "material": "Wolf3D_Body",
+   "tex": "body.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.8087,
+    0.6201,
+    0.5124
+   ],
+   "lum": 0.6643,
+   "zmin": 0.001,
+   "zmax": 1.455,
+   "xmax": 0.302,
+   "tris": 61872
+  },
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "bottom_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.5904,
+    0.37,
+    0.2383
+   ],
+   "lum": 0.4204,
+   "zmin": 0.074,
+   "zmax": 0.991,
+   "xmax": 0.231,
+   "tris": 3392
+  },
+  {
+   "mesh": "brows",
+   "material": "SL_Eyebrow",
+   "tex": "brows.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.2046,
+    0.1332,
+    0.1328
+   ],
+   "lum": 0.1545,
+   "zmin": 1.586,
+   "zmax": 1.6,
+   "xmax": 0.073,
+   "tris": 192
+  },
+  {
+   "mesh": "eyes",
+   "material": "Wolf3D_Eye",
+   "tex": "eyes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.6355,
+    0.6186,
+    0.599
+   ],
+   "lum": 0.621,
+   "zmin": 1.563,
+   "zmax": 1.6,
+   "xmax": 0.055,
+   "tris": 172
+  },
+  {
+   "mesh": "hair",
+   "material": "Wolf3D_Hair",
+   "tex": "hair.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.2436,
+    0.1997,
+    0.1706
+   ],
+   "lum": 0.2096,
+   "zmin": 1.084,
+   "zmax": 1.725,
+   "xmax": 0.119,
+   "tris": 5518
+  },
+  {
+   "mesh": "head",
+   "material": "Wolf3D_Skin",
+   "tex": "body.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.8087,
+    0.6201,
+    0.5124
+   ],
+   "lum": 0.6643,
+   "zmin": 1.42,
+   "zmax": 1.709,
+   "xmax": 0.107,
+   "tris": 34416
+  },
+  {
+   "mesh": "lashes",
+   "material": "SL_Eyelash",
+   "tex": "lashes.png",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1,
+   "zmin": 1.571,
+   "zmax": 1.588,
+   "xmax": 0.059,
+   "tris": 368
+  },
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "shoes_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.5357,
+    0.4356,
+    0.3186
+   ],
+   "lum": 0.4523,
+   "zmin": -0.014,
+   "zmax": 0.068,
+   "xmax": 0.235,
+   "tris": 8999
+  },
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "top_n.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tone": [
+    0.9502,
+    0.9465,
+    0.9391
+   ],
+   "lum": 0.9479,
+   "zmin": 0.845,
+   "zmax": 1.417,
+   "xmax": 0.307,
+   "tris": 4496
+  }
+ ]
+}

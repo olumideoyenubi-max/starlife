@@ -117,7 +117,7 @@ public partial class SLApp {
         Go("sunnyside", 9, 13, 0.5f); cam.dist = 9; yield return Snap("row-north", 30);
         Go("gilded", 9, 21, 0.5f); cam.dist = 9; yield return Snap("row-south-night", 30);
         foreach (var (id, hr) in new[] { ("greenwave", 10f), ("bigbun", 13f), ("sunnyside", 10f), ("jollof", 19f), ("bella", 19f), ("sakura", 20f), ("gilded", 20f), ("lumiere", 20.5f),
-                                          ("velours", 14f), ("sneakers", 14f), ("aurelle", 14f), ("books", 14f), ("dore", 9f), ("bar", 21f), ("spa", 14f) }) {
+                                          ("velours", 14f), ("sneakers", 14f), ("aurelle", 14f), ("books", 14f), ("dore", 9f), ("bar", 21f), ("spa", 14f), ("salon", 14f) }) {
             var pl = PlaceBy(id); if (pl == null) { dirLog += "no place " + id + "\n"; continue; }
             Go(id, 1.2f, hr); EnterRoom(pl); if (room == null) { dirLog += "no room " + id + "\n"; continue; }
             cam.yaw = player.ry + Mathf.PI + 0.25f; cam.pitch = 0.18f; cam.cur = 0; yield return Snap("room-" + id, 30);

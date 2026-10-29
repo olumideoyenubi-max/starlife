@@ -1,0 +1,38 @@
+{
+ "id": "pendant",
+ "label": "pendant",
+ "parts": [
+  {
+   "mesh": "part0",
+   "material": "hanging_industrial_lamp",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 8812
+  },
+  {
+   "mesh": "part1",
+   "material": "hanging_industrial_lamp_glass",
+   "tex": "",
+   "normal": "nrm1.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 718
+  }
+ ]
+}

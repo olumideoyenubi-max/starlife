@@ -1,0 +1,54 @@
+{
+ "id": "coffeecart",
+ "label": "coffeecart",
+ "parts": [
+  {
+   "mesh": "part0",
+   "material": "CoffeeCart_01_props",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 16929
+  },
+  {
+   "mesh": "part1",
+   "material": "CoffeeCart_01_cart",
+   "tex": "tex1.png",
+   "normal": "nrm1.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 8970
+  },
+  {
+   "mesh": "part2",
+   "material": "CoffeeCart_01_mugs",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 1760
+  }
+ ]
+}

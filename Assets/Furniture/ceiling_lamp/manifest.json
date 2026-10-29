@@ -1,0 +1,54 @@
+{
+ "id": "ceiling_lamp",
+ "label": "ceiling_lamp",
+ "parts": [
+  {
+   "mesh": "part0",
+   "material": "modern_ceiling_lamp_01_glass",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 2944
+  },
+  {
+   "mesh": "part1",
+   "material": "modern_ceiling_lamp_01",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 2354
+  },
+  {
+   "mesh": "part2",
+   "material": "modern_ceiling_globe",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 304
+  }
+ ]
+}

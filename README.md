@@ -174,6 +174,10 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
   the room shows; its walls and counters join the town's colliders while you are inside) with fittings, seated guests
   and staff on the passers-by's bodies in dyed uniforms (`Look3.uniform`), aprons, caps and chef's hats. Talking to a
   cashier, host or sales assistant opens the place's own menu or rails; cooks, waiters and stock staff work their beat.
+  Furniture and fittings are Poly Haven models brought in by `Tools/blender/fetch_furniture.py` (chairs, tables, stools,
+  barber chairs, lounge chairs, chandeliers, pendants, shelves, tills, a coffee cart, cakes, mirrors); each room shuffles
+  the town's 21 passers-by (`p_*`, 13 of them added with their own face shapes: `face_shape()` in `make_men.py`) so
+  nobody is in a room twice. MPFB's age is 0.5 at 25 (0.3 is a teenager): keep grown-ups at 0.5 and up.
 - **Directions:** the town is mirrored into Unity (`W` flips z), so a larger heading turns left on screen: walking
   uses `Atan2(-ix, iz)` and steering subtracts. The tour logs `walk right/left` and `steer right` checks in `town-log.txt`.
 - **Fashion Week** (`SLTownFashion.cs`): at the Grand Hall in the evening, pick a theme, four hero pieces (the looks are

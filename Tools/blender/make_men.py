@@ -60,7 +60,53 @@ PEOPLE = {
                  clothes=[('sl_monogram_shirt', 'top'), ('sl_raw_denim', 'bottom'), ('sl_cream_oxford', 'shoes')]),
     'p_rosa':   dict(gender=F, age=0.75, muscle=0.45, weight=0.62, height=0.42, race=MIX(0.2, 0.0, 0.8), skin='callharvey3d_midtoned_female', hair='bob01', brows='eyebrow002',
                  clothes=[('mindfront_f_dress_05', 'suit'), ('toigo_flats', 'shoes')]),
+    # more of the town (shop and restaurant staff and their customers come from these too); face: a seed for face_shape();
+    # MPFB's age is 0.5 at 25 and 1.0 at 90 (0.3 is a teenager), so these grown-ups are 0.5 and up
+    'p_amara':  dict(gender=F, age=0.52, muscle=0.5, weight=0.45, height=0.55, race=AF, skin='young_african_female', hair='afro01', brows='eyebrow003', face=11,
+                 clothes=[('female_casualsuit02', 'suit'), ('culturalibre_sneakers', 'shoes')]),
+    'p_chioma': dict(gender=F, age=0.68, muscle=0.45, weight=0.66, height=0.46, race=AF, skin='middleage_african_female', hair='elvs_braid_bun', brows='eyebrow002', face=12,
+                 clothes=[('sl_ankara_maxi', 'suit'), ('dressupdoc_sandals1', 'shoes')]),
+    'p_lena':   dict(gender=F, age=0.55, muscle=0.5, weight=0.44, height=0.58, race=CA, skin='young_caucasian_female', hair='braid01', brows='eyebrow001', face=13,
+                 clothes=[('punkduck_off-shoulder_long-sleeve_top', 'top'), ('mindfront_female_trousers_1', 'bottom'), ('elvs_flatshoe_plain1', 'shoes')]),
+    'p_yuki':   dict(gender=F, age=0.5, muscle=0.45, weight=0.4, height=0.4, race=AS, skin='young_asian_female', hair='bob01', brows='eyebrow001', face=14,
+                 clothes=[('toigo_shift_dress', 'suit'), ('elvs_flatshoe_plain1', 'shoes')]),
+    'p_sofia':  dict(gender=F, age=0.58, muscle=0.5, weight=0.52, height=0.47, race=MIX(0.15, 0.05, 0.8), skin='callharvey3d_midtoned_female', hair='punkduck_alpha7_curly', brows='eyebrow002', face=15,
+                 clothes=[('toigo_halter_dress_midi', 'suit'), ('dressupdoc_sandals1', 'shoes')]),
+    'p_nadia':  dict(gender=F, age=0.53, muscle=0.5, weight=0.47, height=0.5, race=MIX(0.3, 0.3, 0.4), skin='cutoff3d_indian_female_skin', hair='long01', brows='eyebrow002', face=16,
+                 clothes=[('sl_butter_offshoulder', 'top'), ('punkduck_female_short_jeans', 'bottom'), ('sl_black_runners', 'shoes')]),
+    'p_bisi':   dict(gender=F, age=0.86, muscle=0.4, weight=0.6, height=0.42, race=AF, skin='middleage_african_female', hair='bob02', brows='eyebrow002', face=17,
+                 clothes=[('female_elegantsuit01', 'suit'), ('elvs_flatshoe_plain1', 'shoes')]),
+    'p_tunde':  dict(gender=M, age=0.55, muscle=0.75, weight=0.5, height=0.62, race=AF, skin='young_african_male', hair='short04', brows='eyebrow003', face=21,
+                 clothes=[('elvs_crude_t-shirt_male', 'top'), ('punkduck_male_classic_jeans', 'bottom'), ('culturalibre_sneakers', 'shoes'), ('elvs_scruffy_beard1', 'beard')]),
+    'p_raj':    dict(gender=M, age=0.6, muscle=0.5, weight=0.5, height=0.52, race=MIX(0.2, 0.6, 0.2), skin='young_asian_male', hair='short01', brows='eyebrow002', face=22,
+                 clothes=[('male_casualsuit03', 'suit'), ('shoes03', 'shoes')]),
+    'p_marco':  dict(gender=M, age=0.7, muscle=0.5, weight=0.62, height=0.55, race=CA, skin='young_caucasian_male', hair='short03', brows='eyebrow002', face=23,
+                 clothes=[('male_casualsuit05', 'suit'), ('shoes05', 'shoes'), ('grinsegold_full_beard', 'beard')]),
+    'p_kwame':  dict(gender=M, age=0.88, muscle=0.45, weight=0.58, height=0.5, race=AF, skin='middleage_african_male', hair='short01', brows='eyebrow002', face=24,
+                 clothes=[('male_worksuit01', 'suit'), ('toigo_ankle_boots_male', 'shoes'), ('grinsegold_moustache', 'beard')]),
+    'p_hiro':   dict(gender=M, age=0.5, muscle=0.6, weight=0.4, height=0.5, race=AS, skin='young_asian_male', hair='punkduck_alpha7_curly', brows='eyebrow001', face=25,
+                 clothes=[('elvs_male_muscle_shirt1', 'top'), ('cortu_cargo_pants', 'bottom'), ('punkduck_running_shoes_01', 'shoes')]),
+    'p_luis':   dict(gender=M, age=0.62, muscle=0.55, weight=0.55, height=0.57, race=MIX(0.3, 0.0, 0.7), skin='young_caucasian_male', hair='afro01', brows='eyebrow003', face=26,
+                 clothes=[('namuhekam_male_polo_shirt', 'top'), ('elvs_male_trouser', 'bottom'), ('shoes01', 'shoes'), ('culturalibre_dal_moustache', 'beard')]),
 }
+# a face of its own: MakeHuman's face targets (nose, jaw, chin, cheekbones, eyes, lips, ears, head shape), picked from a seed
+FACE_AXES = ['nose-scale-horiz', 'nose-scale-vert', 'nose-point-width', 'nose-hump', 'nose-flaring', 'chin-width', 'chin-prominent', 'chin-height',
+             'head-scale-horiz', 'mouth-scale-horiz', 'mouth-lowerlip-volume', 'cheek-bones', 'eye-scale', 'ear-scale']
+HEADS = ['head-oval', 'head-round', 'head-square', 'head-diamond', 'head-triangular', 'head-rectangular', 'head-invertedtriangular']
+def face_shape(body, seed):
+    import random
+    from bl_ext.blender_org.mpfb.services.targetservice import TargetService
+    r = random.Random(seed); td = LocationService.get_mpfb_data('targets')
+    folder = {'nose': 'nose', 'chin': 'chin', 'head': 'head', 'mouth': 'mouth', 'cheek': 'cheek', 'eye': 'eyes', 'ear': 'ears'}
+    picks = [(a + ('-incr' if r.random() < 0.5 else '-decr'), r.uniform(0.15, 0.65)) for a in FACE_AXES]
+    picks.append((r.choice(HEADS), r.uniform(0.3, 0.7)))
+    for name, w in picks:
+        sides = ['l-', 'r-'] if name.split('-')[0] in ('cheek', 'eye', 'ear') else ['']
+        for sd in sides:
+            path = os.path.join(td, folder[name.split('-')[0]], sd + name + '.target.gz')
+            if os.path.exists(path): TargetService.load_target(body, path, weight=w, name=sd + name)
+            else: print('NO TARGET', path)
+
 # the game-engine skeleton's bones, by the Ready Player Me names the rest of the pipeline uses
 RENAME = {'pelvis': 'Hips', 'spine_01': 'Spine', 'spine_02': 'Spine1', 'spine_03': 'Spine2', 'neck_01': 'Neck', 'head': 'Head',
           'clavicle_l': 'LeftShoulder', 'upperarm_l': 'LeftArm', 'lowerarm_l': 'LeftForeArm', 'hand_l': 'LeftHand',
@@ -154,6 +200,7 @@ def make(pid, spec):
              'height': 0.5 + (spec['height'] - 0.5) * 0.45, 'cupsize': 0.5, 'firmness': 0.5, 'race': spec['race']}
     body = HumanService.create_human(macro_detail_dict=macro, scale=0.1); body.name = pid
     HumanService.set_character_skin(asset('skins', spec['skin'], '.mhmat'), body, skin_type='MAKESKIN')
+    if 'face' in spec: face_shape(body, spec['face'])
     before = set(bpy.data.objects)
     HumanService.add_mhclo_asset(asset('eyes', 'low-poly', '.mhclo'), body, asset_type='Eyes', subdiv_levels=0); eyes = set(bpy.data.objects) - before; before = set(bpy.data.objects)
     HumanService.add_mhclo_asset(asset('eyebrows', spec.get('brows', 'eyebrow001'), '.mhclo'), body, asset_type='Eyebrows', subdiv_levels=0); brows = set(bpy.data.objects) - before; before = set(bpy.data.objects)

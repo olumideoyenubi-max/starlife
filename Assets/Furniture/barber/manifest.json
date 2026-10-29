@@ -1,0 +1,22 @@
+{
+ "id": "barber",
+ "label": "barber",
+ "parts": [
+  {
+   "mesh": "part0",
+   "material": "BarberShopChair_01",
+   "tex": "tex0.png",
+   "normal": "nrm0.png",
+   "alpha": false,
+   "color": [
+    0.8,
+    0.8,
+    0.8,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0,
+   "tris": 4280
+  }
+ ]
+}

@@ -46,6 +46,11 @@ braided bun) are made by `Tools/blender/make_hair.py` and are the project's own.
 Sofa: `sofa_02` (Kirill Sannikov). Armchair: `ArmChair_01` (Kirill Sannikov). Plant: `potted_plant_02` (Rico Cilliers).
 Coffee table: `coffee_table_round_01` (Ulan Cabanilla). Moving box: `cardboard_box_01` (Rahul Chaudhary). https://polyhaven.com
 
+Town shops and restaurants (`Tools/blender/fetch_furniture.py`): `dining_chair_02`, `painted_wooden_chair_01`, `metal_stool_02`,
+`BarberShopChair_01`, `mid_century_lounge_chair`, `modern_arm_chair_01`, `Ottoman_01`, `round_wooden_table_01`, `wooden_table_02`,
+`Chandelier_01`, `Chandelier_03`, `hanging_industrial_lamp`, `modern_ceiling_lamp_01`, `wooden_display_shelves_01`, `CashRegister_01`,
+`CoffeeCart_01`, `strawberry_chocolate_cake`, `ornate_mirror_01`, `ceramic_vase_01`, `tea_set_01` (Poly Haven, CC0).
+
 ## Kept with the project
 
 `avatars/<id>.blend`, `hair/<id>.blend` and `furniture/<kind>.blend` are the imports as they were fitted in Blender.

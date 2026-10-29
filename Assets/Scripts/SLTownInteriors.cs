@@ -142,6 +142,18 @@ public partial class SLApp {
         }
     }
     GameObject Prefab(string path) => Resources.Load<GameObject>(path);
+    /// <summary>A Poly Haven piece (Assets/Furniture, from fetch_furniture.py) in the room, its front to local +z; null if it is not in this build.</summary>
+    Transform Model(string kind, Vector3 at, float yawDeg = 0, float scale = 1) {
+        var pf = Prefab("Furniture/" + kind); if (pf == null) return null;
+        var t = Instantiate(pf, room.root, false).transform; t.localPosition = at; t.localRotation = Quaternion.Euler(0, yawDeg, 0); t.localScale *= scale; return t;
+    }
+    /// <summary>The next of the town's people to work or eat here: each room shuffles them its own way, and nobody is in it twice.</summary>
+    string NextBody() {
+        if (room.crowd == null) {
+            var r = new System.Random(room.p.id.GetHashCode()); room.crowd = stage3d.Starlets.Select(s => s.id).Where(id => id.StartsWith("p_")).OrderBy(id => r.Next()).ToList();
+        }
+        if (room.crowd.Count == 0) return null; string id = room.crowd[0]; room.crowd.RemoveAt(0); return id;
+    }
     static void FitHeight(Transform t, float h) {
         var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return; var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
         if (b.size.y > 0.01f) t.localScale *= h / b.size.y;
@@ -154,6 +166,7 @@ public partial class SLApp {
         public readonly List<float[]> cols = new List<float[]>(); public readonly List<SLTownWorld.Seat> seats = new List<SLTownWorld.Seat>();
         public readonly List<Worker> workers = new List<Worker>(); public readonly List<TP> guests = new List<TP>(); public Color amb = new Color(0.55f, 0.5f, 0.45f);
         public float camDist, camPitch; public int pixelLights;
+        public string chair, table; public List<string> crowd;     // the furniture models it uses (null: built here), and who works and eats there
     }
     Room room;
     static readonly Dictionary<string, string> RoomKinds = new Dictionary<string, string> {
@@ -286,8 +299,7 @@ public partial class SLApp {
     static readonly string[] HisNames = { "Tunde", "Marco", "Kenji", "Sam", "Femi", "Luca", "Omar", "Kwame", "Jonah", "Diego", "Hugo", "Ravi" };
     int hire;
     Worker Hire(string role, string kind, float x, float z, float face, Color top, Color? bottom = null, bool sells = false, string hat = null, bool apron = false, float[] beat = null) {
-        var bodies = stage3d.Starlets.Select(s => s.id).Where(id => id.StartsWith("p_")).OrderBy(id => id).ToList(); if (bodies.Count == 0) return null;
-        string id = bodies[(hire + room.p.id.Length) % bodies.Count]; bool male = SLStage3D.IsMale(id);
+        string id = NextBody(); if (id == null) return null; bool male = SLStage3D.IsMale(id);
         var names = male ? HisNames : HerNames; string name = names[(hire * 7 + room.p.id.GetHashCode() & 0x7fff) % names.Length]; hire++;
         var look = new Look3 { id = id, height = male ? 1.06f : 1f, uniform = top, uniformBottom = bottom ?? new Color(0.12f, 0.12f, 0.14f) };
         var pp = Spawn(id, null, look); pp.name = name; pp.role = role; pp.walkSpeed = 1.1f;
@@ -319,8 +331,7 @@ public partial class SLApp {
     }
     /// <summary>A customer at a table, sitting and chatting.</summary>
     void Guest(float x, float z, float face, float seatY = 0.63f) {
-        var ids = stage3d.Starlets.Select(s => s.id).Where(id => id.StartsWith("p_")).OrderBy(id => id).ToList(); if (ids.Count == 0) return;
-        string id = ids[(room.guests.Count * 3 + hire + 1) % ids.Count];
+        string id = NextBody(); if (id == null) return;
         var pp = Spawn(id, null, new Look3 { id = id, height = SLStage3D.IsMale(id) ? 1.06f : 1f }); var at = RoomPt(x, z);
         pp.pos = new Vector3(at.x, 0, at.y); pp.ry = RoomRy(face); pp.mo.pose = "sit"; pp.mo.seatDrop = seatY + 0.06f; Place(pp);
         room.seats.RemoveAll(s => new Vector2(s.x - at.x, s.z - at.y).magnitude < 0.45f);     // the chair is hers
@@ -360,7 +371,14 @@ public partial class SLApp {
             float x = (ix - 0.5f) * W * 0.5f, z = D * (0.22f + iz * 0.29f);
             var l = new GameObject("light").AddComponent<Light>(); l.type = LightType.Point; l.color = lc; l.intensity = li; l.range = 9.5f; l.shadows = LightShadows.None;
             l.transform.SetParent(room.root, false); l.transform.localPosition = new Vector3(x, H - 0.7f, z);
-            if (k == "fine") { Cyl(room.root, new Vector3(x, H - 0.3f, z), 0.02f, 0.6f, Mat(new Color(0.8f, 0.68f, 0.4f), 0.9f, 1)); for (int c = 0; c < 6; c++) { float a = c * Mathf.PI / 3; Part(room.root, PrimitiveType.Sphere, new Vector3(x + Mathf.Sin(a) * 0.35f, H - 0.75f, z + Mathf.Cos(a) * 0.35f), Vector3.one * 0.11f, Mat(Color.white, 0.9f, 0, new Color(1f, 0.85f, 0.6f) * 2.2f)); } Part(room.root, PrimitiveType.Sphere, new Vector3(x, H - 0.85f, z), new Vector3(0.5f, 0.35f, 0.5f), Glass()); }
+            // a real fitting where this build has one: chandeliers for fine dining and jewels, pendants over tables, a modern lamp in the shops
+            string lk = k == "fine" ? "chandelier" : k == "jewel" ? "crystal" : k == "bar" ? null : new[] { "steak", "italian", "african", "coffee", "diner" }.Contains(k) ? "pendant" : "ceiling_lamp";
+            float lh = lk == "chandelier" ? 0.85f : lk == "crystal" || lk == "pendant" ? 0.9f : 0.8f;
+            if (lk != null && Model(lk, new Vector3(x, H - lh, z)) != null) {
+                if (lk == "pendant" || lk == "ceiling_lamp") Part(room.root, PrimitiveType.Sphere, new Vector3(x, H - lh + 0.06f, z), new Vector3(0.16f, 0.05f, 0.16f), Mat(Color.white, 0.5f, 0, lc * 2.5f));
+                else Part(room.root, PrimitiveType.Sphere, new Vector3(x, H - lh * 0.55f, z), Vector3.one * 0.14f, Mat(Color.white, 0.5f, 0, lc * 1.6f));
+            }
+            else if (k == "fine") { Cyl(room.root, new Vector3(x, H - 0.3f, z), 0.02f, 0.6f, Mat(new Color(0.8f, 0.68f, 0.4f), 0.9f, 1)); for (int c = 0; c < 6; c++) { float a = c * Mathf.PI / 3; Part(room.root, PrimitiveType.Sphere, new Vector3(x + Mathf.Sin(a) * 0.35f, H - 0.75f, z + Mathf.Cos(a) * 0.35f), Vector3.one * 0.11f, Mat(Color.white, 0.9f, 0, new Color(1f, 0.85f, 0.6f) * 2.2f)); } Part(room.root, PrimitiveType.Sphere, new Vector3(x, H - 0.85f, z), new Vector3(0.5f, 0.35f, 0.5f), Glass()); }
             else if (k == "bar" || k == "steak" || k == "italian" || k == "african" || k == "coffee" || k == "diner") { Cyl(room.root, new Vector3(x, H - 0.5f, z), 0.008f, 1.0f, Mat(Color.black)); Part(room.root, PrimitiveType.Sphere, new Vector3(x, H - 1.05f, z), new Vector3(0.38f, 0.26f, 0.38f), Mat(e != null ? e.main : wallC * 0.6f, 0.6f, 0.3f, lc * 0.6f)); Part(room.root, PrimitiveType.Sphere, new Vector3(x, H - 1.13f, z), Vector3.one * 0.13f, Mat(Color.white, 0.5f, 0, lc * 2.5f)); }
             else Box(room.root, new Vector3(x, H - 0.03f, z), new Vector3(1.6f, 0.04f, 0.6f), Mat(Color.white, 0.2f, 0, lc * 1.6f));
         }
@@ -412,6 +430,9 @@ public partial class SLApp {
     void RoomFittings() {
         hire = 0; var e = EateryBy(room.p.id); float W = room.w, D = room.d;
         Color main = e != null ? e.main : C(room.p.color), acc = e != null ? e.accent : Color.white;
+        string k = room.kind;
+        room.chair = k == "coffee" || k == "diner" ? "chair_cafe" : new[] { "italian", "african", "steak", "fine", "sushi", "jewel" }.Contains(k) ? "chair_dining" : null;
+        room.table = k == "coffee" ? "table_cafe" : k == "diner" || k == "steak" ? "table_dining" : null;
         switch (room.kind) {
             case "coffee": Coffee(main, acc, e); break;
             case "burger": Burger(main, acc, e); break;
@@ -429,19 +450,27 @@ public partial class SLApp {
         Box(room.root, new Vector3((x0 + x1) / 2, hgt + 0.03f, z), new Vector3(x1 - x0 + 0.1f, 0.06f, depth + 0.1f), Mat(top, 0.7f, 0.1f));
         Box(room.root, new Vector3((x0 + x1) / 2, 0.06f, z - depth / 2 - 0.01f), new Vector3(x1 - x0, 0.12f, 0.02f), Mat(front * 0.5f, 0.3f));
     }
-    void Table(float x, float z, bool round, Color top, float cloth = 0, int chairs = 2, Color? chairC = null, float size = 0.8f) {
-        var tm = Mat(top, cloth > 0 ? 0.15f : 0.6f);
+    /// <summary>A table and its chairs; returns the chairs (x, z, facing) so a guest can take one.</summary>
+    List<Vector3> Table(float x, float z, bool round, Color top, float cloth = 0, int chairs = 2, Color? chairC = null, float size = 0.8f) {
+        var seats = new List<Vector3>();
+        var tm = Mat(top, cloth > 0 ? 0.15f : 0.6f); float depth = size;
+        if (cloth == 0 && room.table != null && Model(room.table, new Vector3(x, 0, z)) != null) {      // a real table: the café's round one is 1 m across, the dining one 1.08 by 0.67
+            if (room.table == "table_cafe") size = depth = 1.0f; else { size = 1.08f; depth = 0.67f; }
+        } else {
         if (round) Cyl(room.root, new Vector3(x, 0.74f, z), size / 2, 0.04f, tm); else Box(room.root, new Vector3(x, 0.74f, z), new Vector3(size, 0.04f, size), tm);
         if (cloth > 0) { if (round) Cyl(room.root, new Vector3(x, 0.55f, z), size / 2 + 0.02f, 0.38f, tm); else Box(room.root, new Vector3(x, 0.55f, z), new Vector3(size + 0.04f, 0.38f, size + 0.04f), tm); }
         Cyl(room.root, new Vector3(x, 0.37f, z), 0.04f, 0.74f, Mat(new Color(0.1f, 0.1f, 0.1f), 0.6f, 0.7f));
-        NoWalk(x - size / 2, z - size / 2, x + size / 2, z + size / 2);
+        }
+        NoWalk(x - size / 2, z - depth / 2, x + size / 2, z + depth / 2);
         var cc = chairC ?? new Color(0.25f, 0.17f, 0.11f);
         for (int i = 0; i < chairs; i++) {
-            float a = chairs == 2 ? (i == 0 ? Mathf.PI : 0) : i * Mathf.PI * 2 / chairs, r = size / 2 + 0.35f;
-            float cx = x + Mathf.Sin(a) * r, cz = z + Mathf.Cos(a) * r; Chair(cx, cz, a + Mathf.PI, cc);
+            float a = chairs == 2 ? (i == 0 ? Mathf.PI : 0) : i * Mathf.PI * 2 / chairs, r = (chairs == 2 ? depth : size) / 2 + 0.35f;
+            float cx = x + Mathf.Sin(a) * r, cz = z + Mathf.Cos(a) * r; Chair(cx, cz, a + Mathf.PI, cc); seats.Add(new Vector3(cx, cz, a + Mathf.PI));
         }
+        return seats;
     }
     void Chair(float x, float z, float face, Color c) {
+        if (room.chair != null && Model(room.chair, new Vector3(x, 0, z), face * Mathf.Rad2Deg) != null) { Seat(x, z, face); return; }
         var t = new GameObject("chair").transform; t.SetParent(room.root, false); t.localPosition = new Vector3(x, 0, z); t.localRotation = Quaternion.Euler(0, face * Mathf.Rad2Deg, 0);
         var m = Mat(c, 0.35f); var leg = Mat(new Color(0.08f, 0.08f, 0.08f), 0.5f, 0.6f);
         Box(t, new Vector3(0, 0.45f, 0), new Vector3(0.44f, 0.05f, 0.42f), m); Box(t, new Vector3(0, 0.72f, -0.2f), new Vector3(0.44f, 0.5f, 0.04f), m);
@@ -465,7 +494,12 @@ public partial class SLApp {
         NoWalk(-W / 2, D - 3.6f, -W / 2 + 1, D);
         // the pastry case, the espresso machines and grinders, cups along the back wall
         Box(room.root, new Vector3(1.3f, 1.3f, D - 3.2f), new Vector3(2.0f, 0.45f, 0.6f), Glass());
-        for (int i = 0; i < 8; i++) Part(room.root, PrimitiveType.Sphere, new Vector3(0.5f + i * 0.22f, 1.17f, D - 3.2f + (i % 2) * 0.15f), new Vector3(0.16f, 0.07f, 0.12f), Mat(Color.Lerp(C("#d9a35f"), C("#6b3d1f"), (i % 3) * 0.4f), 0.5f));
+        if (Model("cake", new Vector3(0.75f, 1.09f, D - 3.2f)) != null) { Model("cake", new Vector3(1.35f, 1.09f, D - 3.2f), 40); Model("cake", new Vector3(1.95f, 1.09f, D - 3.2f), 80, 0.8f); }
+        else for (int i = 0; i < 8; i++) Part(room.root, PrimitiveType.Sphere, new Vector3(0.5f + i * 0.22f, 1.17f, D - 3.2f + (i % 2) * 0.15f), new Vector3(0.16f, 0.07f, 0.12f), Mat(Color.Lerp(C("#d9a35f"), C("#6b3d1f"), (i % 3) * 0.4f), 0.5f));
+        Model("register", new Vector3(-1.5f, 1.08f, D - 3.25f), 180);
+        if (Model("coffeecart", new Vector3(W / 2 - 1.8f, 0, D - 0.6f), 180) != null) NoWalk(W / 2 - 2.3f, D - 1, W / 2 - 1.3f, D);
+        if (room.p.id == "dore" || room.p.id == "patisserie") Model("teaset", new Vector3(-3.6f, 1.08f, D - 3.2f), 180);
+        Model("vase", new Vector3(W / 2 - 4.0f, 0.98f, D - 0.45f), 0, 0.8f);
         Counter(-W / 2 + 0.5f, W / 2 - 3.5f, D - 0.45f, wood * 0.8f, C("#cfc8bd"), 0.95f, 0.6f);
         for (int i = 0; i < 2; i++) {
             float x = -3.8f + i * 2.4f; var steel = Mat(new Color(0.75f, 0.76f, 0.78f), 0.85f, 1);
@@ -477,13 +511,13 @@ public partial class SLApp {
         Box(room.root, new Vector3(-W / 2 + 2.9f, 1.98f, D - 0.2f), new Vector3(4.2f, 0.04f, 0.3f), Mat(wood, 0.4f));
         Board(-1.5f, D - 0.05f, 5.2f, 1.5f, room.p.name.ToUpperInvariant(), MenuLines(e), room.p.id == "greenwave" ? C("#1d2b24") : C("#2a2420"), C("#f4efe6"));
         // tables, a long window bench and a sofa corner
-        Color tc = C("#e9e4dc"); Table(-4, 6, true, tc); Table(-1, 7.5f, true, tc); Table(2.5f, 6, true, tc); Table(-4, 9.5f, true, tc, 0, 2);
+        Color tc = C("#e9e4dc"); var t1 = Table(-4, 6, true, tc); var t2 = Table(-1, 7.8f, true, tc); var t3 = Table(2.5f, 6, true, tc); Table(-4, 10, true, tc, 0, 2);
         var sofa = Prefab("Furniture/sofa");
         if (sofa != null) { var s = Instantiate(sofa, room.root, false).transform; s.localPosition = new Vector3(W / 2 - 1.0f, 0, 9.5f); s.localRotation = Quaternion.Euler(0, -90, 0); FitHeight(s, 0.85f); NoWalk(W / 2 - 1.6f, 8, W / 2, 11); Seat(W / 2 - 1.0f, 9.0f, -Mathf.PI / 2, 0.68f); Seat(W / 2 - 1.0f, 10.0f, -Mathf.PI / 2, 0.68f); }
         Hire("Cashier", "front", -1.5f, D - 2.4f, Mathf.PI, main, null, true, null, true);
         Hire("Barista", "cook", -3.8f, D - 1.2f, 0, main, null, false, null, true);
         Hire("Barista", "floor", 1, 9, 0, main, null, false, null, true, new[] { -4f, 5f, 2.5f, 5f, -1f, 8.6f, 3f, 10.5f });
-        Guest(-4, 6 - 0.75f, 0); Guest(2.5f, 6 + 0.75f, Mathf.PI); Guest(-1, 7.5f - 0.75f, 0);
+        Guest(t1[0].x, t1[0].y, t1[0].z); Guest(t3[1].x, t3[1].y, t3[1].z); Guest(t2[0].x, t2[0].y, t2[0].z);
     }
 
     void Burger(Color main, Color acc, Eatery e) {
@@ -555,14 +589,15 @@ public partial class SLApp {
         // the host's stand by the door, and the tables
         Solid(new Vector3(-1.9f, 0.55f, 2.2f), new Vector3(0.7f, 1.1f, 0.45f), Mat(Color.Lerp(chair, Color.black, 0.3f), 0.6f));
         Cyl(room.root, new Vector3(-1.75f, 1.2f, 2.2f), 0.06f, 0.12f, Mat(Color.white, 0.4f, 0, new Color(1, 0.8f, 0.5f) * 1.5f));
+        Model("vase", new Vector3(-2.05f, 1.1f, 2.2f), 0, 0.6f);
         var tableC = k == "steak" ? C("#1c1410") : cloth; float cl = k == "steak" || k == "diner" ? 0 : 1;
         var tm = clothT != null ? Mat(Color.white, 0.15f, 0, null, clothT, new Vector2(2, 2)) : null;
         int n = 0; float z0 = k == "sushi" ? 4.5f : 4.5f, zMax = k == "sushi" ? D - 8 : D - 5;
         for (float z = z0; z <= zMax; z += 2.8f) for (float x = -W / 2 + 2.2f; x <= W / 2 - 3.5f; x += 3.1f) {
             if (x > -2.6f && x < 0.6f && z < 5) continue;       // keep the way in clear
-            Table(x, z, k == "fine" || k == "sushi", tableC, cl, 2, chair, k == "fine" ? 1.0f : 0.85f);
+            var ch = Table(x, z, k == "fine" || k == "sushi", tableC, cl, 2, chair, k == "fine" ? 1.0f : 0.85f);
             Cyl(room.root, new Vector3(x, 0.82f, z), 0.025f, 0.1f, Mat(Color.white, 0.4f, 0, new Color(1, 0.7f, 0.35f) * 2f));    // a candle
-            if (n % 3 != 1) Guest(x, z - (k == "fine" ? 0.85f : 0.78f), 0);
+            if (n % 3 != 1) Guest(ch[0].x, ch[0].y, ch[0].z);
             n++;
         }
         if (tm != null) foreach (var r in room.root.GetComponentsInChildren<Renderer>().Where(r => r.sharedMaterial == Mat(tableC, 0.15f))) r.sharedMaterial = tm;
@@ -585,7 +620,16 @@ public partial class SLApp {
             Cyl(room.root, new Vector3(x, 2.45f, D - 0.6f), 0.015f, 1.3f, metal).localRotation = Quaternion.Euler(0, 0, 90);
         }
         NoWalk(W / 2 - 4.4f, D - 1.2f, W / 2, D);
-        for (int i = 0; i < 2; i++) Box(room.root, new Vector3(-W / 2 + 0.06f, 1.3f, 4 + i * 5), new Vector3(0.03f, 2.2f, 1.0f), Mat(new Color(0.8f, 0.85f, 0.9f), 0.98f, 1));
+        for (int i = 0; i < 2; i++) {
+            if (Model("mirror", new Vector3(-W / 2 + 0.08f, 0.55f, 4 + i * 5), 90) != null) continue;
+            Box(room.root, new Vector3(-W / 2 + 0.06f, 1.3f, 4 + i * 5), new Vector3(0.03f, 2.2f, 1.0f), Mat(new Color(0.8f, 0.85f, 0.9f), 0.98f, 1));
+        }
+        Model("register", new Vector3(1.2f, 1.03f, D - 2.55f), 180);
+        foreach (float sx in new[] { -1f, 1f }) if (Model("ottoman", new Vector3(sx * 1.6f, 0, D - 5.0f), 0) != null) { NoWalk(sx * 1.6f - 0.35f, D - 5.25f, sx * 1.6f + 0.35f, D - 4.75f); Seat(sx * 1.6f, D - 5.0f, Mathf.PI, 0.6f); }
+        foreach (float sx in new[] { -1f, 1f }) if (Model("shelves", new Vector3(sx * 4.2f, 0, D - 0.3f), 90) != null) {
+            NoWalk(sx * 4.2f - 0.55f, D - 0.55f, sx * 4.2f + 0.55f, D);
+            for (int j = 0; j < 9; j++) Box(room.root, new Vector3(sx * 4.2f - 0.33f + (j % 3) * 0.33f, 0.22f + (j / 3) * 0.47f, D - 0.32f), new Vector3(0.26f, 0.12f, 0.22f), Mat(Color.HSVToRGB((j * 0.11f + sx * 0.3f + 1) % 1, 0.35f, 0.8f), 0.3f));
+        }
         var r = new System.Random(room.p.id.GetHashCode());
         if (shoes) {      // a wall of trainers, lit shelf by shelf
             for (int s = 0; s < 5; s++) {
@@ -596,7 +640,7 @@ public partial class SLApp {
             }
             NoWalk(-W / 2, 2, -W / 2 + 0.5f, D - 3); NoWalk(W / 2 - 0.5f, 2, W / 2, D - 3);
             for (int i = 0; i < 2; i++) { Solid(new Vector3(-1.8f + i * 3.6f, 0.4f, 7.5f), new Vector3(1.6f, 0.8f, 1.6f), Mat(C("#202020"), 0.6f)); for (int j = 0; j < 4; j++) Part(room.root, PrimitiveType.Capsule, new Vector3(-2.2f + i * 3.6f + (j % 2) * 0.7f, 0.86f, 7.2f + (j / 2) * 0.6f), new Vector3(0.12f, 0.16f, 0.12f), Mat(Color.HSVToRGB((float)r.NextDouble(), 0.7f, 0.9f), 0.5f), 0, 90); }
-            Chair(-1.8f, 10.5f, 0, C("#202020")); Chair(1.8f, 10.5f, 0, C("#202020"));
+            foreach (float sx in new[] { -1.8f, 1.8f }) { if (Model("ottoman", new Vector3(sx, 0, 10.5f), 0) != null) { NoWalk(sx - 0.35f, 10.25f, sx + 0.35f, 10.75f); Seat(sx, 10.5f, 0, 0.6f); } else Chair(sx, 10.5f, 0, C("#202020")); }
         } else {
             // clothes rails down both walls, garments in the season's colours
             foreach (float side in new[] { -1f, 1f }) {
@@ -659,7 +703,8 @@ public partial class SLApp {
         Counter(-W / 2 + 1, 0.5f, 3.2f, C("#5a3a24"), C("#2a1d14"), 1.0f, 0.7f);
         Solid(new Vector3(0, 0.4f, 13.5f), new Vector3(2.4f, 0.8f, 1.2f), wood);
         for (int i = 0; i < 8; i++) Box(room.root, new Vector3(-0.9f + i * 0.26f, 0.84f, 13.5f), new Vector3(0.18f, 0.06f, 0.26f), Mat(Color.HSVToRGB(i * 0.12f % 1, 0.5f, 0.75f), 0.3f));
-        var arm = Prefab("Furniture/armchair");
+        Model("register", new Vector3(-3.5f, 1.03f, 3.2f), 180);
+        var arm = Prefab("Furniture/armchair2") ?? Prefab("Furniture/armchair");
         if (arm != null) foreach (var (x, z, yaw) in new[] { (-4.2f, 13.5f, 70f), (4.2f, 13.5f, -70f) }) { var a = Instantiate(arm, room.root, false).transform; a.localPosition = new Vector3(x, 0, z); a.localRotation = Quaternion.Euler(0, yaw, 0); FitHeight(a, 0.95f); NoWalk(x - 0.6f, z - 0.6f, x + 0.6f, z + 0.6f); Seat(x, z, yaw * Mathf.Deg2Rad, 0.62f); }
         Hire("Bookseller", "front", -3.5f, 3.9f, Mathf.PI, C("#3b5b3a"), null, true, null, false);
         Hire("Bookseller", "floor", 0, 6, 0, C("#3b5b3a"), null, false, null, false, new[] { 0f, 6f, 0f, 11f, -4.3f, 11f, -4.3f, 6.5f, 4.3f, 6.5f });
@@ -679,6 +724,7 @@ public partial class SLApp {
             float tx = x + (yaw > 0 ? 1.3f : -1.3f); Cyl(room.root, new Vector3(tx, 0.22f, z), 0.4f, 0.44f, Mat(C("#1c1c1c"), 0.8f)); NoWalk(tx - 0.4f, z - 0.4f, tx + 0.4f, z + 0.4f);
             Cyl(room.root, new Vector3(tx, 0.5f, z), 0.04f, 0.12f, Mat(Color.white, 0.4f, 0, neon * 2));
         }
+        foreach (float dz in new[] { -0.75f, 0.75f }) if (Model("lounge", new Vector3(2.6f, 0, 12 + dz), dz < 0 ? 0 : 180) != null) { NoWalk(2.2f, 12 + dz - 0.45f, 3.0f, 12 + dz + 0.45f); Seat(2.6f, 12 + dz, dz < 0 ? 0 : Mathf.PI, 0.6f); }
         Box(room.root, new Vector3(-W / 2 + 0.05f, 3.3f, D / 2), new Vector3(0.04f, 0.05f, D - 2), Mat(neon, 0.5f, 0, neon * 3)); Box(room.root, new Vector3(W / 2 - 0.05f, 3.3f, D / 2), new Vector3(0.04f, 0.05f, D - 2), Mat(neon, 0.5f, 0, neon * 3));
         Hire("Bartender", "front", -1.5f, D - 2.1f, Mathf.PI, C("#151515"), null, true); Hire("Bartender", "cook", 1.8f, D - 1.0f, 0, C("#151515"));
         Hire("Server", "floor", 0, 7, 0, C("#151515"), null, false, null, false, new[] { -3.5f, 6f, -3.5f, 10f, 3.5f, 8f, 0f, D - 4.6f });
@@ -691,12 +737,14 @@ public partial class SLApp {
         var arm = Prefab("Furniture/armchair");
         for (int i = 0; i < 4; i++) {
             float z = 6 + i * 2.6f, x = W / 2 - 1.2f;
-            Box(room.root, new Vector3(W / 2 - 0.06f, 1.5f, z), new Vector3(0.03f, 1.4f, 1.0f), Mat(new Color(0.85f, 0.88f, 0.9f), 0.98f, 1));
-            Box(room.root, new Vector3(W / 2 - 0.08f, 1.5f, z), new Vector3(0.04f, 1.5f, 1.1f), Mat(main, 0.4f));
-            if (salon) { Cyl(room.root, new Vector3(x, 0.25f, z), 0.25f, 0.5f, Mat(C("#1a1a1a"), 0.6f, 0.6f)); Box(room.root, new Vector3(x, 0.55f, z), new Vector3(0.6f, 0.12f, 0.6f), Mat(C("#2b2b2b"), 0.5f)); Box(room.root, new Vector3(x + 0.27f, 0.95f, z), new Vector3(0.08f, 0.8f, 0.6f), Mat(C("#2b2b2b"), 0.5f)); }
+            if (!salon || Model("mirror", new Vector3(W / 2 - 0.08f, 0.75f, z), -90) == null) {
+                Box(room.root, new Vector3(W / 2 - 0.06f, 1.5f, z), new Vector3(0.03f, 1.4f, 1.0f), Mat(new Color(0.85f, 0.88f, 0.9f), 0.98f, 1));
+                Box(room.root, new Vector3(W / 2 - 0.08f, 1.5f, z), new Vector3(0.04f, 1.5f, 1.1f), Mat(main, 0.4f));
+            }
+            if (salon) { if (Model("barber", new Vector3(x, 0, z), 90) == null) { Cyl(room.root, new Vector3(x, 0.25f, z), 0.25f, 0.5f, Mat(C("#1a1a1a"), 0.6f, 0.6f)); Box(room.root, new Vector3(x, 0.55f, z), new Vector3(0.6f, 0.12f, 0.6f), Mat(C("#2b2b2b"), 0.5f)); Box(room.root, new Vector3(x + 0.27f, 0.95f, z), new Vector3(0.08f, 0.8f, 0.6f), Mat(C("#2b2b2b"), 0.5f)); } }
             else { Solid(new Vector3(x - 0.6f, 0.38f, z), new Vector3(2.0f, 0.75f, 0.8f), Mat(Color.white, 0.3f)); Box(room.root, new Vector3(x - 0.6f, 0.78f, z), new Vector3(2.0f, 0.06f, 0.8f), Mat(C("#e8efe6"), 0.2f)); }
             NoWalk(x - 0.4f, z - 0.4f, x + 0.4f, z + 0.4f);
-            if (i % 2 == 0) Guest(x, z, -Mathf.PI / 2, 0.55f);
+            if (i % 2 == 0) Guest(x, z, salon ? Mathf.PI / 2 : -Mathf.PI / 2, salon ? 0.62f : 0.55f);     // in the salon, facing the mirror
         }
         if (arm != null) foreach (float z in new[] { 6f, 8.5f }) { var a = Instantiate(arm, room.root, false).transform; a.localPosition = new Vector3(-W / 2 + 1.0f, 0, z); a.localRotation = Quaternion.Euler(0, 90, 0); FitHeight(a, 0.95f); NoWalk(-W / 2 + 0.4f, z - 0.6f, -W / 2 + 1.6f, z + 0.6f); Seat(-W / 2 + 1.0f, z, Mathf.PI / 2, 0.62f); }
         var plant = Prefab("Furniture/plant"); if (plant != null) for (int i = 0; i < 3; i++) { var p = Instantiate(plant, room.root, false).transform; p.localPosition = new Vector3(-W / 2 + 0.8f, 0, 11 + i * 1.6f); FitHeight(p, 1.6f); }
