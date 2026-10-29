@@ -1,0 +1,32 @@
+{
+ "id": "f_chelsea",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.6229,
+    0.4482,
+    0.2734
+   ],
+   "lum": 0.4805,
+   "zmin": -0.007,
+   "zmax": 0.202,
+   "xmax": 0.206,
+   "tris": 4120
+  }
+ ]
+}

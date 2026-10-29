@@ -347,7 +347,7 @@ public partial class SLApp {
         }
         TownInput();
         if (driving != null) TickDriving(dt); else UpdatePlayer(dt);
-        TickTraffic(dt);
+        TickTraffic(dt); TickSignals();
         if (coffeeT > 0) { coffeeT -= gm; if (coffeeT <= 0) { CupOn(player, false); ShowToast("Coffee finished."); } }
         foreach (var pp in people) {
             StepPerson(pp, dt, busy != null ? dt * 30 : gm);

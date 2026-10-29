@@ -62,12 +62,41 @@ SETS = {
     # tailoring
     'f_suit':     [('female_elegantsuit01', 'dress')],
     'f_casual':   [('female_casualsuit01', 'dress')],
+    # jackets and skirts, cut at the waist from suits and dresses ('split': the part above is the top, below the bottom)
+    'f_blazer':   [('female_elegantsuit01', 'split')],
+    'f_softsuit': [('female_casualsuit01', 'split')],
+    'f_tweed':    [('sl_tweed_suit', 'split')],
+    'f_hoodiejk': [('elvs_hooded_sweat_jacket1', 'outer')],
+    'f_monohood': [('sl_monogram_hoodie', 'outer')],
+    'f_tieredsk': [('toigo_dress_with_tiered_skirt', 'split')],
+    'f_sixtiessk': [('elvs_simple_60s_dress', 'split')],
+    'f_shiftsk':  [('toigo_shift_dress', 'split')],
+    # boots
+    'f_chelsea':  [('sl_suede_chelsea', 'shoes')],
+    'f_workboot': [('toigo_ankle_boots_male', 'shoes')],
     # shoes
     'f_flats':    [('toigo_flats', 'shoes')],
     'f_sandals':  [('dressupdoc_sandals1', 'shoes')],
     'f_runners':  [('punkduck_running_shoes_01', 'shoes')],
 }
-MAT = {'top': 'Wolf3D_Outfit_Top', 'bottom': 'Wolf3D_Outfit_Bottom', 'dress': 'Wolf3D_Outfit_Top', 'outer': 'Wolf3D_Outfit_Top', 'shoes': 'Wolf3D_Outfit_Footwear'}
+# sets whose source print would show through any dye (the dye shades by brightness): their pieces get a plain twill instead
+PLAIN = {'f_sixtiessk'}
+
+def plain_weave(dst, normal, size=1024):
+    """A plain 2/2 twill, mid grey, for the game to dye: the colour map (or, with normal=True, its normal map)."""
+    import numpy as np
+    y, x = np.mgrid[0:size, 0:size].astype(np.float32); t = 2 * math.pi / 4      # 4 px a thread
+    h = 0.5 + 0.5 * np.sin((x + y) * t) * np.sin(x * t) * 0.6 + 0.4 * np.sin((x + y) * t * 0.5)
+    h += np.random.default_rng(7).normal(0, 0.04, h.shape)
+    if normal:
+        dx = np.roll(h, -1, 1) - h; dy = np.roll(h, -1, 0) - h; k = 1.2
+        n = np.stack([-dx * k, -dy * k, np.ones_like(h)], -1); n /= np.linalg.norm(n, axis=-1, keepdims=True); rgb = n * 0.5 + 0.5
+    else:
+        g = 0.5 + (h - 0.5) * 0.12; rgb = np.stack([g, g, g], -1)
+    im = bpy.data.images.new(os.path.basename(dst), size, size); px = np.concatenate([np.clip(rgb, 0, 1), np.ones((size, size, 1), np.float32)], -1)
+    im.pixels.foreach_set(px[::-1].ravel()); im.filepath_raw = dst; im.file_format = 'PNG'; im.save(); return im
+
+MAT = {'top': 'Wolf3D_Outfit_Top', 'bottom': 'Wolf3D_Outfit_Bottom', 'dress': 'Wolf3D_Outfit_Top', 'outer': 'Wolf3D_Outfit_Top', 'shoes': 'Wolf3D_Outfit_Footwear', 'split': 'Wolf3D_Outfit_Top'}
 
 def asset(kind, name, ext):
     d = os.path.join(DATA, kind, name)
@@ -181,7 +210,7 @@ def make(sid, garments, J, target):
         spine = o.vertex_groups.get('spine_03')
         for v in o.data.vertices:
             f = 0.0
-            if part in ('top', 'dress', 'outer'):
+            if part in ('top', 'dress', 'outer', 'split'):
                 d = dist(o.matrix_world @ v.co); k = max(0.0, min(1.0, (0.11 - d) / 0.04)); f = k * k * (3 - 2 * k)
             if f >= 1: continue
             moved = 0.0
@@ -222,13 +251,37 @@ def make(sid, garments, J, target):
     for f in os.listdir(out):
         if f.endswith(('.png', '.fbx', '.json')): os.remove(os.path.join(out, f))
     finals, parts = [], []
+    waist = J['Hips'].z + 0.05
+    work = []
     for g, part, orig in baked:
-        me = bpy.data.meshes.new_from_object(g.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+        me0 = bpy.data.meshes.new_from_object(g.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+        if part != 'split': work.append((me0, part, orig)); continue
+        for keep, name in ((True, 'top'), (False, 'bottom')):
+            me1 = me0.copy(); bm = bmesh.new(); bm.from_mesh(me1); bm.faces.ensure_lookup_table()
+            bmesh.ops.delete(bm, geom=[f for f in bm.faces if (f.calc_center_median().z > waist) != keep], context='FACES')
+            bm.to_mesh(me1); bm.free()
+            if len(me1.polygons) > 30: work.append((me1, name, orig))
+    for me, part, orig in work:
+        # loose fabric (a skirt's folds, away from the legs) is eased smooth: posing the legs creases it
+        if part in ('dress', 'bottom'):
+            hip = J['Hips'].z; bm = bmesh.new(); bm.from_mesh(me); bm.verts.ensure_lookup_table()
+            loose = []
+            for v in bm.verts:
+                if v.co.z > hip - 0.05 or v.is_boundary: continue     # hems and seams stay put: moving them parts the pieces sewn there
+                q, nr, _, d = tree.find_nearest(v.co, 0.3)
+                if q is not None and (v.co - q).length > 0.025: loose.append(v)
+            for _ in range(4):
+                moved = {}
+                for v in loose:
+                    ns = [e.other_vert(v).co for e in v.link_edges]
+                    if ns: moved[v] = v.co.lerp(sum(ns, Vector()) / len(ns), 0.5)
+                for v, c in moved.items(): v.co = c
+            bm.to_mesh(me); bm.free()
         # clear of the skin by a few millimetres, so it never shows through
         for v in me.vertices:
             q, nr, _, d = tree.find_nearest(v.co, 0.05)
             if q is None: continue
-            gap = 0.004 if part != 'shoes' else 0.002
+            gap = (0.004 if part != 'shoes' else 0.002 if v.co.z < 0.08 else 0.008) + (0.006 if part == 'outer' else 0)   # a boot's shaft stands clear of the ankle
             if (v.co - q).dot(nr) < gap: v.co = q + nr * gap
         f = bpy.data.objects.new(part, me); bpy.context.scene.collection.objects.link(f); me.name = part
         diffuse, normal = textures(orig)
@@ -245,6 +298,9 @@ def make(sid, garments, J, target):
                 return name + '.png'
             except Exception as e: print('TEX', sid, name, e); return ''
         tex = save_tex(diffuse, part); ntex = save_tex(normal, part + '_n')
+        if sid in PLAIN:
+            diffuse = plain_weave(os.path.join(out, part + '.png'), False); plain_weave(os.path.join(out, part + '_n.png'), True)
+            tex, ntex = part + '.png', part + '_n.png'
         if diffuse is not None and not diffuse.has_data:
             try: diffuse.reload()
             except Exception: pass

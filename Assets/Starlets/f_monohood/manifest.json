@@ -1,0 +1,32 @@
+{
+ "id": "f_monohood",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "outer",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "outer.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.3519,
+    0.2496,
+    0.1576
+   ],
+   "lum": 0.27,
+   "zmin": 0.815,
+   "zmax": 1.48,
+   "xmax": 0.321,
+   "tris": 19574
+  }
+ ]
+}

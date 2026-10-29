@@ -149,16 +149,24 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
 - **The look of the men:** heads grow 15% about the neck (the starlets' Ready Player Me proportions), sleeves blend
   between arm and body by distance from the arm bones, and a corrective smooth irons out the shoulders once the arms
   are lowered (all in `make_men.py`).
-- **Size:** starlet and hair models use Medium mesh compression (`SLModelImport.cs`) and the Mac build LZ4HC.
+- **Size:** starlet and hair models use Medium mesh compression (`SLModelImport.cs`) and the Mac build LZ4HC; starlet,
+  hair, town and room textures are crunch-compressed. Car textures are not: the game reads their paint with `GetPixels`,
+  which fails on crunched textures and stops the town from loading. `Builds/` is a symlink to
+  `/Volumes/NHBuild/StarLife/Builds` (the internal disk is too full for a build).
 - **Cars** (`SLTownCars.cs`): `Tools/blender/make_cars.py` turns the Generic passenger car pack (CC-BY) into ten models
   plus a limousine (`Resources/Cars`, wheels that turn and steer, paint recoloured in the game). Parked cars stand where
   the web town had its boxes (`export.js` drops those); traffic drives the road grid on the right, turns at junctions,
-  keeps its distance and stops for people (the Avenue is car-free). Étoile Motors (north of Central Park's corner) sells
+  keeps its distance, stops for people and for traffic lights (junctions of three or four roads: north-south and
+  east-west take turns), and kerbs keep every car, yours too, off the pavements (the Avenue is car-free). Étoile Motors (north of Central Park's corner) sells
   them in ten colours after a free test drive; your car waits by your door, others are in the garage (the home card).
 - **Clothes** (`Tools/blender/make_fashion.py`): 41 MPFB garments refitted onto the shared body (olivia), saved as
   `Assets/Starlets/f_*`: the arms and legs of an MPFB woman are posed onto olivia's joints, the garment is bound to her
   body and her body is shrink-wrapped onto olivia's. Most tops, trousers, dresses and flat shoes now use them
-  (`SLWardrobe3D.Map`), and two collections were added: Ankara & Prints (prints kept) and New Season.
+  (`SLWardrobe3D.Map`), and two collections were added: Ankara & Prints (prints kept) and New Season. Jackets and
+  skirts are suits and dresses cut at the waist (`split`); sets in `PLAIN` get a plain twill instead of a print that
+  would show through the dye. Loose skirt fabric is eased smooth after fitting, but never hem or seam vertices: moving
+  those tears layered skirts apart. Flats, oxfords and loafers stay on the `cute` avatar's shoes (`toigo_flats` fits as
+  a crumpled shell), and knee boots on `mary`'s.
 - **Fashion Week** (`SLTownFashion.cs`): at the Grand Hall in the evening, pick a theme, four hero pieces (the looks are
   completed from your wardrobe), and put on a runway show with starlets as models; three critics score it.
 - **Passers-by** (`p_*`, also from `make_men.py`) walk the streets between all the places; they are not in the

@@ -1,0 +1,32 @@
+{
+ "id": "f_workboot",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "shoes",
+   "material": "Wolf3D_Outfit_Footwear",
+   "tex": "shoes.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.3219,
+    0.295,
+    0.2704
+   ],
+   "lum": 0.3,
+   "zmin": -0.007,
+   "zmax": 0.202,
+   "xmax": 0.206,
+   "tris": 4120
+  }
+ ]
+}

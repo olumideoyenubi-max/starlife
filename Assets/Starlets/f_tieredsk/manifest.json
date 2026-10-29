@@ -1,0 +1,57 @@
+{
+ "id": "f_tieredsk",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.7895,
+    0.7435,
+    0.7024
+   ],
+   "lum": 0.7531,
+   "zmin": 1.051,
+   "zmax": 1.481,
+   "xmax": 0.151,
+   "tris": 5248
+  },
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.7895,
+    0.7435,
+    0.7024
+   ],
+   "lum": 0.7531,
+   "zmin": 0.184,
+   "zmax": 1.068,
+   "xmax": 0.252,
+   "tris": 13648
+  }
+ ]
+}

@@ -1,0 +1,57 @@
+{
+ "id": "f_sixtiessk",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "top_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "lum": 0.5,
+   "zmin": 1.037,
+   "zmax": 1.428,
+   "xmax": 0.277,
+   "tris": 1896
+  },
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "bottom_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.5,
+    0.5,
+    0.5
+   ],
+   "lum": 0.5,
+   "zmin": 0.63,
+   "zmax": 1.073,
+   "xmax": 0.325,
+   "tris": 1008
+  }
+ ]
+}

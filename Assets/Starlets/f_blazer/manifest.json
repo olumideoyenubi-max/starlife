@@ -1,0 +1,57 @@
+{
+ "id": "f_blazer",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "top_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.2718,
+    0.2527,
+    0.2436
+   ],
+   "lum": 0.2572,
+   "zmin": 1.035,
+   "zmax": 1.436,
+   "xmax": 0.258,
+   "tris": 2494
+  },
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "bottom_n.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.2718,
+    0.2527,
+    0.2436
+   ],
+   "lum": 0.2572,
+   "zmin": 0.557,
+   "zmax": 1.085,
+   "xmax": 0.276,
+   "tris": 1698
+  }
+ ]
+}

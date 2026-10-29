@@ -12,8 +12,12 @@ public class SLModelImport : AssetPostprocessor {
         mi.meshCompression = ModelImporterMeshCompression.Medium;      // Read/Write keeps a second copy of every mesh; compression keeps the game's size down
     }
     void OnPreprocessTexture() {
+        // crunch the game's art textures: much smaller on disk, the same in the game
+        if (assetPath.StartsWith("Assets/Starlets/") || assetPath.StartsWith("Assets/Hair/") || assetPath.StartsWith("Assets/Resources/Town/") || assetPath.StartsWith("Assets/Resources/Room/")) {
+            var tc = (TextureImporter)assetImporter; tc.crunchedCompression = true; tc.compressionQuality = 65;
+        }
         if (assetPath.StartsWith("Assets/Resources/Cars/")) {     // the game reads each car's paint to recolour it
-            var ti = (TextureImporter)assetImporter; ti.isReadable = true; ti.maxTextureSize = 1024; return;
+            var ti = (TextureImporter)assetImporter; ti.isReadable = true; ti.crunchedCompression = false; ti.maxTextureSize = 1024; return;   // GetPixels cannot read crunched textures
         }
         if (!assetPath.StartsWith("Assets/Starlets/")) return;
         var parts = assetPath.Split('/'); if (parts.Length < 4) return;
@@ -24,5 +28,5 @@ public class SLModelImport : AssetPostprocessor {
         bool skin = file.StartsWith("body") || file.StartsWith("head");
         ((TextureImporter)assetImporter).maxTextureSize = man ? (skin ? 2048 : 1024) : (skin ? 1024 : 512);
     }
-    public override uint GetVersion() { return 5; }
+    public override uint GetVersion() { return 7; }
 }

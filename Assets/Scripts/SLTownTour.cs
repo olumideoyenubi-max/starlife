@@ -37,7 +37,7 @@ public partial class SLApp {
             }
         // the refitted garments (make_fashion.py) on a starlet, front and side
         foreach (var (tag, ids) in new[] { ("gown", "gown,pumps"), ("haltermaxi", "haltermaxi,sandals"), ("ankara", "ankaramaxi,sandals"), ("jeans-silk", "silkcarre,jeans,flats"),
-                 ("leather-leopard", "leopardcami,leather,ankleboots"), ("suit", "womensuit,pumps"), ("keyhole", "keyholedress,flats"), ("sundress", "sundress,sandals"), ("tee-shorts", "tee,shorts,sneakers"), ("quilted", "quilted,kneeboots") })
+                 ("leather-leopard", "leopardcami,leather,ankleboots"), ("suit", "womensuit,pumps"), ("keyhole", "keyholedress,flats"), ("sundress", "sundress,sandals"), ("tee-shorts", "tee,shorts,sneakers"), ("quilted", "quilted,kneeboots"), ("blazer-pencil", "blazer,pencil,pumps"), ("trench-jeans", "trench,jeans,ankleboots"), ("biker-mini", "biker,mini,kneeboots"), ("cardigan-pleated", "cardigan,pleated,flats"), ("tracktop-workboots", "tracktop,jeans,workboots") })
             foreach (var who in new[] { "lucy", "zuri" }) foreach (int yaw in new[] { 0, 90 }) {
                 var look = new Look3 { id = who, signature = false };
                 foreach (var id in ids.Split(',')) if (itemById.ContainsKey(id)) look.worn.Add((itemById[id].slot, id, C(itemById[id].color)));

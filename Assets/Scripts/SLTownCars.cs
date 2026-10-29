@@ -101,6 +101,7 @@ public partial class SLApp {
             float x = roads[i], z = roads[j];
             if (x > F(ave["x0"]) - 1 && x < F(ave["x1"]) + 1 && z > F(ave["z0"]) - 8 && z < F(ave["z1"]) + 8) noRoad.Add((i, j));
         }
+        BuildSignals();
         // Étoile Motors, in the shops north of Central Park's corner, with three cars in the window bay
         dealer = new Vector2(town.Cell, -town.Cell + (town.Half - 3) + 0.8f); dealerRy = 0;
         if (PlaceBy("motors") == null) {
@@ -146,6 +147,68 @@ public partial class SLApp {
         SLTownWorld.SetLayer(sign);
     }
 
+    // ---------------------------------------------------------------- traffic lights
+    // Junctions where three or four roads meet have lights: north-south and east-west take turns (11 s green, 2 s amber),
+    // each junction offset from its neighbours. A pole on the near right of every approach faces the drivers.
+    sealed class Signal { public int node; public Renderer[][] lamps = new Renderer[4][]; public int[] dirAxis = new int[4]; public int shown = -1; }
+    readonly List<Signal> signals = new List<Signal>(); Material[] lampOn, lampOff; Transform signalRoot;
+    const float Cycle = 26;
+    /// <summary>0 green, 1 amber, 2 red for traffic moving along an axis (0: east-west, 1: north-south) at a junction.</summary>
+    int LightFor(int node, int axis) {
+        var (i, j) = IJ(node); float t = Mathf.Repeat(Time.time + (i + j) * 4.3f + i * 1.7f, Cycle);
+        int ns = t < 11 ? 0 : t < 13 ? 1 : 2, ew = t < 13 ? 2 : t < 24 ? 0 : t < 26 ? 1 : 2;
+        return axis == 1 ? ns : ew;
+    }
+    int Arms(int i, int j) { int n = 0; foreach (var (di, dj) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }) if (Edge(i, j, i + di, j + dj)) n++; return n; }
+    void BuildSignals() {
+        if (signalRoot != null) Destroy(signalRoot.gameObject); signals.Clear();
+        signalRoot = new GameObject("Traffic lights").transform; signalRoot.SetParent(town.root, false);
+        var lit = Resources.Load<Shader>("SLTown");
+        Material M(Color c, float glow) { var m = new Material(lit); m.SetColor("_Color", c); m.SetFloat("_Glossiness", 0.6f); if (glow > 0) { m.SetColor("_EmissionColor", c); m.SetFloat("_EmA", glow); m.SetFloat("_EmB", glow * 0.8f); } return m; }
+        Color[] cols = { new Color(0.15f, 1f, 0.45f), new Color(1f, 0.7f, 0.1f), new Color(1f, 0.12f, 0.1f) };
+        lampOn = cols.Select(c => M(c, 2.2f)).ToArray(); lampOff = cols.Select(c => M(c * 0.18f, 0)).ToArray();
+        var metal = M(new Color(0.12f, 0.12f, 0.13f), 0); metal.SetFloat("_Metallic", 0.6f);
+        GameObject Prim(PrimitiveType t, Transform p, Vector3 at, Vector3 size, Material m) { var g = GameObject.CreatePrimitive(t); Destroy(g.GetComponent<Collider>()); g.transform.SetParent(p, false); g.transform.localPosition = at; g.transform.localScale = size; g.GetComponent<Renderer>().sharedMaterial = m; return g; }
+        for (int i = 0; i < nRoads; i++) for (int j = 0; j < nRoads; j++) {
+            if (noRoad.Contains((i, j)) || Arms(i, j) < 3) continue;
+            var sg = new Signal { node = Node(i, j) }; var c = NodePos(sg.node); int k = 0;
+            foreach (var (di, dj) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }) {
+                if (!Edge(i, j, i - di, j - dj)) { k++; continue; }           // no road arriving from that side
+                var d = new Vector2(di, dj);                                   // the direction traffic arrives in
+                var at = c - d * (Stop + 0.6f) + Right(d) * 6.6f;
+                var pole = new GameObject("Light").transform; pole.SetParent(signalRoot, false);
+                pole.position = SLTownWorld.W(at.x, 0.15f, at.y); pole.rotation = SLTownWorld.Yaw(Mathf.Atan2(-d.x, -d.y));
+                Prim(PrimitiveType.Cylinder, pole, new Vector3(0, 1.6f, 0), new Vector3(0.11f, 1.6f, 0.11f), metal);
+                Prim(PrimitiveType.Cube, pole, new Vector3(0, 3.55f, 0), new Vector3(0.34f, 0.95f, 0.26f), metal);
+                var lamps = new Renderer[3];
+                for (int l = 0; l < 3; l++) lamps[l] = Prim(PrimitiveType.Sphere, pole, new Vector3(0, 3.25f + (2 - l) * 0.3f, 0.13f), new Vector3(0.2f, 0.2f, 0.08f), lampOff[l]).GetComponent<Renderer>();
+                sg.lamps[k] = lamps; sg.dirAxis[k] = di != 0 ? 0 : 1; k++;
+            }
+            signals.Add(sg);
+        }
+        SLTownWorld.SetLayer(signalRoot);
+    }
+    void TickSignals() {
+        foreach (var sg in signals) {
+            int key = LightFor(sg.node, 0) * 3 + LightFor(sg.node, 1); if (key == sg.shown) continue; sg.shown = key;
+            for (int k = 0; k < 4; k++) { var lamps = sg.lamps[k]; if (lamps == null) continue; int st = LightFor(sg.node, sg.dirAxis[k]); for (int l = 0; l < 3; l++) lamps[l].sharedMaterial = l == st ? lampOn[l] : lampOff[l]; }
+        }
+    }
+    readonly HashSet<int> warnedRed = new HashSet<int>();
+    /// <summary>Driving yourself: crossing a stop line on red earns a word of warning (once per junction per pass).</summary>
+    void CheckRedLight(Car c, float ox, float oz) {
+        if (signals.Count == 0 || Mathf.Abs(c.v) < 3) return;
+        foreach (var sg in signals) {
+            var p = NodePos(sg.node); var before = new Vector2(ox, oz) - p; var after = new Vector2(c.x, c.z) - p;
+            foreach (int axis in new[] { 0, 1 }) {
+                float b0 = axis == 0 ? before.x : before.y, a0 = axis == 0 ? after.x : after.y, side = axis == 0 ? Mathf.Abs(after.y) : Mathf.Abs(after.x);
+                if (side > 6 || Mathf.Abs(b0) < Stop - 0.5f == Mathf.Abs(a0) < Stop - 0.5f || Mathf.Abs(a0) > Stop) continue;      // not crossing this junction's stop line along this axis
+                if (Mathf.Abs(a0) < Mathf.Abs(b0) && LightFor(sg.node, axis) == 2 && warnedRed.Add(sg.node)) ShowToast("You ran a red light! Careful on the roads of Starlife.");
+            }
+            if ((new Vector2(c.x, c.z) - p).magnitude > 20) warnedRed.Remove(sg.node);
+        }
+    }
+
     // ---------------------------------------------------------------- the road grid and its lanes
     int Node(int i, int j) => i * 100 + j;
     (int, int) IJ(int n) => (n / 100, n % 100);
@@ -177,7 +240,9 @@ public partial class SLApp {
                 if (c.holds >= 0 && junctionHeld.TryGetValue(c.holds, out var h) && h == c) junctionHeld.Remove(c.holds); c.holds = -1;
                 // at the stop line: wait for the junction, then turn into the next road
                 int n = NextNode(c);
-                if (junctionHeld.TryGetValue(c.to, out var other) && other != c) { c.v = Mathf.MoveTowards(c.v, 0, dt * 12); MoveCar(c, dt); continue; }
+                var (fi, fj) = IJ(c.from); var (ti, tj) = IJ(c.to); int axis = fi != ti ? 0 : 1;
+                bool red = signals.Exists(sg => sg.node == c.to) && LightFor(c.to, axis) != 0;
+                if (red || junctionHeld.TryGetValue(c.to, out var other) && other != c) { c.v = Mathf.MoveTowards(c.v, 0, dt * 12); MoveCar(c, dt); continue; }
                 junctionHeld[c.to] = c; c.holds = c.to;
                 var turn = TurnPath(c.from, c.to, n); var lane = Lane(c.to, n);
                 c.path.AddRange(turn); c.path.Add(lane[1]); c.from = c.to; c.to = n;
@@ -277,6 +342,11 @@ public partial class SLApp {
             var q = new Vector2(c.x, c.z) + f * (c.Len * k); var q2 = town.Collide(q, c.Wid * 0.45f);
             if ((q2 - q).sqrMagnitude > 1e-6f) { hit = true; c.x += q2.x - q.x; c.z += q2.y - q.y; }
         }
+        // the pavements, parks and plazas of every block (and the car-free Avenue) are off-limits to cars
+        for (int pi = 0; pi < 3; pi++) {
+            float kk = new[] { 0.45f, 0f, -0.45f }[pi]; var q = new Vector2(c.x, c.z) + f * (c.Len * kk); var q2 = KerbOut(q, c.Wid * 0.5f);
+            if ((q2 - q).sqrMagnitude > 1e-6f) { hit = true; c.x += q2.x - q.x; c.z += q2.y - q.y; }
+        }
         foreach (var o in cars) { if (o == c) continue; if ((new Vector2(o.x - c.x, o.z - c.z)).magnitude < (o.Len + c.Len) * 0.45f && Vector2.Dot(new Vector2(o.x - c.x, o.z - c.z), f * Mathf.Sign(c.v)) > 0) { hit = true; c.x = ox; c.z = oz; o.v = 0; } }
         if (Mathf.Abs(c.v) > 0.5f) {
             float gapFront = 9; var p = new Vector2(c.x, c.z); var dir = f * Mathf.Sign(c.v);
@@ -284,6 +354,7 @@ public partial class SLApp {
             if (gapFront < 0.8f) { c.x = ox; c.z = oz; c.v = 0; if (Time.time - lastHonk > 4) { lastHonk = Time.time; ShowToast("Careful! Someone is in front of the car."); } }
         }
         if (hit) c.v *= -0.25f;
+        CheckRedLight(c, ox, oz);
         c.spin += c.v * dt / Mathf.Max(0.2f, c.spec.wheel); c.spin %= Mathf.PI * 2;
         PlaceCar(c);
         player.pos = new Vector3(c.x, town.HeightAt(c.x, c.z), c.z); player.ry = c.ry; player.speed = 0;
@@ -291,6 +362,16 @@ public partial class SLApp {
         speedL.text = Mathf.RoundToInt(Mathf.Abs(c.v) * 3.6f) + " km/h";
     }
     float lastHonk;
+    Vector2 KerbOut(Vector2 p, float r) {
+        void Push(float x0, float z0, float x1, float z1) {
+            if (p.x < x0 - r || p.x > x1 + r || p.y < z0 - r || p.y > z1 + r) return;
+            float dl = p.x - (x0 - r), dr = (x1 + r) - p.x, dt2 = p.y - (z0 - r), db = (z1 + r) - p.y, m = Mathf.Min(Mathf.Min(dl, dr), Mathf.Min(dt2, db));
+            if (m == dl) p.x = x0 - r; else if (m == dr) p.x = x1 + r; else if (m == dt2) p.y = z0 - r; else p.y = z1 + r;
+        }
+        for (int i = -town.N; i <= town.N; i++) for (int j = -town.N; j <= town.N; j++) Push(i * town.Cell - town.Half, j * town.Cell - town.Half, i * town.Cell + town.Half, j * town.Cell + town.Half);
+        var ave = O(data_town("AVE")); Push(F(ave["x0"]), F(ave["z0"]), F(ave["x1"]), F(ave["z1"]));
+        return p;
+    }
     void UpdateCarCamera(float dt) {
         var c = driving; var want = new Vector3(c.x, town.HeightAt(c.x, c.z) + 1.25f, c.z);
         cam.target = cam.cur == 0 ? want : Vector3.Lerp(cam.target, want, 1 - Mathf.Exp(-dt * 12));

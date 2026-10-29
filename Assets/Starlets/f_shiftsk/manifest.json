@@ -1,0 +1,57 @@
+{
+ "id": "f_shiftsk",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.2959,
+    0.2959,
+    0.2959
+   ],
+   "lum": 0.2959,
+   "zmin": 1.053,
+   "zmax": 1.422,
+   "xmax": 0.178,
+   "tris": 6574
+  },
+  {
+   "mesh": "bottom",
+   "material": "Wolf3D_Outfit_Bottom",
+   "tex": "bottom.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.2959,
+    0.2959,
+    0.2959
+   ],
+   "lum": 0.2959,
+   "zmin": 0.494,
+   "zmax": 1.066,
+   "xmax": 0.197,
+   "tris": 6994
+  }
+ ]
+}

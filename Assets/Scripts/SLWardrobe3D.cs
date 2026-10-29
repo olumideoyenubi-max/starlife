@@ -11,18 +11,12 @@ public static class SLWardrobe3D {
     static readonly Dictionary<string, string> Map = new Dictionary<string, string> {
         // tops
         { "turtle", "mary" }, { "corset", "cute" }, { "breton", "lucy" },
-        // bottoms
-        { "mini", "lina" }, { "pleated", "charlotte" }, { "pencil", "olivia" },
-        // dresses: a slip is one piece, the fuller ones are a bodice and a skirt
-        
-        // jackets (they come with what is worn under them, so they replace the top)
-        { "blazer", "pigtail:top" }, { "trench", "pigtail:top" }, { "cardigan", "charlotte:top" }, { "biker", "lucy:top" }, { "denimjk", "lucy:top" }, { "puffer", "rosie:top" },
         // shoes
-        { "pumps", "pigtail" }, { "ankleboots", "mary" }, { "kneeboots", "mary" }, 
+        { "pumps", "pigtail" }, { "kneeboots", "mary" },
         // sports gear and workwear
-        { "sportsbra", "basics:tank" }, { "leggings", "ivy" }, { "gymshorts", "rosie" }, { "tennisskirt", "lina" }, { "tracktop", "lucy:top" },
+        { "sportsbra", "basics:tank" }, { "leggings", "ivy" }, { "gymshorts", "rosie" },
         { "trainers", "jenny" }, { "runners", "lina" }, { "staffpolo", "ivy" }, { "polo", "ivy" }, { "scrubtop", "ivy" }, { "scrubpants", "pigtail" }, { "workpants", "pigtail" },
-        { "chefcoat", "pigtail:top" }, { "workboots", "mary" }, { "rainbowhoodie", "alice:top!" }, { "hoodie", "alice:top" }, { "joggers", "alice" }, { "hightops", "alice" },
+        { "chefcoat", "pigtail:top" }, { "rainbowhoodie", "alice:top!" }, { "hoodie", "alice:top" }, { "joggers", "alice" }, { "hightops", "alice" },
         // the goth collection; its accessories (goth:...) are made pieces, and metal parts (..._m) keep their silver
         { "gothgown", "eve:top+bottom" }, { "gothcoat", "pigtail:top" }, { "harness", "cute:top" }, { "meshtop", "goth:meshtop" },
         { "kilt", "goth:fishnets!+lina:bottom+goth:belt!+belt_m" }, { "platforms", "kelly:shoes" }, { "creepers", "mary:shoes" },
@@ -32,7 +26,7 @@ public static class SLWardrobe3D {
         { "tee", "f_tee" }, { "cami", "f_cami" }, { "blouse", "f_silk" }, { "gymtank", "f_tank" },
         { "jeans", "f_jeans" }, { "shorts", "f_shorts" }, { "wide", "f_wideleg" },
         { "gown", "f_gown:dress" }, { "slip", "f_midi:dress" }, { "lbd", "f_blackkey:dress" }, { "sequin", "f_fashion:dress" }, { "wrap", "f_wrap:dress" }, { "sundress", "f_tiered:dress" },
-        { "flats", "f_flats" }, { "sandals", "f_sandals" }, { "sneakers", "f_runners" },
+        { "flats", "cute" }, { "sandals", "f_sandals" }, { "sneakers", "f_runners" },
         // Ankara & Prints (their fabric keeps its print: "!")
         { "ankaramaxi", "f_ankara:dress!" }, { "ankaracorset", "f_corset!" }, { "leopardcami", "f_leopard!" }, { "silkcarre", "f_silk!" }, { "discotop", "f_disco!" }, { "quilted", "f_quilted:dress!" },
         // New Season
@@ -42,7 +36,11 @@ public static class SLWardrobe3D {
         { "bootcut", "f_bootcut" }, { "leather", "f_leather" }, { "harem", "f_harem" }, { "trousers", "f_trousers" },
         { "womensuit", "f_suit:dress" }, { "casualsuit", "f_casual:dress" },
         // menswear on a woman's figure: the nearest women's pieces (the men wear their own, see MenMap)
-        { "shirt", "songbird" }, { "chinos", "cute" }, { "suitpants", "cute" }, { "suit", "pigtail:top" }, { "tux", "pigtail:top" }, { "oxfords", "cute" }, { "loafers", "cute" },
+        { "shirt", "f_silk" }, { "chinos", "f_trousers" }, { "suitpants", "f_trousers" }, { "suit", "f_blazer:top" }, { "tux", "f_blazer:top" }, { "oxfords", "cute" }, { "loafers", "cute" },
+        // jackets and skirts cut at the waist from suits and dresses, and boots (make_fashion.py)
+        { "blazer", "f_blazer:top" }, { "trench", "f_tweed:top" }, { "biker", "f_hoodiejk:outer" }, { "denimjk", "f_hoodiejk:outer" }, { "puffer", "f_hoodiejk:outer" }, { "tracktop", "f_hoodiejk:outer" },
+        { "cardigan", "f_monohood:outer" }, { "pencil", "f_blazer:bottom" }, { "pleated", "f_tieredsk:bottom" }, { "mini", "f_sixtiessk:bottom" }, { "tennisskirt", "f_sixtiessk:bottom" },
+        { "ankleboots", "f_chelsea" }, { "workboots", "f_workboot" },
         // eyewear: one pair of frames, dyed
         { "roundspecs", "cute:extra" }, { "cateye", "cute:extra" }, { "sunnies", "cute:extra" }, { "heartsunnies", "cute:extra" },
     };
