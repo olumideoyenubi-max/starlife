@@ -19,6 +19,7 @@ public partial class SLApp {
         public string id, name, role; public Look3 look; public Transform go, fig; public SLRigMotion mo;
         public Vector3 pos; public float ry, speed, walkSpeed = 1.3f, timer, waveT; public float? faceTo;
         public List<Vector2> path = new List<Vector2>(); public string state = "idle", prevState;
+        public float emoteFor;     // a reaction (a laugh, a dance) that ends by itself
         public SLTownWorld.Place at, dest, meetup; public SLTownWorld.Seat seat; public VisualElement tag; public bool visible = true, crowd, male;
         public string First => name.Split(' ')[0];
     }
@@ -107,7 +108,7 @@ public partial class SLApp {
         // passers-by: the town's own people (make_men.py), each going about their day
         foreach (var e in stage3d.Starlets) {
             if (!e.id.StartsWith("p_")) continue;
-            var pp = Spawn(e.id, null, new Look3 { id = e.id, height = SLStage3D.IsMale(e.id) ? 1.06f : 1f }); pp.crowd = true; pp.walkSpeed = 1.15f + R() * 0.4f; pp.timer = R() * 5;
+            var pp = Spawn(e.id, null, new Look3 { id = e.id, height = SLStage3D.IsMale(e.id) ? 1.06f : 1f }); pp.crowd = true; pp.name = char.ToUpperInvariant(e.id[2]) + e.id.Substring(3); pp.role = "Lives in Starlife Town"; pp.walkSpeed = 1.15f + R() * 0.4f; pp.timer = R() * 5;
             var n0 = town.nodes[trng.Next(town.nodes.Count)]; pp.pos = new Vector3(n0.x, 0, n0.y); people.Add(pp);
         }
         Mannequins();
@@ -199,6 +200,7 @@ public partial class SLApp {
 
     // ================================================================ walking about
     void SendTo(TP pp, SLTownWorld.Place dest, Vector2? target = null) {
+        pp.mo.emote = null; pp.mo.sitStyle = null;
         int from = town.NearestNode(pp.pos.x, pp.pos.z), to = dest != null ? dest.node : town.NearestNode(target.Value.x, target.Value.y);
         var path = town.Route(from, to);
         Vector2? end = target ?? (dest != null ? new Vector2(dest.x + (R() - 0.5f) * 2.5f, dest.z + (R() - 0.5f) * 1.2f) : (Vector2?)null);
@@ -216,7 +218,7 @@ public partial class SLApp {
         for (int i = 0; i < list.Count; i++) { r -= w[i]; if (r <= 0) return list[i]; }
         return list.Count > 0 ? list[0] : PlaceBy("park");
     }
-    bool SeatTaken(SLTownWorld.Seat s) => people.Any(p => p.seat == s) || player.seat == s;
+    bool SeatTaken(SLTownWorld.Seat s, TP but = null) => people.Any(p => p != but && p.seat == s) || player.seat == s;
     void Arrive(TP pp) {
         pp.at = pp.dest;
         if (pp.meetup != null && pp.meetup == pp.dest) {
@@ -226,9 +228,32 @@ public partial class SLApp {
         }
         if (pp.dest != null && pp.dest.id == "home" && Hour >= 1 && Hour < 7) { pp.state = "inside"; pp.timer = 60 + R() * 120; return; }
         var free = town.seats.Where(s => s.place == (pp.dest != null ? pp.dest.id : null) && !SeatTaken(s) && new Vector2(s.x - pp.pos.x, s.z - pp.pos.z).magnitude < 22).ToList();
-        if (free.Count > 0 && R() < 0.7f) { var s = Pick(free); pp.seat = s; pp.path = new List<Vector2> { new Vector2(s.x, s.z) }; pp.state = "toSeat"; return; }
+        if (free.Count > 0 && R() < 0.7f) { var s = Pick(free); pp.seat = s; pp.path = new List<Vector2> { SeatFront(s) }; pp.state = "toSeat"; return; }
         pp.state = "idle"; pp.timer = 15 + R() * 45;
+        // something to do while she waits: a dance at a party, a call, folded arms, a think
+        string at = pp.dest != null ? pp.dest.id : "";
+        pp.mo.emote = at == "club" || at == "house" ? (R() < 0.75f ? "dance" : "cheer") : R() < 0.45f ? new[] { "phone", "arms", "think", "laugh", null }[trng.Next(5)] : null;
         if (pp.dest != null) pp.faceTo = pp.dest.ry + Mathf.PI + (R() - 0.5f) * 1.5f;
+    }
+    /// <summary>Where you stand to sit down on a seat: just in front of it.</summary>
+    Vector2 SeatFront(SLTownWorld.Seat s) {      // in front if that is clear (a bench), else beside or behind it (a chair at a table)
+        foreach (float a in new[] { 0f, Mathf.PI / 2, -Mathf.PI / 2, Mathf.PI }) {
+            var q = new Vector2(s.x + Mathf.Sin(s.ry + a) * 0.6f, s.z + Mathf.Cos(s.ry + a) * 0.6f);
+            if ((town.Collide(q, 0.25f) - q).sqrMagnitude < 0.0004f && !town.seats.Any(o => o != s && new Vector2(o.x - q.x, o.z - q.y).magnitude < 0.35f)) return q;
+        }
+        return new Vector2(s.x + Mathf.Sin(s.ry) * 0.45f, s.z + Mathf.Cos(s.ry) * 0.45f);
+    }
+    /// <summary>Walkers keep out of buildings, benches, lamp posts and cars (yours too), and give each other room.</summary>
+    void KeepClear(TP pp, float dt) {
+        var c = KeepOutOfCars(town.Collide(new Vector2(pp.pos.x, pp.pos.z), 0.25f), 0.3f, true); pp.pos.x = c.x; pp.pos.z = c.y;
+        Spread(pp, dt);
+    }
+    void Spread(TP pp, float dt) {
+        foreach (var o in people) {
+            if (o == pp || !o.visible || o.state == "inside" || o.state == "sit" || o.state == "sitDown") continue;
+            float dx = pp.pos.x - o.pos.x, dz = pp.pos.z - o.pos.z, d = Mathf.Sqrt(dx * dx + dz * dz);
+            if (d < 0.6f && d > 0.001f) { float push = (0.6f - d) * Mathf.Min(1, dt * 6); pp.pos.x += dx / d * push; pp.pos.z += dz / d * push; }
+        }
     }
     static float Turn(float a, float b, float k) { float d = ((b - a + Mathf.PI) % (Mathf.PI * 2) + Mathf.PI * 2) % (Mathf.PI * 2) - Mathf.PI; return a + d * Mathf.Min(1, k); }
     void MoveToward(TP pp, float x, float z, float sp, float dt) {
@@ -246,30 +271,41 @@ public partial class SLApp {
         else if (pp.state == "follow") {
             float d = D(pp, player);
             if (player.seat != null) pp.speed = 0;
-            else if (d > 1.8f) { float sp = d > 4 ? 3.6f : player.speed > 2 ? 3.8f : 1.5f; MoveToward(pp, player.pos.x - Mathf.Sin(player.ry) * 1.2f + Mathf.Cos(player.ry) * 0.8f, player.pos.z - Mathf.Cos(player.ry) * 1.2f - Mathf.Sin(player.ry) * 0.8f, sp, dt); }
+            else if (d > 1.8f) { float sp = d > 4 ? 3.6f : player.speed > 2 ? 3.8f : 1.5f; MoveToward(pp, player.pos.x - Mathf.Sin(player.ry) * 1.2f + Mathf.Cos(player.ry) * 0.8f, player.pos.z - Mathf.Cos(player.ry) * 1.2f - Mathf.Sin(player.ry) * 0.8f, sp, dt); KeepClear(pp, dt); }
             else { pp.speed = Mathf.Lerp(pp.speed, 0, dt * 8); pp.ry = Turn(pp.ry, Mathf.Atan2(player.pos.x - pp.pos.x, player.pos.z - pp.pos.z), dt * 3); }
             if (d > 40) pp.pos = new Vector3(player.pos.x - 1.5f, 0, player.pos.z - 1.5f);
             mo.pose = "stand";
         } else if (pp.state == "walk" || pp.state == "toSeat") {
             if (pp.path.Count == 0) {
-                if (pp.state == "toSeat") { pp.state = "sit"; pp.timer = 25 + R() * 50; mo.pose = "sit"; mo.seatDrop = pp.seat.y - town.HeightAt(pp.seat.x, pp.seat.z) + 0.06f; pp.pos = new Vector3(pp.seat.x, 0, pp.seat.z); pp.ry = pp.seat.ry; pp.speed = 0; }
+                if (pp.state == "toSeat") {
+                    if (SeatTaken(pp.seat, pp)) { pp.seat = null; pp.state = "idle"; pp.timer = 10; }
+                    else { pp.state = "sitDown"; pp.timer = 0.7f; mo.emote = null; mo.pose = "sit"; mo.seatDrop = pp.seat.y - town.HeightAt(pp.seat.x, pp.seat.z) + 0.06f; mo.sitStyle = new[] { null, "chat", "phone", "lean", "eat" }[trng.Next(5)]; }
+                }
                 else Arrive(pp);
             } else {
                 var w = pp.path[0]; float d = new Vector2(w.x - pp.pos.x, w.y - pp.pos.z).magnitude;
-                if (d < 0.35f) pp.path.RemoveAt(0); else MoveToward(pp, w.x, w.y, pp.walkSpeed, dt);
+                if (d < 0.35f) pp.path.RemoveAt(0); else { MoveToward(pp, w.x, w.y, pp.walkSpeed, dt); KeepClear(pp, dt); }
                 float pd = D(pp, player);     // step aside for the player
                 if (pd < 0.75f && pd > 0.01f) { pp.pos.x -= (player.pos.x - pp.pos.x) / pd * dt * 1.2f; pp.pos.z -= (player.pos.z - pp.pos.z) / pd * dt * 1.2f; }
             }
+        } else if (pp.state == "sitDown") {     // turning round and lowering into the seat
+            pp.speed = 0; pp.timer -= dt; float k = 1 - Mathf.Exp(-dt * 7);
+            pp.ry = Turn(pp.ry, pp.seat.ry, dt * 8); pp.pos.x = Mathf.Lerp(pp.pos.x, pp.seat.x, k); pp.pos.z = Mathf.Lerp(pp.pos.z, pp.seat.z, k);
+            if (pp.timer <= 0) { pp.state = "sit"; pp.timer = 25 + R() * 50; pp.pos.x = pp.seat.x; pp.pos.z = pp.seat.z; pp.ry = pp.seat.ry; }
         } else if (pp.state == "sit") {
             pp.speed = 0; pp.timer -= gm;
-            if (pp.timer <= 0) { mo.pose = "stand"; pp.seat = null; SendTo(pp, ChooseDest(pp)); }
+            if (pp.timer <= 0) { mo.pose = "stand"; mo.sitStyle = null; pp.state = "standUp"; pp.timer = 0.6f; }
+        } else if (pp.state == "standUp") {     // up, and a step out from the table before walking off
+            pp.speed = 0; pp.timer -= dt; var fr = SeatFront(pp.seat); float k = 1 - Mathf.Exp(-dt * 6);
+            pp.pos.x = Mathf.Lerp(pp.pos.x, fr.x, k); pp.pos.z = Mathf.Lerp(pp.pos.z, fr.y, k);
+            if (pp.timer <= 0) { pp.seat = null; SendTo(pp, ChooseDest(pp)); }
         } else {
-            pp.speed = Mathf.Lerp(pp.speed, 0, dt * 8);
+            pp.speed = Mathf.Lerp(pp.speed, 0, dt * 8); Spread(pp, dt);
             if (pp.faceTo.HasValue) pp.ry = Turn(pp.ry, pp.faceTo.Value, dt * 2);
             pp.timer -= gm;
             if (pp.timer <= 0) SendTo(pp, ChooseDest(pp));
         }
-        float gy = pp.state == "sit" && pp.seat != null ? town.HeightAt(pp.seat.x, pp.seat.z) : town.HeightAt(pp.pos.x, pp.pos.z);
+        float gy = (pp.state == "sit" || pp.state == "sitDown") && pp.seat != null ? town.HeightAt(pp.seat.x, pp.seat.z) : town.HeightAt(pp.pos.x, pp.pos.z);
         pp.pos.y = Mathf.Lerp(pp.pos.y, gy, 1 - Mathf.Exp(-dt * 12));
         Place(pp);
     }
@@ -298,9 +334,16 @@ public partial class SLApp {
         float mag = Mathf.Min(1, new Vector2(ix, iz).magnitude);
         if (busy != null || modal != null) mag = 0;
         if (mag > 0.05f) HideHint();
-        if (player.seat != null && mag > 0.1f) StandUp();
         var mo = player.mo;
-        if (player.seat != null) { player.speed = 0; mo.Animate(dt, 0); player.pos = new Vector3(player.seat.x, town.HeightAt(player.seat.x, player.seat.z), player.seat.z); player.ry = player.seat.ry; Place(player); return; }
+        if (stepT > 0) { stepT -= dt; float ks = 1 - Mathf.Exp(-dt * 9); player.pos.x = Mathf.Lerp(player.pos.x, stepTo.x, ks); player.pos.z = Mathf.Lerp(player.pos.z, stepTo.y, ks); player.speed = 0; mo.Animate(dt, 0); Place(player); return; }
+        // walking off ends an emote, or gets her up off the ground
+        if (mag > 0.1f && (mo.emote != null || groundSit)) { mo.emote = null; if (groundSit) { groundSit = false; mo.pose = "stand"; } }
+        if (player.seat != null && mag > 0.1f) { StandUp(); mo.Animate(dt, 0); Place(player); return; }
+        if (player.seat != null) {      // easing round and down into the seat
+            player.speed = 0; mo.Animate(dt, 0); float ks = 1 - Mathf.Exp(-dt * 8);
+            player.pos = new Vector3(Mathf.Lerp(player.pos.x, player.seat.x, ks), town.HeightAt(player.seat.x, player.seat.z), Mathf.Lerp(player.pos.z, player.seat.z, ks)); player.ry = Turn(player.ry, player.seat.ry, dt * 9);
+            Place(player); return;
+        }
         float target = mag > 0.05f ? (run ? 4.2f : 1.6f * (0.45f + mag * 0.55f)) : 0;
         player.speed = Mathf.Lerp(player.speed, target, 1 - Mathf.Exp(-dt * (target > player.speed ? 6 : 10)));
         // -ix: the town is mirrored into Unity (W flips z), so a larger heading turns left on screen
@@ -309,18 +352,53 @@ public partial class SLApp {
             player.pos.x += Mathf.Sin(player.ry) * player.speed * dt; player.pos.z += Mathf.Cos(player.ry) * player.speed * dt;
             if (player.speed > 3) { runMetres += player.speed * dt; if (runMetres >= 500) { runMetres = 0; ShowToast("Half a kilometre of running." + BodyChange(Me, -0.02f, 0.01f)); if (bodyDirty) { bodyDirty = false; player.look = MyLook(null); Dress(player); } } }
             var c = KeepOutOfCars(town.Collide(new Vector2(player.pos.x, player.pos.z)), 0.3f); player.pos.x = c.x; player.pos.z = c.y;
+            foreach (var o in people) {      // and she walks round people, not through them
+                if (!o.visible || o.state == "inside" || o.state == "follow") continue;
+                float dx = player.pos.x - o.pos.x, dz = player.pos.z - o.pos.z, dd = Mathf.Sqrt(dx * dx + dz * dz);
+                if (dd < 0.55f && dd > 0.001f) { player.pos.x += dx / dd * (0.55f - dd); player.pos.z += dz / dd * (0.55f - dd); }
+            }
         }
         player.pos.y = Mathf.Lerp(player.pos.y, town.HeightAt(player.pos.x, player.pos.z), 1 - Mathf.Exp(-dt * 14));
         mo.talking = talking != null; mo.Animate(dt, player.speed); Place(player);
     }
     void SitOn(SLTownWorld.Seat s) {
-        player.seat = s; player.mo.pose = "sit"; player.mo.seatDrop = s.y - town.HeightAt(s.x, s.z) + 0.06f;
-        player.pos = new Vector3(s.x, town.HeightAt(s.x, s.z), s.z); player.ry = s.ry;
-        ShowToast(s.place == "cafe" ? "You grab a table on the terrace. Move to stand up." : "You sit down for a while. Move to stand up.");
+        player.seat = s; player.mo.pose = "sit"; player.mo.seatDrop = s.y - town.HeightAt(s.x, s.z) + 0.06f; player.mo.emote = null; groundSit = false;
+        ShowToast((s.place == "cafe" ? "You grab a table on the terrace." : "You sit down for a while.") + " Press G for things to do here, or move to stand up.");
+    }
+    // ---------------------------------------------------------------- emotes, and things to do in a seat
+    void OpenEmotes() {
+        if (driving != null || busy != null || player == null || showCam) return;
+        if (player.seat != null) {
+            Opt S(string label, string style, string note) => new Opt { label = label, note = note, accent = player.mo.sitStyle == style, run = () => { CloseCard(); player.mo.sitStyle = style; if (style == "chat" && people.Any(p => p.seat != null && D(p, player) < 3)) Bump("social", 4); else Bump("fun", 2); } };
+            OpenCard("Make yourself comfortable", "In your seat", "What do you feel like doing?", new List<Opt> {
+                S("Just relax", null, "settle in"), S("Chat with the table", "chat", "+social"), S("Scroll your phone", "phone", "+fun"), S("Eat and drink", "eat", "a bite, a sip"), S("Lean back", "lean", "+energy"),
+                new Opt { label = "Stand up", run = () => { CloseCard(); StandUp(); } } });
+            return;
+        }
+        var list = new[] { ("wave", "Wave", "say hi"), ("dance", "Dance", "+fun"), ("clap", "Clap", "applause!"), ("cheer", "Cheer", "arms up"), ("laugh", "Laugh", "+fun"), ("think", "Think", "hmm…"),
+            ("pose", "Strike a pose", "+charisma"), ("phone", "Phone call", "+social"), ("arms", "Fold your arms", ""), ("nod", "Nod", "yes!"), ("ground", "Sit on the ground", "anywhere") };
+        var opts = list.Select(e => new Opt { label = e.Item2, note = e.Item3, accent = player.mo.emote == e.Item1, run = () => DoEmote(e.Item1) }).ToList();
+        if (player.mo.emote != null || groundSit) opts.Insert(0, new Opt { label = "Stop", run = () => { CloseCard(); player.mo.emote = null; if (groundSit) { groundSit = false; player.mo.pose = "stand"; } } });
+        OpenCard("Emotes", "G or ☺ any time · walk to stop", "Express yourself! People nearby may join in.", opts);
+    }
+    void DoEmote(string id) {
+        CloseCard(); var mo = player.mo; player.speed = 0;
+        if (id == "ground") { mo.emote = null; mo.pose = "sit"; mo.seatDrop = 0.17f; groundSit = true; Bump("energy", 2); ShowToast("You sit down right here. Move to get up."); return; }
+        if (groundSit) { groundSit = false; mo.pose = "stand"; }
+        mo.emote = id;
+        if (id == "dance" || id == "laugh") Bump("fun", id == "dance" ? 6 : 3); else if (id == "phone") Bump("social", 3); else if (id == "pose") AddSkill("charisma", 0.05f);
+        // the people around join in
+        string join = id == "dance" ? "dance" : id == "cheer" || id == "clap" ? "clap" : id == "laugh" ? "laugh" : id == "wave" ? "wave" : null;
+        if (join == null) return; int n = 0;
+        foreach (var pp in people) {
+            if (!pp.visible || D(pp, player) > 6 || !(pp.state == "idle" || pp.state == "talk" || pp.state == "follow")) continue;
+            pp.mo.emote = join; pp.emoteFor = 6 + R() * 4; pp.faceTo = Mathf.Atan2(player.pos.x - pp.pos.x, player.pos.z - pp.pos.z); if (!pp.crowd) Befriend(pp.id, 1); n++;
+        }
+        if (n > 0 && id == "dance") { Bump("social", 4); ShowToast(n == 1 ? "Someone nearby starts dancing with you!" : n + " people join your dance!"); }
     }
     void StandUp() {
-        if (player.seat == null) return; var s = player.seat; player.seat = null; player.mo.pose = "stand";
-        var c = town.Collide(new Vector2(s.x + Mathf.Sin(s.ry) * 0.6f, s.z + Mathf.Cos(s.ry) * 0.6f)); player.pos.x = c.x; player.pos.z = c.y;
+        if (player.seat == null) return; var s = player.seat; player.seat = null; player.mo.pose = "stand"; player.mo.sitStyle = null;
+        stepTo = SeatFront(s); stepT = 0.45f;      // up, and a step out from the table
     }
     void UpdateCamera(float dt) {
         var pp = player.pos;
@@ -337,7 +415,7 @@ public partial class SLApp {
     }
 
     // ================================================================ the main loop
-    float coffeeT, phoneT, saveT, runMetres; Vector2? autoWalk; bool autoRun, autoFixed;
+    float coffeeT, phoneT, saveT, runMetres, stepT; Vector2? autoWalk; Vector2 stepTo; bool autoRun, autoFixed, groundSit;
     void TickTown() {
         if (!inTown) return;
         float raw = Mathf.Min(1, Time.deltaTime), dt = Mathf.Min(0.05f, raw), gm = 0;
@@ -355,7 +433,8 @@ public partial class SLApp {
             StepPerson(pp, dt, busy != null ? dt * 30 : gm);
             float d = D(pp, player); bool vis = pp.state != "inside" && d < 280;
             if (pp.visible != vis) { pp.visible = vis; pp.go.gameObject.SetActive(vis); }
-            if (vis) { pp.mo.talking = pp.state == "talk"; pp.mo.Animate(dt, pp.state == "sit" ? 0 : pp.speed); }
+            if (pp.emoteFor > 0 && (pp.emoteFor -= dt) <= 0) pp.mo.emote = null;
+            if (vis) { pp.mo.talking = pp.state == "talk" && pp.mo.emote == null; pp.mo.Animate(dt, pp.state == "sit" ? 0 : pp.speed); }
         }
         if (room != null) TickRoom(dt);
         if (showCam) { } else if (driving != null) UpdateCarCamera(dt); else { UpdateCamera(dt); tcam.fieldOfView = Mathf.Lerp(tcam.fieldOfView, 55, dt * 3); }
@@ -400,6 +479,7 @@ public partial class SLApp {
         if (Input.GetKeyDown(KeyCode.E) || (Input.GetKeyDown(KeyCode.Return) || padA) && modal == null && !PhoneOpen && Time.frameCount - cardClosedAt > 2) Interact();
         if (Input.GetKeyDown(KeyCode.Escape) || padB) { if (shop != null) CloseBoutique(); else if (modal != null) CloseCard(); else if (PhoneOpen) TogglePhone(false); }
         if (Input.GetKeyDown(KeyCode.M) || padMenu) TogglePhone(!PhoneOpen);
+        if ((Input.GetKeyDown(KeyCode.G) || driving == null && Input.GetKeyDown(KeyCode.JoystickButton2)) && modal == null && !PhoneOpen) OpenEmotes();
         var look = PadLook();
         if (look != Vector2.zero && modal == null) { cam.yaw -= look.x * 2.4f * Time.deltaTime; cam.pitch = Mathf.Clamp(cam.pitch + look.y * 1.6f * Time.deltaTime, -0.15f, 1.2f); cam.lastDrag = Time.time; HideHint(); padUsed = true; }
         TouchInput();
@@ -459,7 +539,7 @@ public partial class SLApp {
         if (modal != null || busy != null) return;
         var ray = tcam.ScreenPointToRay(screen); TP best = null; float bd = 1e9f;
         foreach (var pp in people) {
-            if (!pp.visible || pp.crowd) continue;
+            if (!pp.visible) continue;
             var p = SLTownWorld.W(pp.pos.x, pp.pos.y + 1.1f, pp.pos.z);
             float d = Vector3.Cross(ray.direction, p - ray.origin).magnitude, far = (p - tcam.transform.position).magnitude;
             if (d < 0.45f && far < 30 && far < bd) { bd = far; best = pp; }
@@ -481,7 +561,7 @@ public partial class SLApp {
         if (driving != null) return Mathf.Abs(driving.v) < 1.5f ? new Near { kind = "getout", label = driving == testCar ? "Bring the car back" : "Get out" } : null;
         if (room != null) { var rn = RoomNear(); if (rn != null) return rn; }
         Near best = null; float bd = 1e9f;
-        foreach (var pp in people) { if (!pp.visible || pp.crowd) continue; float d = D(pp, player); if (d < 2.3f && d < bd) { bd = d; best = new Near { kind = "person", pp = pp, label = "Talk to " + pp.First }; } }
+        foreach (var pp in people) { if (!pp.visible || pp.state == "inside") continue; float d = D(pp, player); if (d < 2.3f && d < bd) { bd = d; best = new Near { kind = "person", pp = pp, label = "Talk to " + pp.First }; } }
         if (best != null) return best;
         if (myCar != null && new Vector2(myCar.x - player.pos.x, myCar.z - player.pos.z).magnitude < myCar.Len * 0.5f + 1.4f) return new Near { kind = "car", label = "Drive your " + ModelName(myCar.spec.id) };
         foreach (var s in town.seats) { float d = new Vector2(s.x - player.pos.x, s.z - player.pos.z).magnitude; if (d < 1.1f && d < bd && !SeatTaken(s)) { bd = d; best = new Near { kind = "seat", s = s, label = "Sit down" }; } }
@@ -599,17 +679,63 @@ public partial class SLApp {
         TalkMenu(pp, line);
     }
     void TalkMenu(TP pp, string line) {
-        bool following = pp.prevState == "follow"; float r = Rel(pp.id);
+        bool following = pp.prevState == "follow"; float r = Rel(pp.id); string him = pp.male ? "him" : "her";
         var opts = new List<Opt> {
             new Opt { label = "Chat", note = "+social", run = () => { Bump("social", 8); Befriend(pp.id, 3); lifeMin += 10; TalkMenu(pp, Say("chat")); } },
-            new Opt { label = "Compliment " + (pp.male ? "his" : "her") + " look", note = "+charisma", run = () => { Befriend(pp.id, 2); AddSkill("charisma", 0.15f); Bump("social", 3); TalkMenu(pp, Say("compliment")); } },
+            new Opt { label = "How’s your day going?", note = "+social", run = () => { Bump("social", 5); Befriend(pp.id, 2); lifeMin += 5; TalkMenu(pp, DayLine(pp)); } },
+            new Opt { label = "Any recommendations?", note = "somewhere to go", run = () => Recommend(pp) },
+            new Opt { label = "More…", note = "jokes, fashion, a dance, a selfie, a gift", run = () => TalkMore(pp) },
             following ? new Opt { label = "Say goodbye", run = () => { pp.prevState = "idle"; CloseCard(); ShowToast(pp.First + " heads off. See you soon!"); } }
-                : new Opt { label = "Want to hang out?", note = r < 15 ? "get to know " + (pp.male ? "him" : "her") + " first" : (pp.male ? "he" : "she") + "’ll come with you", accent = r >= 15, run = () => {
+                : new Opt { label = "Want to hang out?", note = r < 15 ? "get to know " + him + " first" : (pp.male ? "he" : "she") + "’ll come with you", accent = r >= 15, run = () => {
                     if (r >= 15) { foreach (var x in people) if (x.state == "follow") x.state = "idle"; pp.prevState = "follow"; pp.seat = null; pp.mo.pose = "stand"; CloseCard(); ShowToast(pp.First + " is coming with you. Go somewhere fun!"); }
                     else { Befriend(pp.id, 1); TalkMenu(pp, Say("no")); } } },
         };
         OpenCard(pp.name, pp.role, line, opts, pp.id);
     }
+    void TalkMore(TP pp) {
+        string him = pp.male ? "him" : "her"; int gift = 10;
+        void React(string emote, float secs) { pp.mo.emote = emote; pp.emoteFor = secs; }
+        OpenCard(pp.name, pp.role, Pick(new[] { "So, what’s on your mind?", "I’m all ears!", "Go on…" }), new List<Opt> {
+            new Opt { label = "Tell a joke", note = "+fun", run = () => { var jk = Pick(Jokes); bool land = R() < 0.75f; Bump("fun", land ? 8 : 3); Befriend(pp.id, land ? 3 : 1); lifeMin += 5;
+                React(land ? "laugh" : "think", 4); TalkMenu(pp, "You: “" + jk.Item1 + "” " + jk.Item2 + " " + (land ? Pick(new[] { "Haha! Okay, that was good.", "Stop it, my sides hurt!", "I’m stealing that one." }) : Pick(new[] { "…I don’t get it.", "Oof. That was a groaner.", "Was that the punchline?" }))); } },
+            new Opt { label = "Compliment " + (pp.male ? "his" : "her") + " look", note = "+charisma", run = () => { Befriend(pp.id, 2); AddSkill("charisma", 0.15f); Bump("social", 3); React("pose", 3); TalkMenu(pp, Say("compliment")); } },
+            new Opt { label = "Talk fashion", note = "+charisma", run = () => { int sc = OutfitScore(); AddSkill("charisma", 0.1f); Befriend(pp.id, 2); lifeMin += 10;
+                TalkMenu(pp, sc >= 75 ? "Honestly? Your look today is a ten. Where did you get that?" : sc >= 50 ? "I like your style! A statement piece would really finish it." : "Comfy is a vibe! The boutiques on Velvet Avenue have new pieces in, though."); } },
+            new Opt { label = "Ask about Starlife Town", note = "local tips", run = () => { Befriend(pp.id, 1); lifeMin += 5; TalkMenu(pp, Pick(TownLines)); } },
+            new Opt { label = "Dance together", note = "+fun +social", run = () => { CloseCard(); Bump("fun", 12); Bump("social", 8); Befriend(pp.id, 4); player.mo.emote = "dance"; React("dance", 10); ShowToast("You and " + pp.First + " dance right there on the street!"); } },
+            new Opt { label = "Take a selfie together", note = "+fun", run = () => { CloseCard(); Bump("fun", 6); Befriend(pp.id, 2); player.mo.emote = "pose"; React("pose", 5); ShowToast("Say cheese! You and " + pp.First + " strike a pose."); } },
+            new Opt { label = "Give " + him + " a little gift", note = gift + " coins · +friendship", disabled = profile.coins < gift, run = () => { core.Call("earn", (-gift).ToString(), "0"); Befriend(pp.id, 6); React("cheer", 3); UpdateHud(true); TalkMenu(pp, Pick(new[] { "For me? You’re so sweet!", "Aww, you didn’t have to! Thank you!", "This made my day, honestly." })); } },
+            new Opt { label = "Back", run = () => TalkMenu(pp, Pick(new[] { "So…", "Anyway!", "What else?" })) } }, pp.id);
+    }
+    string DayLine(TP pp) {
+        float h = Hour; string where = pp.at != null ? pp.at.name : "town";
+        var l = new List<string> { "Pretty good! I just came from " + where + ".", "Busy! But " + where + " always cheers me up.", "Can’t complain. The weather’s lovely for a walk." };
+        if (h < 11) l.AddRange(new[] { "Still waking up, honestly. I need a coffee from Greenwave.", "Early start! I love the town before it gets busy." });
+        else if (h < 17) l.AddRange(new[] { "Lunch at Jollof & Co. was amazing. Have you been?", "I’ve been shopping on Velvet Avenue all afternoon." });
+        else l.AddRange(new[] { "Winding down. Maybe dinner at Trattoria Bella later.", "Big night! Someone said the Neon Owl is packed tonight." });
+        return Pick(l);
+    }
+    void Recommend(TP pp) {
+        float h = Hour; var open = town.places.Where(p => p.id != "home" && p.id != "galleria" && !p.street && IsOpen(p, h)).ToList();
+        var liked = open.Where(p => pp.crowd || Haunts(pp.id).Contains(p.id)).ToList(); var p0 = Pick(liked.Count > 0 ? liked : open);
+        string why = Eateries.Any(e => e.id == p0.id) ? Pick(new[] { "The food there is unreal.", "Get the special, trust me.", "Best table in town." }) : Pick(new[] { "It’s my favourite spot.", "You’ll love it.", "Everyone’s talking about it." });
+        Befriend(pp.id, 1);
+        OpenCard(pp.name, pp.role, "Try " + p0.name + "! " + p0.sub + ". " + why + (p0.open != null ? " Open till " + HoursTxt(p0.open[0], p0.open[1]).Split('–')[1] + "." : ""), new List<Opt> {
+            new Opt { label = "Show me the way", accent = true, run = () => { CloseCard(); SetWaypoint(new Waypoint { name = p0.name, x = p0.x, z = p0.z }); } },
+            new Opt { label = "Something else?", run = () => Recommend(pp) },
+            new Opt { label = "Thanks!", run = () => TalkMenu(pp, Pick(new[] { "Any time!", "Have fun!", "Tell me how it goes!" })) } }, pp.id);
+    }
+    static readonly (string, string)[] Jokes = {
+        ("Why did the scarecrow win an award?", "Because he was outstanding in his field."), ("What do you call a fake noodle?", "An impasta."),
+        ("Why don’t skeletons fight each other?", "They don’t have the guts."), ("What did the coffee say to the latte?", "You’re a-latte fun."),
+        ("Why did the jollof go to the party?", "It heard it was the main dish."), ("What do you call a sleeping dinosaur?", "A dino-snore."),
+        ("Why did the stylist get promoted?", "She always cut to the chase."), ("How do you organise a space party?", "You planet.") };
+    static readonly string[] TownLines = {
+        "Restaurant Row by the theatre is new. Big Bun does the best fries, and Sakura’s omakase is worth saving up for.",
+        "The Grand Hall runs Fashion Week every evening. Get your collection ready!", "Étoile Motors lets you test-drive for free. I took the Comète out yesterday!",
+        "Velvet Avenue has no cars, so it’s the nicest street for a stroll.", "Café Doré is fancy, but their Rose Cappuccino is worth it.",
+        "The Galleria has the cinema, the arcade and the Glam Salon, all under one roof.", "Stop at the red lights when you drive. People do get told off!",
+        "Central Park’s fountain is gorgeous at sunset.", "The Neon Owl only opens at eight, and the dance floor gets packed." };
 
     // ================================================================ Velvet Avenue's boutiques
     sealed class Shop { public SLTownWorld.Place p; public Dictionary<string, object> brand; public List<Dictionary<string, object>> items; public int? trying; public float yaw, pitch, dist; }
@@ -732,6 +858,7 @@ public partial class SLApp {
         btq.style.display = DisplayStyle.None; townUI.Add(btq);
         // phone
         townUI.Add(El("town-phonebtn", B("☰", "t-pbtn glass", () => TogglePhone(phone.style.display != DisplayStyle.Flex))));
+        townUI.Add(El("town-emotebtn", B("☺", "t-pbtn glass", () => { if (modal == null) OpenEmotes(); else CloseCard(); })));
         var tabs = El("t-tabs");
         phonePanes = new ScrollView(ScrollViewMode.Vertical) { horizontalScrollerVisibility = ScrollerVisibility.Hidden }; phonePanes.AddToClassList("t-ppane");
         phone = El("town-phone glass", tabs, phonePanes); phone.style.display = DisplayStyle.None; townUI.Add(phone);

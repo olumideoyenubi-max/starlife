@@ -273,9 +273,40 @@ public partial class SLApp {
         return best - c.Len * 0.5f;
     }
     /// <summary>Walking into a car: the player (or a starlet) is kept outside its outline.</summary>
-    Vector2 KeepOutOfCars(Vector2 p, float r) {
+    // ---- boxes on the ground: a car's footprint, a collider's rectangle, and the separating-axis test between two of them
+    static Vector2[] CarBox(float x, float z, float ry, float hl, float hw) {
+        var f = new Vector2(Mathf.Sin(ry), Mathf.Cos(ry)) * hl; var s = new Vector2(f.y, -f.x).normalized * hw; var c = new Vector2(x, z);
+        return new[] { c + f + s, c + f - s, c - f - s, c - f + s };
+    }
+    static Vector2[] RectBox(float[] r) => new[] { new Vector2(r[0], r[1]), new Vector2(r[2], r[1]), new Vector2(r[2], r[3]), new Vector2(r[0], r[3]) };
+    /// <summary>Do two convex quads overlap? mtv: the shortest move that takes a out of b.</summary>
+    static bool BoxOverlap(Vector2[] a, Vector2[] b, out Vector2 mtv) {
+        mtv = Vector2.zero; float best = float.MaxValue;
+        foreach (var poly in new[] { a, b }) for (int i = 0; i < 4; i++) {
+            var e = poly[(i + 1) % 4] - poly[i]; var n = new Vector2(-e.y, e.x).normalized;
+            float a0 = float.MaxValue, a1 = float.MinValue, b0 = float.MaxValue, b1 = float.MinValue;
+            foreach (var p in a) { float d = Vector2.Dot(p, n); a0 = Mathf.Min(a0, d); a1 = Mathf.Max(a1, d); }
+            foreach (var p in b) { float d = Vector2.Dot(p, n); b0 = Mathf.Min(b0, d); b1 = Mathf.Max(b1, d); }
+            float o = Mathf.Min(a1, b1) - Mathf.Max(a0, b0); if (o <= 0) return false;
+            if (o < best) { best = o; mtv = n * ((a0 + a1) / 2 < (b0 + b1) / 2 ? -o : o); }
+        }
+        return true;
+    }
+    bool InBox(Vector2 p, Car c, float r) {
+        var f = new Vector2(Mathf.Sin(c.ry), Mathf.Cos(c.ry)); var s = new Vector2(f.y, -f.x); var d = p - new Vector2(c.x, c.z);
+        return Mathf.Abs(Vector2.Dot(d, f)) < c.Len / 2 + r && Mathf.Abs(Vector2.Dot(d, s)) < c.Wid / 2 + r;
+    }
+    List<float[]> kerbRects;
+    /// <summary>The blocks' pavements, parks and plazas, and the car-free Avenue, as rectangles cars stay out of.</summary>
+    List<float[]> KerbRects() {
+        if (kerbRects != null) return kerbRects; kerbRects = new List<float[]>();
+        for (int i = -town.N; i <= town.N; i++) for (int j = -town.N; j <= town.N; j++) kerbRects.Add(new[] { i * town.Cell - town.Half, j * town.Cell - town.Half, i * town.Cell + town.Half, j * town.Cell + town.Half, 0.15f });
+        var ave = O(data_town("AVE")); kerbRects.Add(new[] { F(ave["x0"]), F(ave["z0"]), F(ave["x1"]), F(ave["z1"]), 0.15f });
+        return kerbRects;
+    }
+    Vector2 KeepOutOfCars(Vector2 p, float r, bool evenMine = false) {
         foreach (var c in cars) {
-            if (c == driving) continue;
+            if (c == driving && !evenMine) continue;
             var f = new Vector2(Mathf.Sin(c.ry), Mathf.Cos(c.ry)); var s = new Vector2(f.y, -f.x); var d = p - new Vector2(c.x, c.z);
             float a = Vector2.Dot(d, f), b = Vector2.Dot(d, s), ha = c.Len / 2 + r, hb = c.Wid / 2 + r;
             if (Mathf.Abs(a) >= ha || Mathf.Abs(b) >= hb) continue;
@@ -333,21 +364,24 @@ public partial class SLApp {
         else c.v = Mathf.MoveTowards(c.v, 0, dt * 2.2f);
         c.steer = Mathf.MoveTowards(c.steer, ix * 0.55f, dt * 2.6f);
         float wb = Mathf.Max(1.8f, c.spec.wheelbase > 0 ? c.spec.wheelbase : c.Len * 0.6f);
-        c.ry -= c.v / wb * Mathf.Tan(c.steer) * dt;      // minus: a larger heading turns left on screen (the town is mirrored into Unity)
+        float ory = c.ry; c.ry -= c.v / wb * Mathf.Tan(c.steer) * dt;      // minus: a larger heading turns left on screen (the town is mirrored into Unity)
         float ox = c.x, oz = c.z;
         c.x += Mathf.Sin(c.ry) * c.v * dt; c.z += Mathf.Cos(c.ry) * c.v * dt;
-        // buildings, kerb furniture and other cars stop the car; people are never run over
-        var f = new Vector2(Mathf.Sin(c.ry), Mathf.Cos(c.ry)); bool hit = false;
-        foreach (float k in new[] { 0.45f, 0f, -0.45f }) {
-            var q = new Vector2(c.x, c.z) + f * (c.Len * k); var q2 = town.Collide(q, c.Wid * 0.45f);
-            if ((q2 - q).sqrMagnitude > 1e-6f) { hit = true; c.x += q2.x - q.x; c.z += q2.y - q.y; }
+        // the car's whole footprint, as a box, against buildings, lamp posts, trees and benches, the kerbs (pavements, parks
+        // and the car-free Avenue), other cars and people: they stop it; nobody is ever run over
+        bool hit = false; var f = new Vector2(Mathf.Sin(c.ry), Mathf.Cos(c.ry));
+        for (int pass = 0; pass < 3; pass++) {
+            var box = CarBox(c.x, c.z, c.ry, c.Len / 2, c.Wid / 2); bool moved = false;
+            foreach (var r in town.colliders.Concat(KerbRects())) {
+                if (r[0] > c.x + c.Len || r[2] < c.x - c.Len || r[1] > c.z + c.Len || r[3] < c.z - c.Len) continue;
+                if (BoxOverlap(box, RectBox(r), out var mtv)) { c.x += mtv.x; c.z += mtv.y; box = CarBox(c.x, c.z, c.ry, c.Len / 2, c.Wid / 2); hit = moved = true; }
+            }
+            if (!moved) break;
         }
-        // the pavements, parks and plazas of every block (and the car-free Avenue) are off-limits to cars
-        for (int pi = 0; pi < 3; pi++) {
-            float kk = new[] { 0.45f, 0f, -0.45f }[pi]; var q = new Vector2(c.x, c.z) + f * (c.Len * kk); var q2 = KerbOut(q, c.Wid * 0.5f);
-            if ((q2 - q).sqrMagnitude > 1e-6f) { hit = true; c.x += q2.x - q.x; c.z += q2.y - q.y; }
-        }
-        foreach (var o in cars) { if (o == c) continue; if ((new Vector2(o.x - c.x, o.z - c.z)).magnitude < (o.Len + c.Len) * 0.45f && Vector2.Dot(new Vector2(o.x - c.x, o.z - c.z), f * Mathf.Sign(c.v)) > 0) { hit = true; c.x = ox; c.z = oz; o.v = 0; } }
+        var me = CarBox(c.x, c.z, c.ry, c.Len / 2, c.Wid / 2);
+        bool blocked = cars.Any(o => o != c && new Vector2(o.x - c.x, o.z - c.z).magnitude < (o.Len + c.Len) * 0.6f && BoxOverlap(me, CarBox(o.x, o.z, o.ry, o.Len / 2, o.Wid / 2), out _));
+        bool someone = people.Any(pp => pp.visible && pp.state != "inside" && InBox(new Vector2(pp.pos.x, pp.pos.z), c, 0.35f));
+        if (blocked || someone) { c.x = ox; c.z = oz; c.ry = ory; c.v = 0; hit = false; if (someone && Time.time - lastHonk > 4) { lastHonk = Time.time; ShowToast("Careful! Someone is right by the car."); } }
         if (Mathf.Abs(c.v) > 0.5f) {
             float gapFront = 9; var p = new Vector2(c.x, c.z); var dir = f * Mathf.Sign(c.v);
             foreach (var pp in people) if (pp.visible && pp.state != "inside") { var d = new Vector2(pp.pos.x, pp.pos.z) - p; float a = Vector2.Dot(d, dir), s = Mathf.Abs(d.x * dir.y - d.y * dir.x); if (a > 0 && s < c.Wid * 0.5f + 0.5f) gapFront = Mathf.Min(gapFront, a - c.Len * 0.5f); }
@@ -362,16 +396,6 @@ public partial class SLApp {
         speedL.text = Mathf.RoundToInt(Mathf.Abs(c.v) * 3.6f) + " km/h";
     }
     float lastHonk;
-    Vector2 KerbOut(Vector2 p, float r) {
-        void Push(float x0, float z0, float x1, float z1) {
-            if (p.x < x0 - r || p.x > x1 + r || p.y < z0 - r || p.y > z1 + r) return;
-            float dl = p.x - (x0 - r), dr = (x1 + r) - p.x, dt2 = p.y - (z0 - r), db = (z1 + r) - p.y, m = Mathf.Min(Mathf.Min(dl, dr), Mathf.Min(dt2, db));
-            if (m == dl) p.x = x0 - r; else if (m == dr) p.x = x1 + r; else if (m == dt2) p.y = z0 - r; else p.y = z1 + r;
-        }
-        for (int i = -town.N; i <= town.N; i++) for (int j = -town.N; j <= town.N; j++) Push(i * town.Cell - town.Half, j * town.Cell - town.Half, i * town.Cell + town.Half, j * town.Cell + town.Half);
-        var ave = O(data_town("AVE")); Push(F(ave["x0"]), F(ave["z0"]), F(ave["x1"]), F(ave["z1"]));
-        return p;
-    }
     void UpdateCarCamera(float dt) {
         var c = driving; var want = new Vector3(c.x, town.HeightAt(c.x, c.z) + 1.25f, c.z);
         cam.target = cam.cur == 0 ? want : Vector3.Lerp(cam.target, want, 1 - Mathf.Exp(-dt * 12));

@@ -138,6 +138,12 @@ public static class SLMoves {
 public sealed class SLRigMotion {
     public readonly Transform[] bones; readonly Transform root; readonly Quaternion[] rest, bindRoot; readonly Vector3 hipsRest; readonly float hipsHeight;
     public string pose = "stand"; public float seatDrop = 0.47f, lookX, lookY; public bool cup, talking;
+    /// <summary>An emote while standing (dance, phone, arms, nod, crouch: motion clips; clap, cheer, laugh, think, pose: by hand), or
+    /// what she does in a seat (relax, chat, phone, eat, lean); null for none. Walking away ends a standing emote.</summary>
+    public string emote, sitStyle;
+    float emoteW, emoteT;
+    static readonly Dictionary<string, string> EmoteClips = new Dictionary<string, string> {
+        { "dance", "Dance_Simple" }, { "phone", "Idle_TalkingPhone" }, { "arms", "Idle_FoldArms" }, { "nod", "Yes" }, { "crouch", "Crouch_Idle" }, { "eat", "Consume" } };
     float t, cycle, idleT, runW, moveW, sitW;
     readonly Vector3[] cur; readonly Quaternion[] a = new Quaternion[22], b = new Quaternion[22], c3 = new Quaternion[22];
     public Transform CupHolder { get; private set; }
@@ -206,11 +212,20 @@ public sealed class SLRigMotion {
             if (okB) { Blend(a, b, moveW); lift = Vector3.Lerp(lift, l2, moveW); }
         }
         if (!okA) { for (int j = 0; j < a.Length; j++) a[j] = Quaternion.identity; }
+        // an emote, eased in while she stands still
+        emoteW = Mathf.MoveTowards(emoteW, emote != null && moveW < 0.25f ? 1 : 0, dt * 3);
+        if (emote == null && emoteW <= 0) emoteT = 0; else emoteT += dt;
+        if (emoteW > 0 && emote != null && EmoteClips.TryGetValue(emote, out var clip)) {
+            var (ec, _) = SLMoves.Get(clip);
+            if (ec != null) { var le = Sample(clip, emoteT / ec.seconds, rr, c3, out bool okE); if (okE) { Blend(a, c3, emoteW); lift = Vector3.Lerp(lift, le, emoteW); } }
+        }
         Put(a, rr, lift);
+        if (emoteW > 0 && emote != null && !EmoteClips.ContainsKey(emote)) Gesture(emote, emoteW, k);
         // waving, or the cup in the right hand, on top
-        if (pose == "wave") { Rot(SLRig.RArm, -0.2f, 0, -2.5f, k); Rot(SLRig.RFore, 0, Mathf.Sin(t * 9) * 0.5f, -0.5f, k); }
-        else if (cup) { Rot(SLRig.RArm, -0.15f, 0, -0.08f, k); Rot(SLRig.RFore, -1.35f, 0, 0, k); }
-        else { cur[SLRig.RArm] = cur[SLRig.RFore] = Vector3.zero; }
+        bool gesture = emoteW > 0.01f && emote != null && !EmoteClips.ContainsKey(emote);     // a hand-made emote has the arms
+        if (!gesture && pose == "wave") { Rot(SLRig.RArm, -0.2f, 0, -2.5f, k); Rot(SLRig.RFore, 0, Mathf.Sin(t * 9) * 0.5f, -0.5f, k); }
+        else if (!gesture && cup) { Rot(SLRig.RArm, -0.15f, 0, -0.08f, k); Rot(SLRig.RFore, -1.35f, 0, 0, k); }
+        else if (!gesture) { cur[SLRig.RArm] = cur[SLRig.RFore] = Vector3.zero; }
         if (lookX != 0 || lookY != 0) bones[SLRig.Head].localRotation *= Quaternion.Euler(lookX * Mathf.Rad2Deg, -lookY * Mathf.Rad2Deg, 0);
         // easing into a seat: blend from the standing pose toward sitting
         if (sitW > 0) { for (int j = 0; j < bones.Length; j++) keep[j] = bones[j].localRotation; keepHips = bones[SLRig.Hips].localPosition; Sit(dt); 
@@ -226,6 +241,56 @@ public sealed class SLRigMotion {
         Rot(SLRig.LArm, -0.45f, 0, 0.1f, k); Rot(SLRig.RArm, cup ? -0.3f : -0.45f, 0, -0.1f, k);
         Rot(SLRig.LFore, -0.9f, 0, 0, k); Rot(SLRig.RFore, cup ? -1.35f : -0.9f, 0, 0, k);
         Rot(SLRig.Spine, -0.05f + breathe, 0, 0, k); Rot(SLRig.Head, Mathf.Sin(t * 0.4f) * 0.08f, Mathf.Sin(t * 0.27f) * 0.25f, 0, k);
+        // what she does in her seat
+        switch (sitStyle) {
+            case "chat":       // talking with her hands, turning to the people beside her
+                Rot(SLRig.RFore, -1.1f - Mathf.Sin(t * 2.3f) * 0.35f, Mathf.Sin(t * 1.7f) * 0.3f, 0, k); Rot(SLRig.LFore, -1.0f - Mathf.Sin(t * 1.9f + 1) * 0.25f, 0, 0, k);
+                Rot(SLRig.Head, Mathf.Sin(t * 1.3f) * 0.08f, Mathf.Sin(t * 0.5f) * 0.45f, 0, k); break;
+            case "phone":      // scrolling: both hands up in front, head down
+                Rot(SLRig.LArm, -0.55f, 0, 0.35f, k); Rot(SLRig.RArm, -0.55f, 0, -0.35f, k); Rot(SLRig.LFore, -1.75f, 0, 0, k); Rot(SLRig.RFore, -1.75f, Mathf.Sin(t * 3) * 0.05f, 0, k);
+                Rot(SLRig.Head, 0.42f, 0, 0, k); Rot(SLRig.Neck, 0.15f, 0, 0, k); break;
+            case "eat":        // a bite or a sip, now and then
+                float b = Mathf.Pow(Mathf.Max(0, Mathf.Sin(t * 1.6f)), 3);
+                Rot(SLRig.RArm, -0.45f - b * 0.35f, 0, -0.15f, k); Rot(SLRig.RFore, -0.9f - b * 1.25f, 0, 0, k); Rot(SLRig.Head, 0.1f - b * 0.1f, 0, 0, k); break;
+            case "lean":       // leaning back, at ease
+                Rot(SLRig.Spine, -0.22f + breathe, 0, 0, k); Rot(SLRig.Spine1, -0.1f, 0, 0, k); Rot(SLRig.LArm, 0.1f, 0, 0.25f, k); Rot(SLRig.RArm, 0.1f, 0, -0.25f, k);
+                Rot(SLRig.LFore, -0.3f, 0, 0, k); Rot(SLRig.RFore, -0.3f, 0, 0, k); Rot(SLRig.Head, -0.15f, Mathf.Sin(t * 0.3f) * 0.3f, 0, k); break;
+        }
+    }
+    /// <summary>Points an arm segment along a direction in her own space (x toward her left side, y up, z forward), the way the
+    /// clips' arms are put on, so a gesture comes out the same on every figure whatever its bones' axes.</summary>
+    void Aim(int j, Vector3 dir) {
+        var left = root.InverseTransformPoint(bones[SLRig.LArm].position).x >= 0 ? 1f : -1f;      // which way her left is in this rig
+        var d = root.TransformDirection(new Vector3(dir.x * left, dir.y, dir.z).normalized);
+        var tip = bones[j + 1]; bones[j].rotation = Quaternion.FromToRotation(tip.position - bones[j].position, d) * bones[j].rotation;
+    }
+    /// <summary>The hand-made emotes, over the standing pose (w eases them in and out).</summary>
+    void Gesture(string g, float w, float k) {
+        float s = Mathf.Sin(t * 13); var keepR = new Quaternion[bones.Length]; for (int j = 0; j < bones.Length; j++) keepR[j] = bones[j].localRotation;
+        switch (g) {
+            case "clap":       // elbows in, hands meeting in front of her chest
+                float o = 0.22f + 0.2f * Mathf.Max(0, s);
+                Aim(SLRig.LArm, new Vector3(0.18f, -0.75f, 0.45f)); Aim(SLRig.RArm, new Vector3(-0.18f, -0.75f, 0.45f));
+                Aim(SLRig.LFore, new Vector3(-o, 0.25f, 0.9f)); Aim(SLRig.RFore, new Vector3(o, 0.25f, 0.9f)); break;
+            case "cheer":
+                float j2 = Mathf.Abs(Mathf.Sin(t * 5));
+                Rot(SLRig.LArm, -0.25f, 0, 2.5f + j2 * 0.2f, k); Rot(SLRig.RArm, -0.25f, 0, -2.5f - j2 * 0.2f, k); Rot(SLRig.LFore, 0, 0, 0.3f, k); Rot(SLRig.RFore, 0, 0, -0.3f, k);
+                Rot(SLRig.Head, -0.2f, 0, 0, k); break;
+            case "laugh":
+                float h = Mathf.Abs(Mathf.Sin(t * 9));
+                Rot(SLRig.Spine1, 0.12f + h * 0.08f, 0, 0, k); Rot(SLRig.Head, -0.25f + h * 0.12f, 0, 0, k);
+                Rot(SLRig.LArm, -0.35f, 0, 0.35f, k); Rot(SLRig.RArm, -0.35f, 0, -0.35f, k); Rot(SLRig.LFore, -1.5f, 0, 0, k); Rot(SLRig.RFore, -1.5f, 0, 0, k); break;
+            case "think":
+                Rot(SLRig.RArm, -0.75f, 0, -0.25f, k); Rot(SLRig.RFore, -2.3f, 0.2f, 0, k); Rot(SLRig.LArm, -0.5f, 0, 0.5f, k); Rot(SLRig.LFore, -1.4f, 0, 0, k);
+                Rot(SLRig.Head, 0.12f, 0.15f, 0.12f, k); break;
+            case "pose":       // a hand on her hip, the other behind her head, weight to one side
+                Aim(SLRig.LArm, new Vector3(0.75f, -0.62f, -0.15f)); Aim(SLRig.LFore, new Vector3(-0.85f, -0.45f, 0.2f));
+                Aim(SLRig.RArm, new Vector3(-0.7f, 0.68f, 0.05f)); Aim(SLRig.RFore, new Vector3(0.75f, 0.35f, -0.35f));
+                Rot(SLRig.Spine, 0, 0, 0.08f, k); Rot(SLRig.Head, 0, -0.2f, -0.12f, k); break;
+            case "wave":
+                Rot(SLRig.RArm, -0.2f, 0, -2.5f, k); Rot(SLRig.RFore, 0, Mathf.Sin(t * 9) * 0.5f, -0.5f, k); break;
+        }
+        if (w < 1) for (int j = 0; j < bones.Length; j++) bones[j].localRotation = Quaternion.Slerp(keepR[j], bones[j].localRotation, w);
     }
     /// <summary>A take-away cup in her right hand.</summary>
     public void Cup(bool on, Material cupM, Material sleeveM, Material lidM) {

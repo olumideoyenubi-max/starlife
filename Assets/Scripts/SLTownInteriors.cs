@@ -206,7 +206,7 @@ public partial class SLApp {
         foreach (var r in room.root.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; r.receiveShadows = true; }
         QualitySettings.pixelLightCount = 8;
         // in through the door, facing into the room; a friend who is with you follows you in
-        StandUp();
+        StandUp(); stepT = 0; groundSit = false; player.mo.emote = null;
         var at = RoomPt(0, 3.6f); player.pos = new Vector3(at.x, 0, at.y); player.ry = RoomRy(0); player.speed = 0;
         cam.yaw = player.ry + Mathf.PI; cam.pitch = 0.2f; cam.dist = 3.3f; cam.cur = 0; cam.lastDrag = Time.time;
         foreach (var f in people.Where(x => x.state == "follow")) { var fp = RoomPt(-1.2f, 2.6f); f.pos = new Vector3(fp.x, 0, fp.y); f.ry = player.ry; Place(f); }
@@ -218,6 +218,7 @@ public partial class SLApp {
         if (room == null) return;
         if (shop != null) CloseBoutique(); CloseCard();
         if (player.seat != null) StandUp();
+        stepT = 0;
         foreach (var c in room.cols) town.colliders.Remove(c);
         foreach (var s in room.seats) town.seats.Remove(s);
         foreach (var w in room.workers) Destroy(w.pp.go.gameObject);

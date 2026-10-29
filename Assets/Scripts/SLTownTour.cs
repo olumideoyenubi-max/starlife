@@ -3,6 +3,7 @@
 // It plays on its own save (starlife-town-shots.json), visits the town's places by day and by night, opens a boutique,
 // the café, a conversation and the phone, watches her walk, run and sit up close, and quits. Part of SLApp.
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -19,7 +20,7 @@ public partial class SLApp {
         }
         void Go(string id, float back = 3f, float hour = 11, float yawOff = 0) {
             var p = PlaceBy(id); if (p == null) return;
-            CloseCard(); if (shop != null) CloseBoutique(); StandUp();
+            CloseCard(); if (shop != null) CloseBoutique(); StandUp(); stepT = 0; player.mo.emote = null;
             player.pos = new Vector3(p.x + Mathf.Sin(p.ry) * back, 0, p.z + Mathf.Cos(p.ry) * back); player.pos.y = town.HeightAt(player.pos.x, player.pos.z);
             player.ry = p.ry + Mathf.PI; cam.yaw = p.ry + yawOff; cam.pitch = 0.2f; cam.dist = 6; cam.cur = 0; lifeMin = Mathf.Floor(lifeMin / 1440) * 1440 + hour * 60;
         }
@@ -130,6 +131,59 @@ public partial class SLApp {
             }
             ExitRoom(); yield return null;
             dirLog += "out of " + id + ": " + (room == null && new Vector2(player.pos.x - pl.x, player.pos.z - pl.z).magnitude < 2 ? "ok" : "WRONG") + "\n";
+        }
+        // emotes, things to do in a seat, sitting on the ground
+        Go("park", 4, 12); cam.lastDrag = Time.time + 999;
+        foreach (var em in new[] { "wave", "dance", "clap", "cheer", "laugh", "think", "pose", "phone", "arms", "nod", "crouch", "ground" }) {
+            DoEmote(em); CloseCard(); cam.yaw = player.ry + 0.5f; cam.pitch = 0.12f; cam.dist = 3.2f; cam.cur = 0;
+            for (float w0 = Time.time; Time.time - w0 < (em == "dance" ? 0.9f : 1.3f);) yield return null; yield return Snap("emote-" + em, 2);
+            player.mo.emote = null; if (groundSit) { groundSit = false; player.mo.pose = "stand"; } for (float w0 = Time.time; Time.time - w0 < 0.5f;) yield return null;
+        }
+        var bench = town.seats.FirstOrDefault(x => x.place == "dore"); if (bench != null) {
+            Go("dore", 3, 10); SitOn(bench);
+            foreach (var st in new[] { "chat", "phone", "eat", "lean" }) { player.mo.sitStyle = st; cam.yaw = bench.ry + 0.7f; cam.dist = 3; cam.pitch = 0.15f; cam.cur = 0; for (float w0 = Time.time; Time.time - w0 < 1.2f;) yield return null; yield return Snap("sit-" + st, 2); }
+            StandUp(); for (float w0 = Time.time; Time.time - w0 < 0.8f;) yield return null; dirLog += "stood up " + (new Vector2(player.pos.x - bench.x, player.pos.z - bench.z).magnitude > 0.4f ? "clear of the seat: ok" : "inside the seat: WRONG") + "\n";
+        }
+        cam.lastDrag = Time.time;
+        // people walking and sitting, close up and frame by frame
+        lifeMin = Mathf.Floor(lifeMin / 1440) * 1440 + 13 * 60;
+        for (float w0 = Time.time; Time.time - w0 < 4f;) yield return null;
+        // (the tour's clock stands still, so send someone on their way and someone else to a seat)
+        var walker = people.FirstOrDefault(x => x.male && x.crowd) ?? people.First(); SendTo(walker, PlaceBy("park")); for (int i = 0; i < 40; i++) yield return null;
+        var seatFree = town.seats.FirstOrDefault(x => x.place == "dore" && !SeatTaken(x)); var guest = people.FirstOrDefault(x => x != walker && x.crowd);
+        if (seatFree != null && guest != null) { guest.pos = new Vector3(seatFree.x + 3, 0, seatFree.z + 2); guest.seat = seatFree; guest.path = new List<Vector2> { SeatFront(seatFree) }; guest.state = "toSeat"; }
+        if (walker != null) for (int f = 0; f < 8; f++) {
+            player.pos = new Vector3(walker.pos.x + Mathf.Cos(walker.ry) * 3.5f, 0, walker.pos.z - Mathf.Sin(walker.ry) * 3.5f); player.go.gameObject.SetActive(false);
+            cam.yaw = walker.ry + Mathf.PI / 2; cam.dist = 0.01f; cam.pitch = 0.05f; cam.focusY = 1.0f; cam.cur = 0;
+            for (float w0 = Time.time; Time.time - w0 < 0.15f;) yield return null; yield return null;
+            ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "strip-npcwalk-" + walker.id + "-" + f + ".png")); yield return null;
+        }
+        player.go.gameObject.SetActive(true); cam.focusY = null; cam.dist = 5.2f;
+        var sitter = guest;
+        if (sitter != null) for (int f = 0; f < 8; f++) {
+            var sp = sitter.seat != null ? new Vector2(sitter.seat.x, sitter.seat.z) : new Vector2(sitter.pos.x, sitter.pos.z);
+            player.pos = new Vector3(sp.x + 3, 0, sp.y + 3); player.go.gameObject.SetActive(false); cam.yaw = Mathf.Atan2(3, 3); cam.dist = 0.01f; cam.focusY = 1.0f; cam.pitch = 0.1f; cam.cur = 0;
+            for (float w0 = Time.time; Time.time - w0 < 0.45f;) yield return null;
+            ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "strip-npcsit-" + f + "-" + sitter.state + ".png")); yield return null;
+        }
+        player.go.gameObject.SetActive(true); cam.focusY = null; cam.dist = 5.2f;
+        // a chat with a passer-by
+        var local = people.FirstOrDefault(x => x.visible && x.crowd && x.state != "inside");
+        if (local != null) { player.pos = new Vector3(local.pos.x + 1.2f, 0, local.pos.z); TalkTo(local); yield return Snap("talk-local", 20); TalkMore(local); yield return Snap("talk-more", 10); Recommend(local); yield return Snap("talk-recommend", 10); CloseCard(); talking = null; local.state = local.prevState ?? "idle"; }
+        // the car against the kerb, a lamp post and a person: it stops and never overlaps
+        if (myCar != null) {
+            Go("motors", 6, 11); GetIn(myCar); yield return null;
+            var kerbHits = 0; autoWalk = new Vector2(0, 1);
+            for (float w0 = Time.time; Time.time - w0 < 3f;) { yield return null; if (KerbRects().Concat(town.colliders).Any(r => BoxOverlap(CarBox(myCar.x, myCar.z, myCar.ry, myCar.Len / 2 - 0.05f, myCar.Wid / 2 - 0.05f), RectBox(r), out _))) kerbHits++; }
+            autoWalk = new Vector2(1, 1); for (float w0 = Time.time; Time.time - w0 < 3f;) { yield return null; if (KerbRects().Concat(town.colliders).Any(r => BoxOverlap(CarBox(myCar.x, myCar.z, myCar.ry, myCar.Len / 2 - 0.05f, myCar.Wid / 2 - 0.05f), RectBox(r), out _))) kerbHits++; }
+            autoWalk = null; dirLog += "car into kerbs and posts: " + (kerbHits == 0 ? "ok" : "WRONG (" + kerbHits + " frames overlapping)") + "\n";
+            yield return Snap("car-kerb", 10);
+            var dummy = people.FirstOrDefault(x => x.crowd); if (dummy != null) {
+                var fr = new Vector2(myCar.x + Mathf.Sin(myCar.ry) * (myCar.Len / 2 + 2.5f), myCar.z + Mathf.Cos(myCar.ry) * (myCar.Len / 2 + 2.5f)); dummy.pos = new Vector3(fr.x, 0, fr.y); dummy.state = "watch"; Place(dummy);
+                myCar.v = 0; autoWalk = new Vector2(0, 1); for (float w0 = Time.time; Time.time - w0 < 2.5f;) yield return null; autoWalk = null;
+                dirLog += "car and a person: " + (!InBox(new Vector2(dummy.pos.x, dummy.pos.z), myCar, 0.2f) ? "stopped short: ok" : "WRONG") + "\n"; dummy.state = "idle";
+            }
+            GetOut();
         }
         Go("hall", 9, 19, 0.2f); OpenPlace(PlaceBy("hall")); yield return Snap("hall-card", 20);
         OpenFashionWeek(); yield return Snap("fw-theme", 10);

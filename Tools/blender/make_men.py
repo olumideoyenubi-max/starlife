@@ -24,13 +24,13 @@ BASE = dict(gender=M, age=0.45, muscle=0.55, weight=0.48, height=0.55, race=MIX(
 # clothes: (MPFB asset, part) with part top / bottom / shoes / suit (cut into top and bottom at the hips) / beard
 PEOPLE = {
     # the five starlets (the web game's men)
-    'kai':  dict(gender=M, age=0.42, muscle=0.6, weight=0.45, height=0.6, race=AF, skin='young_african_male', hair='elvs_braided_rows', brows='eyebrow002',
+    'kai':  dict(gender=M, age=0.5, muscle=0.6, weight=0.45, height=0.6, race=AF, skin='young_african_male', hair='elvs_braided_rows', brows='eyebrow002',
                  clothes=[('elvs_male_logo_tshirt1', 'top'), ('punkduck_male_classic_jeans', 'bottom'), ('culturalibre_sneakers', 'shoes'), ('elvs_scruffy_beard1', 'beard')]),
     'leo':  dict(gender=M, age=0.45, muscle=0.55, weight=0.47, height=0.62, race=MIX(0.15, 0.0, 0.85), skin='young_caucasian_male', hair='short02', brows='eyebrow002',
                  clothes=[('male_elegantsuit01', 'suit'), ('mindfront_shoes_oxford_male', 'shoes'), ('grinsegold_moustache', 'beard')]),
-    'jin':  dict(gender=M, age=0.38, muscle=0.5, weight=0.4, height=0.5, race=AS, skin='young_asian_male', hair='short04', brows='eyebrow001',
+    'jin':  dict(gender=M, age=0.5, muscle=0.5, weight=0.4, height=0.5, race=AS, skin='young_asian_male', hair='short04', brows='eyebrow001',
                  clothes=[('sl_monogram_hoodie', 'top'), ('mindfront_male_trousers_1', 'bottom'), ('sl_knit_runners', 'shoes')]),
-    'theo': dict(gender=M, age=0.4, muscle=0.85, weight=0.5, height=0.66, race=AF, skin='young_african_male', hair='short01', brows='eyebrow003',
+    'theo': dict(gender=M, age=0.5, muscle=0.85, weight=0.5, height=0.66, race=AF, skin='young_african_male', hair='short01', brows='eyebrow003',
                  clothes=[('namuhekam_male_polo_shirt', 'top'), ('elvs_male_trouser_short_1', 'bottom'), ('punkduck_running_shoes_01', 'shoes'), ('culturalibre_dal_moustache', 'beard')]),
     'omar': dict(gender=M, age=0.55, muscle=0.5, weight=0.55, height=0.56, race=MIX(0.15, 0.15, 0.7), skin='young_caucasian_male', hair='short03', brows='eyebrow002',
                  clothes=[('elvs_male_shirt_untucked_bd1', 'top'), ('toigo_wool_pants', 'bottom'), ('sl_suede_chelsea', 'shoes'), ('grinsegold_full_beard', 'beard')]),
@@ -194,6 +194,26 @@ def swing(rig, bone, deg, axis='Y'):
     r = Matrix.Translation(head) @ Matrix.Rotation(math.radians(deg), 4, axis) @ Matrix.Translation(-head)
     pb.matrix = rig.matrix_world.inverted() @ r @ mw; bpy.context.view_layer.update()
 
+def lengthen_hem(o, drop=0.07, band=0.09):
+    """A man's top is worn with every pair of trousers in the wardrobe, and some sit lower at the front than the ones it
+    was made with: its hem is let down by a few centimetres (the bottom band stretched, so the texture stays put) and
+    tucked a little toward the body, so it always reaches inside the waistband and no skin shows between them."""
+    mw = o.matrix_world; inv = mw.inverted(); vs = o.data.vertices
+    ws = [mw @ v.co for v in vs]; torso = [w for w in ws if abs(w.x) < 0.2]     # not the sleeves, whose cuffs hang as low in the A-pose
+    if not torso: return
+    cx = sum(w.x for w in torso) / len(torso); cy = sum(w.y for w in torso) / len(torso)
+    # the hem is not level (shirt tails, a dipped back): find it all the way round, in 24 slices
+    sl = lambda w: int((math.atan2(w.y - cy, w.x - cx) + math.pi) / (2 * math.pi) * 24) % 24
+    low = [9.0] * 24
+    for w in torso: low[sl(w)] = min(low[sl(w)], w.z)
+    for v, w in zip(vs, ws):
+        k = max(0.0, 1 - (w.z - low[sl(w)]) / band) * max(0.0, min(1.0, (0.26 - abs(w.x)) / 0.06))
+        if k <= 0: continue
+        n = w.copy(); n.z -= drop * k
+        n.x = cx + (n.x - cx) * (1 - 0.045 * k); n.y = cy + (n.y - cy) * (1 - 0.045 * k)
+        v.co = inv @ n
+    o.data.update()
+
 def make(pid, spec):
     clear()
     macro = {'gender': spec['gender'], 'age': spec['age'], 'muscle': spec.get('muscle', 0.5), 'weight': spec['weight'], 'proportions': 0.5,
@@ -213,6 +233,9 @@ def make(pid, spec):
         for o in set(bpy.data.objects) - before:
             if o.type == 'MESH': worn.append((o, part))
     fit(body, [(o, p) for o, p in worn if p != 'beard'])
+    if spec['gender'] == M:
+        for o, part in worn:
+            if part == 'top': lengthen_hem(o)
     clothes_objs = {o for o, p in worn if p in ('top', 'suit', 'bottom', 'shoes')}; torso_objs = {o for o, p in worn if p in ('top', 'suit')}
     HumanService.add_builtin_rig(body, 'game_engine')
     rig = body.parent if body.parent and body.parent.type == 'ARMATURE' else next(o for o in bpy.data.objects if o.type == 'ARMATURE')
