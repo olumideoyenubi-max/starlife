@@ -358,7 +358,7 @@ public partial class SLApp {
                 if (dd < 0.55f && dd > 0.001f) { player.pos.x += dx / dd * (0.55f - dd); player.pos.z += dz / dd * (0.55f - dd); }
             }
         }
-        player.pos.y = Mathf.Lerp(player.pos.y, town.HeightAt(player.pos.x, player.pos.z), 1 - Mathf.Exp(-dt * 14));
+        player.pos.y = Mathf.Lerp(player.pos.y, town.HeightAt(player.pos.x, player.pos.z) + (player.mo.emote == "treadmill" ? 0.23f : 0), 1 - Mathf.Exp(-dt * 14));     // (up on a treadmill's belt)
         mo.talking = talking != null; mo.Animate(dt, player.speed); Place(player);
     }
     void SitOn(SLTownWorld.Seat s) {
@@ -644,6 +644,7 @@ public partial class SLApp {
     void DoActivity(SLTownWorld.Place p, Dictionary<string, object> a, List<TP> group = null) {
         CloseCard();
         float cost = F(Get(a, "cost")); if (cost > 0) core.Call("earn", (-cost).ToString(CultureInfo.InvariantCulture), "0");
+        if (Get(a, "emote") is string em) player.mo.emote = em;      // a workout, while it lasts
         busy = new Busy { p = p, a = a, t0 = Time.time, dur = 2.6f + Mathf.Min(2, F(Get(a, "min")) / 90), start = lifeMin, before = (float[])needs.Clone(), friend = people.FirstOrDefault(x => x.state == "follow"), group = group };
         busyT.text = "AT " + p.name.ToUpperInvariant(); busyH.text = S(Get(a, "busy"), S(Get(a, "label")));
         busyEl.style.display = DisplayStyle.Flex;
@@ -665,6 +666,7 @@ public partial class SLApp {
         if (b.friend != null) { Befriend(b.friend.id, 8); Bump("social", 8); msg += " " + b.friend.First + " had a great time with you."; }
         foreach (var pp in people) if (!pp.crowd && pp != b.friend && pp.at == b.p && D(pp, player) < 25) Befriend(pp.id, 3);
         msg += bodyNote; if (bodyDirty) { bodyDirty = false; player.look = MyLook(null); Dress(player); }
+        if (Get(a, "emote") != null) { player.mo.emote = null; if (player.pos.y > 0.1f) player.pos.y = 0; }
         busyEl.style.display = DisplayStyle.None; busy = null; ShowToast(msg); SaveLife(); UpdateHud(true);
     }
     // ---------------------------------------------------------------- talking
@@ -752,6 +754,7 @@ public partial class SLApp {
     }
     string LuxKey(int i) => shop.p.id + ":" + i;
     void RenderBoutique() {
+        var lg = BrandArt(shop.p.id, "logo"); btqLogo.image = lg; btqLogo.style.display = lg != null ? DisplayStyle.Flex : DisplayStyle.None;
         var lux = Lux(); btqName.text = S(Get(shop.brand, "name")); btqLine.text = S(Get(shop.brand, "line")); btqCoins.text = profile.coins + " coins";
         btqName.style.color = C(S(Get(shop.brand, "accent"), "#e2c47a"));
         btqGrid.Clear();
@@ -829,6 +832,7 @@ public partial class SLApp {
     void SetWaypoint(Waypoint w) { waypoint = w; compass.style.display = w != null ? DisplayStyle.Flex : DisplayStyle.None; if (w != null) ShowToast("Route set to " + w.name); }
 
     // ================================================================ the interface
+    Image btqLogo;
     VisualElement hud, needsBox, prompt, cardEl, cardOpts, cardRel, busyEl, busyBar, btq, btqGrid, phone, phonePanes, compass, compassArrow, hint, tagLayer, mapBox;
     Label clockL, moodL, coinsL, promptL, promptSub, cardTitle, cardSub, cardSay, busyT, busyH, busyC, btqName, btqLine, btqCoins, btqNote, compassTxt; VisualElement moodDot;
     Image mapImg; Texture2D mapTex; float hintShown; string phoneTab = "map";
@@ -853,16 +857,20 @@ public partial class SLApp {
         // the activity overlay
         busyEl = El("town-busy", El("t-bcol", busyT = L("", "t-bt"), busyH = L("", "t-bh"), busyC = L("", "t-bc"), El("t-bar big", busyBar = El("t-fill")))); busyEl.style.display = DisplayStyle.None; townUI.Add(busyEl);
         // boutique
-        btq = El("town-btq glass", btqName = L("", "t-bname"), btqLine = L("", "t-bline"), El("t-btop", btqCoins = L("", "")), btqGrid = El("t-bgrid"), btqNote = L("", "t-bnote"), B("×", "t-close", CloseBoutique));
+        btqLogo = new Image { scaleMode = ScaleMode.ScaleToFit }; btqLogo.AddToClassList("t-blogo");
+        btq = El("town-btq glass", btqLogo, btqName = L("", "t-bname"), btqLine = L("", "t-bline"), El("t-btop", btqCoins = L("", "")), btqGrid = El("t-bgrid"), btqNote = L("", "t-bnote"), B("×", "t-close", CloseBoutique));
         var sc = new ScrollView(ScrollViewMode.Vertical) { horizontalScrollerVisibility = ScrollerVisibility.Hidden }; sc.AddToClassList("t-bscroll"); btq.Insert(btq.IndexOf(btqGrid), sc); btqGrid.RemoveFromHierarchy(); sc.Add(btqGrid);
         btq.style.display = DisplayStyle.None; townUI.Add(btq);
         // phone
         townUI.Add(El("town-phonebtn", B("☰", "t-pbtn glass", () => TogglePhone(phone.style.display != DisplayStyle.Flex))));
         townUI.Add(El("town-emotebtn", B("☺", "t-pbtn glass", () => { if (modal == null) OpenEmotes(); else CloseCard(); })));
-        var tabs = El("t-tabs");
+        // the Starphone Duo: a status bar round the camera island, a home screen of apps, and the home bar to go back
         phonePanes = new ScrollView(ScrollViewMode.Vertical) { horizontalScrollerVisibility = ScrollerVisibility.Hidden }; phonePanes.AddToClassList("t-ppane");
-        phone = El("town-phone glass", tabs, phonePanes); phone.style.display = DisplayStyle.None; townUI.Add(phone);
-        foreach (var (k, l) in new[] { ("map", "Map"), ("places", "Places"), ("friends", "Friends"), ("settings", "Settings") }) { string kk = k; tabs.Add(B(l, k == phoneTab ? "on" : null, () => { phoneTab = kk; foreach (var b in tabs.Children()) b.EnableInClassList("on", ((Button)b).text == l); RenderPhone(); })); }
+        phoneTime = L("", "sp-time"); var batt = El("sp-batt", El("sp-battfill"));
+        var status = El("sp-status", phoneTime, El("sp-island", El("sp-lens")), El("sp-right", L("5G", "sp-sig"), batt));
+        phoneHead = El("sp-head"); var homeBar = El("sp-homebar"); homeBar.RegisterCallback<ClickEvent>(_ => { phoneTab = "home"; RenderPhone(); });
+        phone = El("town-phone sp", status, phoneHead, phonePanes, El("sp-hbwrap", homeBar)); phone.style.display = DisplayStyle.None; townUI.Add(phone);
+        var wp = Resources.Load<Texture2D>("Phone/wallpaper"); if (wp != null) phone.style.backgroundImage = wp;
         hintShown = Time.time + 14; UpdateHud(true);
     }
     bool hudHover; string hudSig = "";
@@ -910,9 +918,56 @@ public partial class SLApp {
     }
 
     // ---------------------------------------------------------------- the phone: map, places, friends, settings
-    void TogglePhone(bool on) { phone.style.display = on ? DisplayStyle.Flex : DisplayStyle.None; if (on) RenderPhone(); UpdateHud(true); }
+    void TogglePhone(bool on) {
+        phone.style.display = on ? DisplayStyle.Flex : DisplayStyle.None; if (on) { phoneTab = "home"; RenderPhone(); }
+        if (player != null) { player.mo.Phone(on); if (driving == null && player.seat == null && !groundSit) player.mo.emote = on ? "text" : player.mo.emote == "text" ? null : player.mo.emote; }    // she looks at it
+        UpdateHud(true);
+    }
+    static readonly (string id, string label)[] PhoneApps = { ("maps", "Maps"), ("places", "Places"), ("friends", "Friends"), ("camera", "Camera"), ("photos", "Photos"), ("wallet", "Wallet"), ("emotes", "Emotes"), ("clock", "Clock"), ("settings", "Settings") };
+    Label phoneTime; VisualElement phoneHead; readonly Dictionary<string, Texture2D> phoneArt = new Dictionary<string, Texture2D>();
+    Texture2D PhoneIcon(string id) { if (!phoneArt.TryGetValue(id, out var t)) phoneArt[id] = t = Resources.Load<Texture2D>("Phone/" + id); return t; }
+    void OpenApp(string id) {
+        if (id == "emotes") { TogglePhone(false); OpenEmotes(); return; }
+        phoneTab = id == "maps" ? "map" : id; RenderPhone();
+    }
     void RenderPhone() {
-        phonePanes.Clear(); float h = Hour;
+        phonePanes.Clear(); phoneHead.Clear(); float h = Hour; float m = lifeMin % 1440;
+        phoneTime.text = Mathf.FloorToInt(m / 60).ToString("0") + ":" + Mathf.FloorToInt(m % 60).ToString("00");
+        phone.EnableInClassList("sp-inapp", phoneTab != "home");
+        if (phoneTab == "home") {
+            phoneHead.style.display = DisplayStyle.None;
+            var widget = El("sp-widget", L(ClockLabel().Split('·')[1].Trim(), "sp-wtime"), L(Days[DayNum % 7] + "day in Starlife Town", "sp-wday"), L(profile.coins + " coins  ·  " + profile.fame + " fame", "sp-wsub"));
+            phonePanes.Add(widget);
+            var grid = El("sp-grid");
+            foreach (var (id, label) in PhoneApps) {
+                string a = id; var ico = new Image { image = PhoneIcon(id), scaleMode = ScaleMode.ScaleToFit }; ico.AddToClassList("sp-ico");
+                var b = B("", "sp-app", () => OpenApp(a)); b.Add(ico); b.Add(L(label, "sp-alabel")); grid.Add(b);
+            }
+            phonePanes.Add(grid);
+            var dock = El("sp-dock");
+            foreach (var id in new[] { "maps", "friends", "camera", "photos" }) { string a = id; var ico = new Image { image = PhoneIcon(id), scaleMode = ScaleMode.ScaleToFit }; ico.AddToClassList("sp-ico"); var b = B("", "sp-app", () => OpenApp(a)); b.Add(ico); dock.Add(b); }
+            phonePanes.Add(dock);
+            return;
+        }
+        phoneHead.style.display = DisplayStyle.Flex;
+        string title = phoneTab == "map" ? "Maps" : char.ToUpper(phoneTab[0]) + phoneTab.Substring(1);
+        phoneHead.Add(B("‹ Home", "sp-back", () => { phoneTab = "home"; RenderPhone(); })); phoneHead.Add(L(title, "sp-title"));
+        if (phoneTab == "camera") { PhoneCamera(); return; }
+        if (phoneTab == "photos") { PhonePhotos(); return; }
+        if (phoneTab == "wallet") {
+            phonePanes.Add(El("sp-card gold", L("STARLIFE COINS", "sp-clbl"), L(profile.coins.ToString("N0"), "sp-cbig"), L("Earn more at work, events and Fashion Week", "sp-csub")));
+            phonePanes.Add(El("sp-card rose", L("FAME", "sp-clbl"), L(profile.fame.ToString("N0"), "sp-cbig"), L("Level " + profile.level, "sp-csub")));
+            int des = Designer.Count(d => profile.owned != null && profile.owned.Contains(d.item));
+            phonePanes.Add(El("sp-card ink", L("DESIGNER PIECES", "sp-clbl"), L(des + " of " + Designer.Length, "sp-cbig"), L("Maison Starlife, Velours, Noir & Or, Hartwell, Sneaker Vault", "sp-csub")));
+            return;
+        }
+        if (phoneTab == "clock") {
+            phonePanes.Add(L(ClockLabel(), "sp-bigclock"));
+            phonePanes.Add(L("GAME SPEED", "t-lbl"));
+            var seg = El("t-seg"); foreach (var (v, l) in new[] { (0, "Pause"), (1, "Normal"), (4, "Fast") }) { int vv = v; seg.Add(B(l, tSpeed == v ? "on" : null, () => { tSpeed = vv; SaveLife(); RenderPhone(); })); } phonePanes.Add(seg);
+            phonePanes.Add(L("One real second is one minute in town at normal speed. Sitting down makes time pass three times as fast.", "t-note"));
+            return;
+        }
         if (phoneTab == "map") {
             mapBox = El("t-map"); mapImg = new Image { scaleMode = ScaleMode.StretchToFill }; mapImg.style.flexGrow = 1; mapBox.Add(mapImg); phonePanes.Add(mapBox);
             mapImg.RegisterCallback<ClickEvent>(e => {
@@ -933,13 +988,36 @@ public partial class SLApp {
                 b.Add(El("t-pcol", L(pp.name, "t-pname"), L(where, "t-psub2"))); b.Add(El("t-pcol r", El("t-bar small", fill), L(RelLabel(r), "t-psub2"))); phonePanes.Add(b);
             }
         } else {
-            phonePanes.Add(L("GAME SPEED", "t-lbl"));
-            var seg = El("t-seg"); foreach (var (v, l) in new[] { (0, "Pause"), (1, "Normal"), (4, "Fast") }) { int vv = v; seg.Add(B(l, tSpeed == v ? "on" : null, () => { tSpeed = vv; SaveLife(); RenderPhone(); })); } phonePanes.Add(seg);
-            phonePanes.Add(L("One real second is one minute in town at normal speed. Sitting down makes time pass three times as fast.", "t-note"));
             phonePanes.Add(L("SKILLS", "t-lbl"));
             for (int i = 0; i < 4; i++) { var fill = El("t-fill"); fill.style.width = Length.Percent(skills[i] * 10); phonePanes.Add(El("t-nrow", L(char.ToUpper(SkillKeys[i][0]) + SkillKeys[i].Substring(1), "t-nlab"), El("t-bar", fill))); }
             phonePanes.Add(L("HOME", "t-lbl")); phonePanes.Add(B("Back to my suite", "t-opt", () => LeaveTown("suite")));
         }
+    }
+    // ---- the camera: a photo of the town as it is (no buttons in it), or a selfie with her posing; saved to the album
+    bool selfie;
+    void PhoneCamera() {
+        phonePanes.Add(L(selfie ? "Selfie: she turns to the camera and strikes a pose." : "Frame the shot with the town camera, then take the picture.", "t-note"));
+        var seg = El("t-seg"); seg.Add(B("Photo", !selfie ? "on" : null, () => { selfie = false; RenderPhone(); })); seg.Add(B("Selfie", selfie ? "on" : null, () => { selfie = true; RenderPhone(); })); phonePanes.Add(seg);
+        phonePanes.Add(B("", "sp-shutter", () => StartCoroutine(TakePhoto())));
+        phonePanes.Add(L("Photos are saved to your album.", "t-note"));
+    }
+    IEnumerator TakePhoto() {
+        TogglePhone(false); var keepYaw = cam.yaw; var keepDist = cam.dist; var keepPitch = cam.pitch; var keepEmote = player.mo.emote;
+        if (selfie) { player.mo.emote = "pose"; cam.yaw = player.ry + 0.35f; cam.dist = 2.1f; cam.pitch = 0.08f; cam.focusY = 1.45f; cam.lastDrag = Time.time + 5; for (float w0 = Time.time; Time.time - w0 < 1.0f;) yield return null; }
+        townUI.style.display = DisplayStyle.None; yield return null; yield return new WaitForEndOfFrame();
+        var tex = ScreenCapture.CaptureScreenshotAsTexture(); townUI.style.display = DisplayStyle.Flex;
+        string dir = shotsDir ?? System.IO.Path.Combine(Application.persistentDataPath, "album"); System.IO.Directory.CreateDirectory(dir);
+        string file = System.IO.Path.Combine(dir, "town-" + System.DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".png"); System.IO.File.WriteAllBytes(file, tex.EncodeToPNG()); Destroy(tex);
+        if (selfie) { cam.yaw = keepYaw; cam.dist = keepDist; cam.pitch = keepPitch; cam.focusY = null; player.mo.emote = keepEmote == "text" ? null : keepEmote; }
+        Bump("fun", 3); ShowToast(selfie ? "Selfie saved to your album!" : "Photo saved to your album!");
+    }
+    void PhonePhotos() {
+        string dir = shotsDir ?? System.IO.Path.Combine(Application.persistentDataPath, "album");
+        var files = System.IO.Directory.Exists(dir) ? System.IO.Directory.GetFiles(dir, "town-*.png").OrderByDescending(f => f).Take(12).ToList() : new List<string>();
+        if (files.Count == 0) { phonePanes.Add(L("No photos yet. Open the Camera and take one!", "t-note")); return; }
+        var grid = El("sp-photos");
+        foreach (var f in files) { var t = new Texture2D(2, 2); t.LoadImage(System.IO.File.ReadAllBytes(f)); var im = new Image { image = t, scaleMode = ScaleMode.ScaleAndCrop }; im.AddToClassList("sp-photo"); grid.Add(im); }
+        phonePanes.Add(grid);
     }
     Vector2 ToMap(float x, float z) { float s = 600f / (2 * town.Edge + 16); return new Vector2(300 + x * s, 300 + z * s); }
     void DrawMap() {

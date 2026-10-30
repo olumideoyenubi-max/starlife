@@ -351,12 +351,15 @@ public sealed class SLStage3D {
         foreach (Transform c in t) if (c.name == me + "/head") {      // her face: marked for the makeup studio, and wearing whatever has been painted
             var hm = c.GetComponent<Renderer>().material; hm.SetFloat("_IsHead", 1);
             if (L.makeup != null) { hm.SetTexture("_MakeupTex", L.makeup); hm.SetFloat("_Makeup", 1); }
+            if (L.makeupFx != null) hm.SetTexture("_MakeupFx", L.makeupFx);
         }
         if (string.IsNullOrEmpty(L.hair)) Add(t, me, "hair", L.hairColor ?? GenHair(id));
         else if (L.hair.StartsWith("s:")) Add(t, "Starlets/" + L.hair.Substring(2), "hair", L.hairColor);
         else if (entries.TryGetValue("Hair/" + L.hair.Substring(2), out var he)) {
             Color? dye = L.hairColor ?? (HairDye.TryGetValue(he.id, out var hd) ? hd : (Color?)null);
-            foreach (var p in he.parts) Add(t, "Hair/" + he.id, p.mesh, p.material != null && p.material.StartsWith("Bead") ? (Color?)null : dye);   // beads and bands keep their gold
+            // beads and bands keep their gold; the scalp layer is drawn a little in front of her skin: it was fitted on the shared
+            // head, and a fuller forehead or crown would otherwise show through it as a bald patch
+            foreach (var p in he.parts) Add(t, "Hair/" + he.id, p.mesh, p.material != null && p.material.StartsWith("Bead") ? (Color?)null : dye, null, 0, false, 0, p.material != null && p.material.StartsWith("Cap") ? -24000 : 0);
         }
 
         bool male = IsMale(id);
@@ -408,7 +411,7 @@ public sealed class SLStage3D {
         for (int i = 0; i < slots.Count; i++) {
             bool on = i < who.Length; slots[i].gameObject.SetActive(on); if (!on) continue;
             string key = who[i].look.Key;
-            if (slotKeys[i] != key) {
+            if (slotKeys[i] != key && !(set == 3 && i == 0 && slotKeys[i] == key + "#rig")) {      // the gym's figure keeps its skeleton
                 slotKeys[i] = key; Compose(slots[i], who[i].look);
                 // tell every piece where it sits in her space and what build she has; the shader reshapes body and clothes alike
                 var lk0 = who[i].look; var sh = lk0.shape; var block = new MaterialPropertyBlock(); var inv = slots[i].worldToLocalMatrix;
@@ -589,11 +592,17 @@ public sealed class SLStage3D {
         Box(t, new Vector3(1.2f, 0.5f, 0.62f), new Vector3(0.3f, 0.05f, 0.2f), white, 0.05f, new Vector3(0, 20, 0));
     }
     /// <summary>The starlet in the gym, head to toe, drawn again on every call. lift raises her off the floor (a jump).</summary>
-    public RenderTexture Gym(int w, int h, Look3 look, float yaw, float lift) {
+    SLRigMotion gymMo;
+    /// <summary>The gym, live: she is rigged here (and only here), and does the workout named (SLRigMotion.Workouts), or stands at ease.</summary>
+    public RenderTexture Gym(int w, int h, Look3 look, float yaw, string workout, float dt) {
         w = Mathf.Clamp(w, 16, 2048); h = Mathf.Clamp(h, 16, 2048);
         if (liveGym == null || liveGymSize.x != w || liveGymSize.y != h) { liveGymSize = new Vector2Int(w, h); if (liveGym != null) { liveGym.Release(); UnityEngine.Object.Destroy(liveGym); } liveGym = NewRT(w, h); }
         if (gym == null) BuildGym();
-        Show(3, (look, new Vector3(0, lift, 0), yaw)); BoxCamera(liveGym, new Vector2(0, 0.98f), new Vector2(2.3f, 2.12f), true, H("#d7efe6")); return liveGym;
+        bool run = workout == "treadmill";      // on the treadmill's belt, facing its screen
+        Show(3, (look, run ? new Vector3(-1.0f, 0.17f, 0.95f) : Vector3.zero, run ? -20 : yaw));
+        if (slotKeys[0] == look.Key) { var bones = SLRig.Attach(slots[0]); gymMo = new SLRigMotion(bones); slotKeys[0] = look.Key + "#rig"; }
+        if (gymMo != null) { gymMo.emote = workout; gymMo.Animate(Mathf.Min(dt, 0.05f), 0); }
+        BoxCamera(liveGym, new Vector2(run ? -0.55f : 0, 0.98f), new Vector2(2.3f, 2.12f), true, H("#d7efe6")); return liveGym;
     }
 
     /// <summary>A still of a room with a starlet in it (picker, photos).</summary>
@@ -645,7 +654,7 @@ public sealed class Look3 {
     public float height = 1, build = 1; // overall size
     public readonly float[] shape = new float[8];   // weight, muscle, shoulders, hips, bust, leg length, head size, bum: about -1..1 (0 = as she came; hips, bust and bum go to 1.6)
     public string bra = "halter", pants = "briefs";   // underwear styles
-    public Texture2D makeup; public int makeupVer;   // the makeup painted on her face, and how many times it has been changed
+    public Texture2D makeup, makeupFx; public int makeupVer;   // (makeupFx: its finish, r gloss, g metallic, b glitter)   // the makeup painted on her face, and how many times it has been changed
     public bool signature = true;       // with nothing on from the wardrobe: her signature outfit (true) or her underwear (false)
     public Color? uniform, uniformBottom;   // a signature outfit dyed as a work uniform (shop and restaurant staff in town)
     public readonly List<(string slot, string item, Color color)> worn = new List<(string, string, Color)>();

@@ -142,7 +142,7 @@ public partial class SLApp {
         back.transform.localScale = new Vector3(9.5f, 1.3f, 0.12f); var bm = new Material(Resources.Load<Shader>("SLTown")); bm.SetColor("_Color", new Color(0.09f, 0.08f, 0.1f)); bm.SetFloat("_Glossiness", 0.6f); back.GetComponent<Renderer>().sharedMaterial = bm;
         var txt = new GameObject("text").AddComponent<TextMesh>(); txt.transform.SetParent(sign, false); txt.transform.localPosition = new Vector3(0, 0, 0.08f); txt.transform.localRotation = Quaternion.Euler(0, 180, 0);
         txt.font = Resources.Load<Font>("Fonts/DMSans-Bold"); txt.text = "ÉTOILE  MOTORS"; txt.fontSize = 120; txt.characterSize = 0.065f; txt.anchor = TextAnchor.MiddleCenter; txt.alignment = TextAlignment.Center; txt.color = new Color(0.89f, 0.77f, 0.48f);
-        var tr = txt.GetComponent<MeshRenderer>(); tr.sharedMaterial = txt.font.material;
+        var tr = txt.GetComponent<MeshRenderer>(); tr.sharedMaterial = TextMat(txt.font);
         sign.position = SLTownWorld.W(dealer.x, 5.0f, dealer.y + 0.85f); sign.rotation = SLTownWorld.Yaw(dealerRy);
         SLTownWorld.SetLayer(sign);
     }

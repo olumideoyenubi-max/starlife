@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static SLJson;
 
 public partial class SLApp {
@@ -118,7 +119,7 @@ public partial class SLApp {
         Go("sunnyside", 9, 13, 0.5f); cam.dist = 9; yield return Snap("row-north", 30);
         Go("gilded", 9, 21, 0.5f); cam.dist = 9; yield return Snap("row-south-night", 30);
         foreach (var (id, hr) in new[] { ("greenwave", 10f), ("bigbun", 13f), ("sunnyside", 10f), ("jollof", 19f), ("bella", 19f), ("sakura", 20f), ("gilded", 20f), ("lumiere", 20.5f),
-                                          ("velours", 14f), ("sneakers", 14f), ("aurelle", 14f), ("books", 14f), ("dore", 9f), ("bar", 21f), ("spa", 14f), ("salon", 14f) }) {
+                                          ("velours", 14f), ("sneakers", 14f), ("aurelle", 14f), ("books", 14f), ("dore", 9f), ("bar", 21f), ("spa", 14f), ("salon", 14f), ("boutique", 14f), ("noir", 14f), ("gym", 10f) }) {
             var pl = PlaceBy(id); if (pl == null) { dirLog += "no place " + id + "\n"; continue; }
             Go(id, 1.2f, hr); EnterRoom(pl); if (room == null) { dirLog += "no room " + id + "\n"; continue; }
             cam.yaw = player.ry + Mathf.PI + 0.25f; cam.pitch = 0.18f; cam.cur = 0; yield return Snap("room-" + id, 30);
@@ -201,9 +202,24 @@ public partial class SLApp {
         Go("club", 8, 22, 0.4f); cam.dist = 8; yield return Snap("club-night", 30);
         Go("velours", 6, 21.5f, 0.6f); cam.dist = 9; cam.pitch = 0.3f; yield return Snap("avenue-night", 30);
         lifeMin = Mathf.Floor(lifeMin / 1440) * 1440 + 15 * 60; cam.pitch = 0.9f; cam.dist = 14; yield return Snap("overview", 30);
-        TogglePhone(true); yield return Snap("phone-map", 30);
-        phoneTab = "friends"; RenderPhone(); yield return Snap("phone-friends");
+        TogglePhone(true); yield return Snap("phone-home", 30);
+        OpenApp("maps"); yield return Snap("phone-map", 10); OpenApp("friends"); yield return Snap("phone-friends"); OpenApp("wallet"); yield return Snap("phone-wallet");
+        OpenApp("camera"); yield return Snap("phone-camera");
+        cam.yaw = player.ry + 0.4f; cam.dist = 1.6f; cam.pitch = 0.05f; cam.focusY = 1.25f; cam.cur = 0; cam.lastDrag = Time.time + 30; phone.style.display = DisplayStyle.None;
+        for (float w0 = Time.time; Time.time - w0 < 1.2f;) yield return null; yield return Snap("phone-in-hand", 2); cam.focusY = null; cam.dist = 6; phone.style.display = DisplayStyle.Flex;
+        selfie = true; yield return TakePhoto(); selfie = false; yield return TakePhoto();
+        TogglePhone(true); OpenApp("photos"); yield return Snap("phone-photos", 10);
         TogglePhone(false);
+        // the gym: every session, on its station
+        Go("gym", 1.2f, 10); EnterRoom(PlaceBy("gym"));
+        if (room != null) foreach (var m in EateryBy("gym").menu) {
+            GymSession(room.p, m.name, 0, m.fx, m.min); cam.yaw = player.ry + 2.4f; cam.dist = 3.4f; cam.pitch = 0.15f; cam.cur = 0;
+            for (float w0 = Time.time; Time.time - w0 < 1.4f;) yield return null; yield return Snap("gym-" + GymSpots[m.name].move, 2);
+            while (busy != null) yield return null;
+        }
+        ExitRoom();
+        // the fashion houses' signs on Velvet Avenue
+        Go("velours", 5, 12, 1.0f); cam.dist = 8; cam.pitch = 0.12f; yield return Snap("avenue-signs", 30);
         // the people of the town, as they are right now
         foreach (var pp in people.Where(x => x.state != "inside" && (x.male || x.crowd)).Take(8)) {
             var c = town.Collide(new Vector2(pp.pos.x + Mathf.Sin(pp.ry) * 2.2f, pp.pos.z + Mathf.Cos(pp.ry) * 2.2f));

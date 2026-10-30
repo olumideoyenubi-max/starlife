@@ -31,6 +31,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 0f186c229853b47ca8aef8d794f12e21, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MakeupFx:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MakeupTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}

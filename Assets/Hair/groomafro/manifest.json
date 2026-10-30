@@ -16,11 +16,11 @@
    ],
    "rough": 0.6,
    "metal": 0.0,
-   "tris": 920000
+   "tris": 2000000
   },
   {
    "mesh": "hair1",
-   "material": "Cap",
+   "material": "Cap.001",
    "tex": "",
    "normal": "",
    "alpha": false,
@@ -32,7 +32,7 @@
    ],
    "rough": 0.6,
    "metal": 0.0,
-   "tris": 1670
+   "tris": 1722
   }
  ]
 }

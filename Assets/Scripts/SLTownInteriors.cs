@@ -44,6 +44,11 @@ public partial class SLApp {
         new Eatery { id = "lumiere", name = "Maison Lumière", sub = "Fine French dining · tasting menu", kind = "fine", open = new[] { 18, 24 }, x = 56, z = -64.4f, ry = Mathf.PI,
             main = C("#f4f0e8"), accent = C("#8a6d3b"), blurb = "Crystal chandeliers, white linen and seven courses, each a little work of art.",
             menu = new[] { ("Seven-Course Tasting Menu", 120, "hunger:70,fun:35,social:15", 150), ("Sparkling Rosé Mocktail & Canapés", 30, "fun:20,social:10,hunger:15", 40), ("Soufflé au Chocolat", 16, "fun:18,hunger:10", 25) } },
+        // the gym, on the next block along (towards the Galleria): its "menu" is its sessions
+        new Eatery { id = "gym", name = "Pulse Fitness", sub = "Gym · treadmills, weights, boxing, classes", kind = "gym", open = new[] { 6, 23 }, x = 79.6f, z = -41, ry = -Mathf.PI / 2,
+            main = C("#15171d"), accent = C("#39e6a0"), blurb = "Music pumping, mirrors everywhere and a trainer who will not let you skip leg day.",
+            menu = new[] { ("Treadmill run", 6, "energy:-12,fun:6,hygiene:-12", 30), ("Weights session", 6, "energy:-14,fun:4,hygiene:-10", 40), ("Boxing class", 8, "energy:-16,fun:12,hygiene:-14", 45),
+                           ("HIIT: jacks and squats", 7, "energy:-18,fun:8,hygiene:-15", 30), ("Yoga class", 6, "energy:6,fun:10", 45), ("Stretch and cool down", 0, "energy:4,fun:3", 15) } },
     };
     Eatery EateryBy(string id) => Eateries.FirstOrDefault(e => e.id == id);
     Transform rowRoot;
@@ -55,7 +60,69 @@ public partial class SLApp {
         if (rowRoot != null) Destroy(rowRoot.gameObject);
         rowRoot = new GameObject("Restaurant Row").transform; rowRoot.SetParent(town.root, false);
         foreach (var e in Eateries) StoreFront(e);
+        SetUpBrands();
         SLTownWorld.SetLayer(rowRoot);
+    }
+
+    // ---------------------------------------------------------------- the fashion houses (artwork: Tools/brands/make_brands.py)
+    readonly Dictionary<string, Texture2D> brandArt = new Dictionary<string, Texture2D>();
+    /// <summary>A brand's artwork: "logo" (emblem and name), "badge" (the emblem on its colour) or "mono" (its print); null if it has none.</summary>
+    Texture2D BrandArt(string id, string kind) {
+        string key = id + "_" + kind; if (!brandArt.TryGetValue(key, out var t)) brandArt[key] = t = Resources.Load<Texture2D>("Brands/" + key); return t;
+    }
+    static readonly (string brand, string item, string name, int price)[] Designer = {
+        ("boutique", "ms_hoodie", "Monogram Hoodie", 140), ("boutique", "ms_tee", "Monogram Tee", 80), ("velours", "mv_blouse", "Monogram Silk Blouse", 180), ("velours", "mv_wrap", "Monogram Wrap Dress", 260),
+        ("noir", "no_trousers", "Monogram Trousers", 190), ("noir", "no_tee", "Monogram Tee", 95), ("hartwell", "hw_blazer", "Crest Blazer", 220),
+        ("sneakers", "sv_runners", "Monogram Runners", 110), ("sneakers", "sv_track", "Monogram Track Jacket", 95) };
+    Transform signRoot;
+    void SetUpBrands() {
+        var brands = O(data_town("BRANDS"));
+        void House(string id, string name, string line, string accent, params (string item, string color, string label, int price)[] stock) {
+            if (brands.ContainsKey(id)) return;
+            brands[id] = new Dictionary<string, object> { { "name", name }, { "line", line }, { "accent", accent },
+                { "items", stock.Where(x => itemById.ContainsKey(x.item)).Select(x => (object)new Dictionary<string, object> { { "item", x.item }, { "color", x.color }, { "name", x.label }, { "price", (double)x.price } }).ToList() } };
+        }
+        House("boutique", "Maison Starlife", "The house of Starlife · ready-to-wear", "#d6b25e", ("lbd", "#141218", "Little Black Dress", 120), ("blazer", "#f3ecdf", "Ivory Blazer", 110), ("jeans", "#2f4a7a", "Indigo Jeans", 70));
+        House("sneakers", "Sneaker Vault", "Trainers and streetwear", "#ffd166", ("trainers", "#ffffff", "Court Classics", 60), ("hightops", "#141414", "Vault High-tops", 75), ("runners", "#3fcf8e", "Speed Runners", 70), ("rainbowhoodie", "#b8a6f0", "Spectrum Hoodie", 65));
+        foreach (var d in Designer) {
+            if (!brands.ContainsKey(d.brand) || !itemById.ContainsKey(d.item)) continue; var list = A(Get(brands[d.brand], "items"));
+            if (!list.Any(o => S(Get(O(o), "item")) == d.item)) list.Insert(0, new Dictionary<string, object> { { "item", d.item }, { "color", itemById[d.item].color }, { "name", d.name }, { "price", (double)d.price } });
+        }
+        // a blade sign over every house's door: its emblem, both sides, on a bracket
+        if (signRoot != null) Destroy(signRoot.gameObject);
+        signRoot = new GameObject("Brand signs").transform; signRoot.SetParent(town.root, false);
+        foreach (var p in town.places) {
+            var badge = BrandArt(p.id, "badge"); if (badge == null || EateryBy(p.id) != null) continue;
+            float fx = p.x - Mathf.Sin(p.ry) * 1.4f, fz = p.z - Mathf.Cos(p.ry) * 1.4f;
+            var t = new GameObject(p.name + " sign").transform; t.SetParent(signRoot, false); t.position = SLTownWorld.W(fx, town.HeightAt(p.x, p.z), fz); t.rotation = SLTownWorld.Yaw(p.ry);
+            var iron = Mat(new Color(0.1f, 0.1f, 0.11f), 0.6f, 0.7f);
+            Part(t, PrimitiveType.Cylinder, new Vector3(1.6f, 3.55f, 0.55f), new Vector3(0.04f, 0.55f, 0.04f), iron, 0, 90);
+            var disc = new GameObject("blade").transform; disc.SetParent(t, false); disc.localPosition = new Vector3(1.6f, 3.0f, 0.75f); disc.localRotation = Quaternion.Euler(0, 90, 0);
+            Part(disc, PrimitiveType.Cylinder, Vector3.zero, new Vector3(0.82f, 0.02f, 0.82f), Mat(C(p.color) * 0.6f, 0.5f, 0.3f), 0, 90);
+            Logo(disc, p.id, "badge", new Vector3(0, 0, -0.022f), 0.8f, false); Logo(disc, p.id, "badge", new Vector3(0, 0, 0.022f), 0.8f, true);
+        }
+        SLTownWorld.SetLayer(signRoot);
+    }
+    /// <summary>A brand's artwork on a flat panel in the parent's frame, readable from its -z side (flip: from +z); lit a little, more at night.</summary>
+    Transform Logo(Transform parent, string id, string kind, Vector3 at, float height, bool flip, float yaw = 0) {
+        var tex = BrandArt(id, kind); if (tex == null) return null;
+        string key = "logo:" + id + kind;
+        if (!roomMats.TryGetValue(key, out var m)) {
+            m = new Material(Resources.Load<Shader>("SLTown")); m.SetTexture("_MainTex", tex); m.SetFloat("_Cutoff", 0.4f); m.SetFloat("_Glossiness", 0.4f);
+            m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", Color.white * 0.35f); m.SetFloat("_EmA", 1); m.SetFloat("_EmB", 1.2f); roomMats[key] = m;
+        }
+        var q = GameObject.CreatePrimitive(PrimitiveType.Quad); Destroy(q.GetComponent<Collider>()); q.transform.SetParent(parent, false);
+        q.transform.localPosition = at; q.transform.localRotation = Quaternion.Euler(0, (flip ? 180 : 0) + yaw, 0); q.transform.localScale = new Vector3(height * tex.width / tex.height, height, 1);
+        q.GetComponent<Renderer>().sharedMaterial = m; return q.transform;
+    }
+    /// <summary>Shopping bags in the house's colours, its emblem on the side.</summary>
+    void Bags(string id, Vector3 at, Color c) {
+        for (int i = 0; i < 3; i++) {
+            var b = new GameObject("bag").transform; b.SetParent(room.root, false); b.localPosition = at + new Vector3(i * 0.32f - 0.32f, 0, (i % 2) * 0.08f); b.localRotation = Quaternion.Euler(0, 180 + (i - 1) * 12, 0);
+            float h = 0.34f - i * 0.04f; Box(b, new Vector3(0, h / 2, 0), new Vector3(0.28f, h, 0.12f), Mat(c, 0.35f));
+            Part(b, PrimitiveType.Cylinder, new Vector3(0, h + 0.05f, 0), new Vector3(0.12f, 0.004f, 0.12f), Mat(c * 0.6f, 0.5f), 0, 90);
+            Logo(b, id, "badge", new Vector3(0, h * 0.55f, -0.062f), 0.16f, false);
+        }
     }
 
     // ---------------------------------------------------------------- materials and simple shapes
@@ -78,13 +145,19 @@ public partial class SLApp {
     }
     static Transform Box(Transform p, Vector3 at, Vector3 size, Material m, float yaw = 0) => Part(p, PrimitiveType.Cube, at, size, m, yaw);
     static Transform Cyl(Transform p, Vector3 at, float r, float h, Material m) => Part(p, PrimitiveType.Cylinder, at, new Vector3(r * 2, h / 2, r * 2), m);
-    Font signFont, textFont;
+    Font signFont, textFont; readonly Dictionary<Font, Material> textMats = new Dictionary<Font, Material>();
+    /// <summary>The font's letters with SLText: hidden behind walls and invisible from behind (Unity's own text shader draws through both).</summary>
+    Material TextMat(Font f) {
+        if (textMats.Count == 0) Font.textureRebuilt += r => { if (textMats.TryGetValue(r, out var mm)) mm.mainTexture = r.material.mainTexture; };    // a font grows its texture as it meets new letters
+        if (!textMats.TryGetValue(f, out var m)) { m = new Material(Resources.Load<Shader>("SLText")) { mainTexture = f.material.mainTexture }; textMats[f] = m; }
+        return m;
+    }
     /// <summary>Text standing in the parent's frame, readable from its -z side (flip: from its +z side).</summary>
     TextMesh Words(Transform p, string text, Vector3 at, float size, Color c, bool flip = false, bool bold = true, TextAnchor anchor = TextAnchor.MiddleCenter) {
         if (signFont == null) { signFont = Resources.Load<Font>("Fonts/DMSans-Bold"); textFont = Resources.Load<Font>("Fonts/DMSans-Regular"); }
         var t = new GameObject("text").AddComponent<TextMesh>(); t.transform.SetParent(p, false); t.transform.localPosition = at; t.transform.localRotation = Quaternion.Euler(0, flip ? 180 : 0, 0);
         t.font = bold ? signFont : textFont; t.text = text; t.fontSize = 96; t.characterSize = size; t.anchor = anchor; t.alignment = anchor == TextAnchor.MiddleLeft ? TextAlignment.Left : TextAlignment.Center; t.color = c;
-        t.GetComponent<MeshRenderer>().sharedMaterial = t.font.material; return t;
+        t.GetComponent<MeshRenderer>().sharedMaterial = TextMat(t.font); return t;
     }
     // procedural textures: tiles, checks, stripes and book spines
     readonly Dictionary<string, Texture2D> roomTex = new Dictionary<string, Texture2D>();
@@ -120,18 +193,20 @@ public partial class SLApp {
             Box(t, new Vector3(sx, 1.75f, 0.13f), new Vector3(3.1f, 2.5f, 0.04f), glow);
             Box(t, new Vector3(sx, 1.75f, 0.16f), new Vector3(3.3f, 0.08f, 0.06f), frame); Box(t, new Vector3(sx, 0.48f, 0.18f), new Vector3(3.3f, 0.12f, 0.1f), frame);
             Box(t, new Vector3(sx, 3.02f, 0.18f), new Vector3(3.3f, 0.1f, 0.1f), frame);
-            Words(t, e.kind == "burger" ? "OPEN LATE" : e.kind == "coffee" ? "COFFEE · PASTRIES" : HoursTxt(e.open[0], e.open[1]), new Vector3(sx, 2.6f, 0.17f), 0.022f, e.accent, true);
+            Words(t, e.kind == "burger" ? "OPEN LATE" : e.kind == "coffee" ? "COFFEE · PASTRIES" : e.kind == "gym" ? "TRAIN · SWEAT · SHINE" : HoursTxt(e.open[0], e.open[1]), new Vector3(sx, 2.6f, 0.17f), 0.022f, e.accent, true);
         }
         Box(t, new Vector3(0, 1.32f, 0.13f), new Vector3(1.5f, 2.64f, 0.04f), Mat(new Color(0.15f, 0.12f, 0.09f), 0.9f, 0, new Color(1f, 0.85f, 0.6f) * 0.8f, nightGlow: 1));     // the door
         Box(t, new Vector3(0, 2.68f, 0.17f), new Vector3(1.7f, 0.1f, 0.1f), frame); foreach (float sx in new[] { -0.8f, 0.8f }) Box(t, new Vector3(sx, 1.34f, 0.17f), new Vector3(0.1f, 2.7f, 0.1f), frame);
         Cyl(t, new Vector3(0.5f, 1.15f, 0.22f), 0.025f, 0.6f, Mat(new Color(0.8f, 0.65f, 0.35f), 0.85f, 1));       // the handle
         // the sign, and an awning in the house colours
-        Box(t, new Vector3(0, 3.62f, 0.25f), new Vector3(7.8f, 0.95f, 0.22f), Mat(e.main, 0.45f, 0, e.main * 0.25f, nightGlow: 0.8f));
-        Words(t, e.name.ToUpperInvariant(), new Vector3(0, 3.62f, 0.37f), e.name.Length > 16 ? 0.05f : 0.062f, e.accent, true);
+        var board = e.id == "greenwave" ? e.accent : e.main;      // (Greenwave's green logo goes on its cream)
+        Box(t, new Vector3(0, 3.62f, 0.25f), new Vector3(7.8f, 0.95f, 0.22f), Mat(board, 0.45f, 0, board * 0.25f, nightGlow: 0.8f));
+        if (Logo(t, e.id, "logo", new Vector3(0, 3.62f, 0.37f), 0.86f, true) == null) Words(t, e.name.ToUpperInvariant(), new Vector3(0, 3.62f, 0.37f), e.name.Length > 16 ? 0.05f : 0.062f, e.accent, true);
+        Logo(t, e.id, "badge", new Vector3(3.15f, 3.62f, 0.37f), 0.8f, true); Logo(t, e.id, "badge", new Vector3(-3.15f, 3.62f, 0.37f), 0.8f, true);
         var aw = Part(t, PrimitiveType.Cube, new Vector3(0, 3.0f, 0.95f), new Vector3(7.6f, 0.05f, 1.5f), Mat(e.main, 0.25f), 0, 14);
         for (int i = 0; i < 7; i += 2) Part(t, PrimitiveType.Cube, new Vector3(-3.25f + i * 1.085f, 3.0f, 0.95f), new Vector3(1.085f, 0.055f, 1.5f), Mat(e.accent, 0.25f), 0, 14);
         Box(t, new Vector3(0, 2.8f, 1.68f), new Vector3(7.6f, 0.25f, 0.03f), Mat(e.main, 0.25f));
-        if (e.kind == "coffee" || e.kind == "burger") {                               // a round logo by the door
+        if (BrandArt(e.id, "badge") == null && (e.kind == "coffee" || e.kind == "burger")) {      // a round logo by the door (where there is no artwork)
             var disc = Part(t, PrimitiveType.Cylinder, new Vector3(-3.6f, 3.62f, 0.4f), new Vector3(0.82f, 0.03f, 0.82f), Mat(e.accent, 0.5f, 0, e.accent * 0.2f, nightGlow: 0.6f), 0, 90);
             Words(t, e.kind == "coffee" ? "≈" : "B", new Vector3(-3.6f, 3.62f, 0.44f), 0.09f, e.main, true);
         }
@@ -195,7 +270,7 @@ public partial class SLApp {
         if (room != null) ExitRoom(true);
         string kind = RoomKind(p); if (kind == null) return;
         room = new Room { p = p, kind = kind, camDist = cam.dist, camPitch = cam.pitch, pixelLights = QualitySettings.pixelLightCount };
-        bool big = kind == "burger" || kind == "italian" || kind == "steak" || kind == "fine" || kind == "african" || kind == "diner";
+        bool big = kind == "burger" || kind == "italian" || kind == "steak" || kind == "fine" || kind == "african" || kind == "diner" || kind == "gym";
         room.w = big ? 16 : 14; room.d = big ? 20 : 17;
         room.root = new GameObject("Room " + p.id).transform; room.root.SetParent(town.root, false);
         room.root.position = SLTownWorld.W(SLTownWorld.RoomX, 0, 0); room.root.rotation = SLTownWorld.Yaw(0);
@@ -265,7 +340,7 @@ public partial class SLApp {
             mo.talking = w.talkT > 0 || (w.kind == "cook" && pp.speed < 0.1f);
             mo.Animate(dt, pp.speed); Place(pp);
         }
-        foreach (var g in room.guests) { g.mo.talking = true; g.mo.Animate(dt, 0); }
+        foreach (var g in room.guests) { g.mo.talking = g.mo.emote == null; g.mo.Animate(dt, 0); }
         // the door out stays in reach even if you wander behind the counter
         if (Mathf.Abs(player.pos.x - SLTownWorld.RoomX) > room.w) ExitRoom();
     }
@@ -345,8 +420,8 @@ public partial class SLApp {
         string k = room.kind; float W = room.w, D = room.d, H = room.h; var e = EateryBy(room.p.id);
         Color wallC = k == "burger" ? C("#f4efe6") : k == "coffee" ? C("#e9dfd2") : k == "diner" ? C("#fff3d6") : k == "african" ? C("#f2d9b8") : k == "italian" ? C("#efe2c9")
             : k == "sushi" ? C("#d9c8a8") : k == "steak" ? C("#4a2c1e") : k == "fine" ? C("#f3eee6") : k == "jewel" ? C("#1d1a22") : k == "bar" ? C("#2a1f33")
-            : k == "books" ? C("#e7dcc7") : k == "spa" ? C("#dfe8df") : k == "salon" ? C("#f6e3ea") : k == "shoes" ? C("#e8e8ea") : C("#f1ebe4");
-        Texture2D floorT = k == "burger" ? Checker("tiles_rw", C("#f2f0ec"), C("#c8102e"), 8, 3) : k == "diner" ? Checker("tiles_bw", C("#f5f2ea"), C("#2b2b2e"), 8, 2)
+            : k == "books" ? C("#e7dcc7") : k == "gym" ? C("#d9dde3") : k == "spa" ? C("#dfe8df") : k == "salon" ? C("#f6e3ea") : k == "shoes" ? C("#e8e8ea") : C("#f1ebe4");
+        Texture2D floorT = k == "gym" ? Checker("rubber", C("#2b2e35"), C("#30343c"), 4, 2) : k == "burger" ? Checker("tiles_rw", C("#f2f0ec"), C("#c8102e"), 8, 3) : k == "diner" ? Checker("tiles_bw", C("#f5f2ea"), C("#2b2b2e"), 8, 2)
             : k == "fine" || k == "jewel" || k == "spa" ? RoomTex("floor_white") : k == "steak" || k == "bar" || k == "books" ? RoomTex("floor_walnut") : k == "salon" ? RoomTex("floor_rose") : RoomTex("floor_oak");
         Texture2D floorN = floorT != null && floorT.name.StartsWith("floor") ? RoomTex(floorT.name + "_n") : null;
         var floor = Mat(Color.white, k == "fine" || k == "jewel" ? 0.75f : 0.45f, 0, null, floorT, new Vector2(W / 2.5f, D / 2.5f), floorN);
@@ -365,7 +440,7 @@ public partial class SLApp {
         var trim = Mat(Color.Lerp(wallC, Color.black, 0.35f), 0.4f);    // baseboards and mouldings
         Box(room.root, new Vector3(0, 0.06f, D - 0.02f), new Vector3(W, 0.12f, 0.04f), trim); Box(room.root, new Vector3(-W / 2 + 0.02f, 0.06f, D / 2), new Vector3(0.04f, 0.12f, D), trim); Box(room.root, new Vector3(W / 2 - 0.02f, 0.06f, D / 2), new Vector3(0.04f, 0.12f, D), trim);
         Box(room.root, new Vector3(0, H + 0.05f, D / 2), new Vector3(W + 0.6f, 0.1f, D + 0.6f), Mat(k == "steak" || k == "bar" || k == "jewel" ? C("#1a1412") : C("#f4f1ec"), 0.1f));
-        Color lc = k == "bar" ? new Color(0.85f, 0.55f, 1f) : k == "burger" || k == "shoes" || k == "spa" ? new Color(1f, 0.97f, 0.92f) : new Color(1f, 0.82f, 0.6f);
+        Color lc = k == "bar" ? new Color(0.85f, 0.55f, 1f) : k == "burger" || k == "shoes" || k == "spa" || k == "gym" ? new Color(1f, 0.97f, 0.92f) : new Color(1f, 0.82f, 0.6f);
         room.amb = k == "bar" || k == "jewel" || k == "steak" ? new Color(0.32f, 0.27f, 0.3f) : k == "fine" || k == "sushi" ? new Color(0.48f, 0.43f, 0.38f) : new Color(0.62f, 0.58f, 0.53f);
         float li = k == "bar" || k == "steak" || k == "jewel" ? 1.3f : 1.7f;
         for (int ix = 0; ix < 2; ix++) for (int iz = 0; iz < 3; iz++) {
@@ -391,8 +466,8 @@ public partial class SLApp {
     /// <summary>Panelling below the dado rail, tall windows onto the street (daylight or night, as when you came in) and framed art.</summary>
     void WallDressing(Color wallC, Material trim) {
         string k = room.kind; float W = room.w, D = room.d;
-        bool windows = new[] { "coffee", "diner", "burger", "italian", "sushi", "salon", "spa" }.Contains(k);      // on the left wall
-        bool panels = k != "burger" && k != "shoes" && k != "books";
+        bool windows = new[] { "coffee", "diner", "burger", "italian", "sushi", "salon", "spa", "gym" }.Contains(k);      // on the left wall
+        bool panels = k != "burger" && k != "shoes" && k != "books" && k != "gym";
         var panel = Mat(Color.Lerp(wallC, k == "fine" || k == "spa" || k == "salon" ? Color.white : C("#3a2618"), 0.45f), 0.45f);
         if (panels) foreach (float sx in new[] { -1f, 1f }) {
             Box(room.root, new Vector3(sx * (W / 2 - 0.03f), 0.55f, D / 2), new Vector3(0.05f, 1.1f, D - 0.2f), panel);
@@ -413,7 +488,7 @@ public partial class SLApp {
         }
         // framed pictures: soft abstract colour fields, a different set for each place
         // (none where shelves, the bar's bottles or the kente wall already fill the walls)
-        if (new[] { "bar", "shoes", "books", "african", "italian" }.Contains(k)) return;
+        if (new[] { "bar", "shoes", "books", "african", "italian", "gym" }.Contains(k)) return;
         float ax = windows ? W / 2 - 0.05f : -(W / 2 - 0.05f);
         var frame = Mat(k == "fine" || k == "steak" || k == "jewel" ? new Color(0.8f, 0.65f, 0.35f) : new Color(0.12f, 0.1f, 0.09f), 0.7f, k == "fine" || k == "steak" || k == "jewel" ? 1 : 0);
         int seed = room.p.id.GetHashCode() & 0xffff;
@@ -443,6 +518,7 @@ public partial class SLApp {
             case "books": Books(); break;
             case "bar": Bar(main); break;
             case "salon": case "spa": Pamper(main); break;
+            case "gym": Gym(main, acc); break;
         }
     }
     // a counter across the room at depth z, from x0 to x1, its top in the house colour
@@ -511,6 +587,7 @@ public partial class SLApp {
         for (int i = 0; i < 12; i++) Cyl(room.root, new Vector3(-W / 2 + 1 + i * 0.32f, 2.05f, D - 0.2f), 0.05f, 0.11f, Mat(i % 3 == 0 ? main : Color.white, 0.6f));
         Box(room.root, new Vector3(-W / 2 + 2.9f, 1.98f, D - 0.2f), new Vector3(4.2f, 0.04f, 0.3f), Mat(wood, 0.4f));
         Board(-1.5f, D - 0.05f, 5.2f, 1.5f, room.p.name.ToUpperInvariant(), MenuLines(e), room.p.id == "greenwave" ? C("#1d2b24") : C("#2a2420"), C("#f4efe6"));
+        Logo(room.root, room.p.id, "badge", new Vector3(3.3f, 3.0f, D - 0.08f), 1.1f, false);
         // tables, a long window bench and a sofa corner
         Color tc = C("#e9e4dc"); var t1 = Table(-4, 6, true, tc); var t2 = Table(-1, 7.8f, true, tc); var t3 = Table(2.5f, 6, true, tc); Table(-4, 10, true, tc, 0, 2);
         var sofa = Prefab("Furniture/sofa");
@@ -529,6 +606,7 @@ public partial class SLApp {
         // big lit menu boards
         var list = e.menu.ToList();
         for (int b = 0; b < 3; b++) Board(-4.5f + b * 4.5f, D - 4.7f, 4.0f, 1.4f, b == 0 ? "BURGERS" : b == 1 ? "MEALS" : "SIDES & SHAKES", list.Skip(b * 2).Take(2).Select(m => m.name + "  ·  " + m.cost), C("#1b1b1b"), acc);
+        foreach (float sx in new[] { -1f, 1f }) Logo(room.root, room.p.id, "badge", new Vector3(sx * 6.9f, 3.1f, D - 4.78f), 1.0f, false);
         foreach (int b in new[] { 0, 1, 2 }) Box(room.root, new Vector3(-4.5f + b * 4.5f, 3.85f, D - 4.7f), new Vector3(4.0f, 0.08f, 0.08f), Mat(acc, 0.4f, 0, acc * 0.7f));
         Box(room.root, new Vector3(0, 3.4f, D - 4.75f), new Vector3(W - 3, 1.8f, 0.04f), Mat(new Color(0.08f, 0.08f, 0.08f), 0.3f));
         // the kitchen: fryers, the grill, a warming pass, steel everywhere
@@ -591,6 +669,7 @@ public partial class SLApp {
         Solid(new Vector3(-1.9f, 0.55f, 2.2f), new Vector3(0.7f, 1.1f, 0.45f), Mat(Color.Lerp(chair, Color.black, 0.3f), 0.6f));
         Cyl(room.root, new Vector3(-1.75f, 1.2f, 2.2f), 0.06f, 0.12f, Mat(Color.white, 0.4f, 0, new Color(1, 0.8f, 0.5f) * 1.5f));
         Model("vase", new Vector3(-2.05f, 1.1f, 2.2f), 0, 0.6f);
+        Logo(room.root, room.p.id, "logo", new Vector3(0, 3.2f, D - 0.08f), 0.9f, false);
         var tableC = k == "steak" ? C("#1c1410") : cloth; float cl = k == "steak" || k == "diner" ? 0 : 1;
         var tm = clothT != null ? Mat(Color.white, 0.15f, 0, null, clothT, new Vector2(2, 2)) : null;
         int n = 0; float z0 = k == "sushi" ? 4.5f : 4.5f, zMax = k == "sushi" ? D - 8 : D - 5;
@@ -614,8 +693,12 @@ public partial class SLApp {
         float W = room.w, D = room.d; bool shoes = room.kind == "shoes"; var metal = Mat(new Color(0.8f, 0.68f, 0.4f), 0.85f, 1);
         // the cash desk at the back, a feature wall in the house colour, mirrors and fitting rooms
         Counter(-2.5f, 2.5f, D - 2.5f, C("#f4f1ec"), C("#1c1c1c"), 1.0f, 0.7f);
-        Box(room.root, new Vector3(0, 2.4f, D - 0.05f), new Vector3(6, 2.6f, 0.06f), Mat(main, 0.3f, 0, main * 0.12f));
-        Words(room.root, room.p.name.ToUpperInvariant(), new Vector3(0, 2.6f, D - 0.1f), 0.07f, Color.white);
+        var mono = BrandArt(room.p.id, "mono");
+        Box(room.root, new Vector3(0, 2.4f, D - 0.05f), new Vector3(6, 2.6f, 0.06f), mono != null ? Mat(Color.white, 0.3f, 0, null, mono, new Vector2(3, 1.3f)) : Mat(main, 0.3f, 0, main * 0.12f));
+        if (Logo(room.root, room.p.id, "logo", new Vector3(0, 2.75f, D - 0.1f), 1.0f, false) == null) Words(room.root, room.p.name.ToUpperInvariant(), new Vector3(0, 2.6f, D - 0.1f), 0.07f, Color.white);
+        else Box(room.root, new Vector3(0, 2.75f, D - 0.085f), new Vector3(3.0f, 1.15f, 0.02f), Mat(C(room.p.color) * 0.35f, 0.4f));
+        Logo(room.root, room.p.id, "badge", new Vector3(0, 0.55f, D - 2.5f - 0.36f), 0.5f, false);
+        Bags(room.p.id, new Vector3(-1.6f, 1.03f, D - 2.5f), C(room.p.color));
         for (int i = 0; i < 3; i++) {
             float x = W / 2 - 1 - i * 1.4f; Box(room.root, new Vector3(x, 1.2f, D - 0.6f), new Vector3(1.2f, 2.4f, 0.04f), Mat(C("#b33a5a"), 0.2f));
             Cyl(room.root, new Vector3(x, 2.45f, D - 0.6f), 0.015f, 1.3f, metal).localRotation = Quaternion.Euler(0, 0, 90);
@@ -690,7 +773,8 @@ public partial class SLApp {
             }
         }
         Box(room.root, new Vector3(0, 2.4f, D - 0.05f), new Vector3(5, 2.2f, 0.06f), Mat(main * 0.5f, 0.5f, 0.3f, main * 0.15f));
-        Words(room.root, room.p.name.ToUpperInvariant(), new Vector3(0, 2.4f, D - 0.1f), 0.07f, new Color(0.95f, 0.85f, 0.6f));
+        if (Logo(room.root, room.p.id, "logo", new Vector3(0, 2.4f, D - 0.1f), 1.1f, false) == null) Words(room.root, room.p.name.ToUpperInvariant(), new Vector3(0, 2.4f, D - 0.1f), 0.07f, new Color(0.95f, 0.85f, 0.6f));
+        Bags(room.p.id, new Vector3(2.6f, 0.95f, D - 3.5f), C(room.p.color) * 0.5f);
         foreach (float sx in new[] { -1f, 1f }) Chair(sx * 1.6f, D - 5.2f, Mathf.PI, C("#2a1b3a"));
         Hire("Jeweller", "front", -1.6f, D - 2.7f, Mathf.PI, C("#151515"), null, true); Hire("Jeweller", "front", 1.6f, D - 2.7f, Mathf.PI, C("#151515"), null, true);
         Hire("Security", "front", 2.0f, 1.6f, -Mathf.PI / 2 - 0.3f, C("#1c1c22"), C("#1c1c22"));
@@ -754,9 +838,71 @@ public partial class SLApp {
         Hire(salon ? "Hair stylist" : "Therapist", "cook", W / 2 - 2.0f, 11.2f, Mathf.PI / 2, salon ? C("#151515") : Color.white, null, true);
     }
 
+    // the gym's stations, by session: where she trains (room frame) and which way she faces
+    static readonly Dictionary<string, (string move, float x, float z, float face)> GymSpots = new Dictionary<string, (string, float, float, float)> {
+        { "Treadmill run", ("treadmill", -5.4f, 5.3f, 0) }, { "Weights session", ("curl", 4.6f, 13.6f, 0) }, { "Boxing class", ("box", 4.3f, 6.2f, Mathf.PI / 2) },
+        { "HIIT: jacks and squats", ("jacks", 0.6f, 9.8f, 0) }, { "Yoga class", ("yoga", -1.5f, 15.6f, Mathf.PI) }, { "Stretch and cool down", ("stretch", 1.5f, 15.6f, Mathf.PI) } };
+    void Gym(Color main, Color acc) {
+        float W = room.w, D = room.d; var steel = Mat(new Color(0.7f, 0.72f, 0.75f), 0.8f, 1); var black = Mat(new Color(0.06f, 0.06f, 0.07f), 0.5f); var neon = Mat(acc, 0.4f, 0, acc * 2.2f);
+        // a mirror wall at the back with the name in lights, and a neon stripe round the room
+        Box(room.root, new Vector3(0, 1.7f, D - 0.06f), new Vector3(W - 1, 2.6f, 0.03f), Mat(new Color(0.8f, 0.86f, 0.9f), 0.98f, 1));
+        if (Logo(room.root, "gym", "logo", new Vector3(0, 3.5f, D - 0.1f), 0.8f, false) == null) Words(room.root, "PULSE", new Vector3(0, 3.45f, D - 0.1f), 0.11f, acc); Box(room.root, new Vector3(0, 3.1f, D - 0.07f), new Vector3(W - 1, 0.05f, 0.03f), neon);
+        foreach (float sx in new[] { -1f, 1f }) Box(room.root, new Vector3(sx * (W / 2 - 0.05f), 3.1f, D / 2), new Vector3(0.03f, 0.05f, D - 2), neon);
+        // treadmills along the left wall, their screens lit
+        for (int i = 0; i < 4; i++) {
+            var tm = new GameObject("treadmill").transform; tm.SetParent(room.root, false); tm.localPosition = new Vector3(-5.4f, 0, 5.2f + i * 2.4f);
+            Box(tm, new Vector3(0, 0.12f, 0.2f), new Vector3(0.8f, 0.2f, 2.0f), black); Box(tm, new Vector3(0, 0.23f, 0.2f), new Vector3(0.58f, 0.02f, 1.8f), Mat(new Color(0.12f, 0.12f, 0.13f), 0.15f));
+            foreach (float sx in new[] { -0.36f, 0.36f }) { Part(tm, PrimitiveType.Cylinder, new Vector3(sx, 0.75f, 1.05f), new Vector3(0.05f, 0.55f, 0.05f), steel); Part(tm, PrimitiveType.Cylinder, new Vector3(sx, 1.05f, 0.85f), new Vector3(0.04f, 0.2f, 0.04f), steel, 0, 90); }
+            Part(tm, PrimitiveType.Cube, new Vector3(0, 1.35f, 1.08f), new Vector3(0.8f, 0.42f, 0.08f), black, 0, -20); Part(tm, PrimitiveType.Cube, new Vector3(0, 1.36f, 1.04f), new Vector3(0.55f, 0.28f, 0.02f), Mat(Color.black, 0.9f, 0, new Color(0.2f, 0.75f, 1f) * 1.3f), 0, -20);
+            NoWalk(-5.9f, 4.9f + i * 2.4f, -4.9f, 6.5f + i * 2.4f);
+            if (i > 0) Exerciser("treadmill", -5.4f, 5.3f + i * 2.4f, 0, 0.23f);
+        }
+        // a dumbbell rack and benches on the right at the back, a squat rack, punching bags, and yoga mats in front of the mirror
+        Box(room.root, new Vector3(5.6f, 0.45f, 12f), new Vector3(0.6f, 0.9f, 3.2f), black); NoWalk(5.2f, 10.3f, 6.0f, 13.7f);
+        for (int r2 = 0; r2 < 2; r2++) for (int i = 0; i < 8; i++) { float z = 10.6f + i * 0.38f, y = 0.55f + r2 * 0.32f; Part(room.root, PrimitiveType.Cylinder, new Vector3(5.6f, y, z), new Vector3(0.05f, 0.18f, 0.05f), steel, 0, 90); foreach (float dx in new[] { -0.15f, 0.15f }) Part(room.root, PrimitiveType.Cylinder, new Vector3(5.6f + dx, y, z), new Vector3(0.11f + i * 0.008f, 0.04f, 0.11f + i * 0.008f), black, 0, 90); }
+        for (int i = 0; i < 2; i++) { float x = 3.0f + i * 1.8f; Box(room.root, new Vector3(x, 0.42f, 15.0f), new Vector3(0.35f, 0.08f, 1.3f), Mat(main, 0.5f)); Box(room.root, new Vector3(x, 0.2f, 15.0f), new Vector3(0.12f, 0.4f, 0.9f), steel); NoWalk(x - 0.25f, 14.3f, x + 0.25f, 15.7f); }
+        foreach (float sx in new[] { -0.7f, 0.7f }) Part(room.root, PrimitiveType.Cube, new Vector3(sx + 0.6f, 1.1f, 12.8f), new Vector3(0.07f, 2.2f, 0.07f), steel);      // the squat rack
+
+        Part(room.root, PrimitiveType.Cylinder, new Vector3(0.6f, 1.55f, 12.8f), new Vector3(0.035f, 1.0f, 0.035f), steel, 90, 90); NoWalk(-0.2f, 12.5f, 1.4f, 13.1f);
+        for (int i = 0; i < 2; i++) { float z = 6.2f + i * 2.6f; Cyl(room.root, new Vector3(5.3f, 3.6f, z), 0.01f, 1.2f, steel); Cyl(room.root, new Vector3(5.3f, 2.0f, z), 0.2f, 1.05f, i == 0 ? Mat(C("#a3122e"), 0.4f) : black); NoWalk(5.05f, z - 0.25f, 5.55f, z + 0.25f); }
+        Exerciser("box", 4.3f, 8.8f, Mathf.PI / 2);
+        Color[] mats = { C("#7c4ee0"), C("#39e6a0"), C("#e8478c"), C("#4fb6e8") };
+        for (int i = 0; i < 4; i++) { Box(room.root, new Vector3(-3 + i * 1.5f, 0.01f, 15.6f), new Vector3(0.65f, 0.02f, 1.8f), Mat(mats[i], 0.3f)); }
+        Exerciser("yoga", -3f, 15.6f, Mathf.PI); Exerciser("stretch", 3f, 15.6f, Mathf.PI); Exerciser("curl", 3.9f, 11.6f, 0); Exerciser("squat", -1.2f, 10.2f, 0); Exerciser("jacks", 2.0f, 9.6f, 0);
+        // the front desk, with a water cooler and towels
+        Counter(-W / 2 + 1, -1.5f, 3.2f, main, C("#2b2e35"), 1.05f, 0.7f); Model("register", new Vector3(-3.6f, 1.08f, 3.2f), 180);
+        Cyl(room.root, new Vector3(1.2f, 0.55f, 2.4f), 0.17f, 1.1f, Mat(Color.white, 0.4f)); Cyl(room.root, new Vector3(1.2f, 1.3f, 2.4f), 0.15f, 0.4f, Mat(new Color(0.55f, 0.75f, 0.95f, 1), 0.95f)); NoWalk(1.0f, 2.2f, 1.4f, 2.6f);
+        for (int i = 0; i < 5; i++) Box(room.root, new Vector3(-5.6f + i * 0.3f, 1.12f + 0.02f * (i % 2), 3.2f), new Vector3(0.26f, 0.06f, 0.4f), Mat(i % 2 == 0 ? Color.white : acc, 0.2f));
+        Hire("Front desk", "front", -3.5f, 3.9f, Mathf.PI, main, null, true);
+        Hire("Personal trainer", "floor", 0, 7, 0, acc * 0.8f + Color.black * 0.2f, C("#15171d"), true, null, false, new[] { -3.5f, 7f, 3f, 7f, 3f, 12f, -2f, 13.5f });
+    }
+    /// <summary>Someone at a station, working out (on the treadmill, on its belt).</summary>
+    void Exerciser(string move, float x, float z, float face, float y = 0) {
+        string id = NextBody(); if (id == null) return; bool male = SLStage3D.IsMale(id);
+        Color[] tops = { C("#e8478c"), C("#39e6a0"), C("#4fb6e8"), C("#f5b82e"), C("#7c4ee0"), C("#151515") };
+        var pp = Spawn(id, null, new Look3 { id = id, height = male ? 1.06f : 1f, uniform = tops[room.guests.Count % tops.Length], uniformBottom = C("#1c1c22") });
+        var at = RoomPt(x, z); pp.pos = new Vector3(at.x, y, at.y); pp.ry = RoomRy(face); pp.mo.emote = move; Place(pp); room.guests.Add(pp);
+    }
+    void OpenGym(SLTownWorld.Place p, string greet) {
+        var e = EateryBy(p.id); bool open = IsOpen(p);
+        var opts = e.menu.Select(m => { var mm = m; var spot = GymSpots[m.name];
+            return new Opt { label = m.name, note = (m.cost > 0 ? m.cost + " coins · " : "free · ") + m.min + " min · +fitness", disabled = !open || profile.coins < m.cost || room == null || room.p != p, run = () => GymSession(p, mm.name, mm.cost, mm.fx, mm.min) }; }).ToList();
+        if (room == null || room.p != p) opts.Add(new Opt { label = "Go in to train", run = () => { CloseCard(); EnterRoom(p); } });
+        OpenCard(e.name, e.sub + " · " + HoursTxt(e.open[0], e.open[1]), (greet != null ? greet + " " : "") + (open ? e.blurb + " Pick a session and I’ll get you set up." : "Closed right now."), opts);
+    }
+    /// <summary>A session at the gym: she goes to the station and works out while the clock moves on.</summary>
+    void GymSession(SLTownWorld.Place p, string name, int cost, string fx, int min) {
+        var spot = GymSpots[name]; var at = RoomPt(spot.x, spot.z);
+        var f = new Dictionary<string, object>(); foreach (var kv in fx.Split(',')) { var q = kv.Split(':'); f[q[0]] = (double)float.Parse(q[1], CultureInfo.InvariantCulture); }
+        player.pos = new Vector3(at.x, spot.move == "treadmill" ? 0.23f : 0, at.y); player.ry = RoomRy(spot.face); player.speed = 0; Place(player);
+        cam.yaw = player.ry + Mathf.PI * 0.75f; cam.pitch = 0.15f; cam.dist = 3.2f; cam.cur = 0;
+        DoActivity(p, Act(name, min, f, new Dictionary<string, object> { { "cost", (double)cost }, { "busy", name }, { "skill", new List<object> { "fitness", 0.4 } }, { "emote", spot.move } }));
+    }
+
     // ---------------------------------------------------------------- ordering at Restaurant Row
     void OpenEatery(SLTownWorld.Place p, string greet) {
-        var e = EateryBy(p.id); float h = Hour; bool open = IsOpen(p, h); var friend = people.FirstOrDefault(x => x.state == "follow");
+        var e = EateryBy(p.id); if (e.kind == "gym") { OpenGym(p, greet); return; }
+        float h = Hour; bool open = IsOpen(p, h); var friend = people.FirstOrDefault(x => x.state == "follow");
         var opts = new List<Opt>();
         foreach (var m in e.menu) {
             var fx = new Dictionary<string, object>(); foreach (var kv in m.fx.Split(',')) { var q = kv.Split(':'); fx[q[0]] = (double)float.Parse(q[1], CultureInfo.InvariantCulture); }

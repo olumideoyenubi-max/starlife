@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -195,7 +196,7 @@ public partial class SLApp {
     }
 
     // ================================================================ gym (3D)
-    Image gymImg; VisualElement gymBody; int gymW, gymH; float gymYaw, gymFrom, gymJump = -1; bool gymTurn; string gymResult = "";
+    Image gymImg; VisualElement gymBody; int gymW, gymH; float gymYaw, gymFrom; bool gymTurn; string gymResult = "";
     void BuildGym(VisualElement pane) {
         gymImg = new Image { scaleMode = ScaleMode.StretchToFill }; gymImg.style.flexGrow = 1; gymImg.pickingMode = PickingMode.Ignore;
         var view = El(null, gymImg); view.style.flexGrow = 1; view.style.flexBasis = 0; view.style.marginRight = 20; view.style.overflow = Overflow.Hidden; view.style.backgroundColor = C("#d7efe6");
@@ -214,7 +215,7 @@ public partial class SLApp {
         b.Add(L("Ready to train?", "h3")); Checklist(b, lines);
         b.Add(L("Workouts left today: " + Mathf.Max(0, 3 - done) + " of 3.", "muted"));
         var row = El("row"); row.style.marginTop = 10;
-        foreach (var (name, fame) in new[] { ("Cardio", 4), ("Weights", 5), ("Yoga", 3) }) {
+        foreach (var (name, fame) in GymMoves.Select(m => (m.name, m.fame))) {
             string nm = name; int f = fame; var w = B(name, "btn primary", () => Workout(nm, f)); w.SetEnabled(match >= 2 && lines[0].ok && done < 3); w.style.marginRight = 8; row.Add(w);
         }
         b.Add(row);
@@ -228,13 +229,19 @@ public partial class SLApp {
         }
         b.Add(grid);
     }
+    // what each workout is, how she moves (SLRigMotion.Workouts), what it earns and how it shapes her (weight, muscle)
+    static readonly (string name, string move, int fame, float weight, float muscle)[] GymMoves = {
+        ("Cardio", "treadmill", 4, -0.06f, 0.01f), ("Weights", "curl", 5, -0.02f, 0.05f), ("Boxing", "box", 5, -0.05f, 0.03f),
+        ("Squats", "squat", 4, -0.03f, 0.04f), ("HIIT", "jacks", 5, -0.06f, 0.02f), ("Yoga", "yoga", 3, -0.03f, 0.02f) };
+    string gymMove; float gymUntil;
     void Workout(string name, int fame) {
         int done = (int)Num(core.Pref("gym." + Today, "0"), 0); if (done >= 3) return;
         core.SetPref("gym." + Today, (done + 1).ToString());
         int used = (int)Num(core.Pref("shifts." + Today, "0"), 0); bool back = used > 0; if (back) core.SetPref("shifts." + Today, (used - 1).ToString());
-        core.Call("earn", 0d, (double)fame); gymJump = Time.time;
-        // training shapes her: cardio slims, weights build muscle, yoga a little of both
-        string body = name == "Cardio" ? BodyChange(Av, -0.06f, 0.01f) : name == "Weights" ? BodyChange(Av, -0.02f, 0.05f) : BodyChange(Av, -0.03f, 0.02f);
+        core.Call("earn", 0d, (double)fame);
+        // she does it, there on the screen, for a few seconds; training shapes her (cardio slims, weights build muscle)
+        var mv = GymMoves.First(m => m.name == name); gymMove = mv.move; gymUntil = Time.time + 7;
+        string body = BodyChange(Av, mv.weight, mv.muscle);
         gymResult = name + " done: +" + fame + " fame" + (back ? ", and she has the energy for another shift at work." : ".") + body;
         dirty = true;
     }
@@ -256,9 +263,9 @@ public partial class SLApp {
     bool bodyDirty;
     void TickGym() {
         if (!On3 || view != "gym" || gymW < 16 || picker.ClassListContains("on")) return;
-        float lift = 0; if (gymJump >= 0) { float t = Time.time - gymJump; if (t > 2.4f) gymJump = -1; else lift = Mathf.Abs(Mathf.Sin(t * 8f)) * 0.11f; }
-        float sway = shotsDir == null && !gymTurn ? Mathf.Sin(Time.time * 0.6f) * 6f : 0;
-        gymImg.image = stage3d.Gym(gymW, gymH, look3 ?? MyLook(null), gymYaw + sway, lift);
+        if (gymMove != null && Time.time > gymUntil) gymMove = null;
+        float sway = shotsDir == null && !gymTurn && gymMove == null ? Mathf.Sin(Time.time * 0.6f) * 6f : 0;
+        gymImg.image = stage3d.Gym(gymW, gymH, look3 ?? MyLook(null), gymYaw + sway, gymMove, Time.deltaTime);
     }
 
     // ================================================================ avatar studio (Beauty Parlor > Avatar, 3D)

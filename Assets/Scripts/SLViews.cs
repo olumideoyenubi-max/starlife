@@ -178,7 +178,7 @@ public partial class SLApp {
 
     void RenderWardrobe() {
         wardTabs.Clear();
-        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("men", "Menswear"), ("basics", "Underwear") }) {
+        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("designer", "Designer"), ("men", "Menswear"), ("basics", "Underwear") }) {
             string cat = k; var b = B(label, k == wardrobeCat ? "on" : null, () => { wardrobeCat = cat; RenderWardrobe(); }); wardTabs.Add(b);
         }
         if (wardrobeCat == "basics") { RenderBasics(); return; }
@@ -260,7 +260,7 @@ public partial class SLApp {
         zoomTabs = El("tabs"); zoomTabs.style.marginTop = 10;
         foreach (var (k, label) in new[] { ("face", "Face"), ("full", "Full length") }) { string z = k; var b = B(label, null, () => { zoom = z; RefreshParlor(); }); b.name = "zoom-" + k; zoomTabs.Add(b); }
         parlorSeg = El("seg");
-        foreach (var (k, label) in new[] { ("avatar", "Avatar"), ("hair", "Hair"), ("makeup", "Makeup") }) { string t = k; var b = B(label, null, () => { parlorTab = t; RefreshParlorPanel(); }); b.name = "seg-" + k; parlorSeg.Add(b); }
+        foreach (var (k, label) in new[] { ("avatar", "Avatar"), ("hair", "Hair"), ("makeup", "Makeup"), ("clients", "Makeover") }) { string t = k; var b = B(label, null, () => { parlorTab = t; RefreshParlorPanel(); }); b.name = "seg-" + k; parlorSeg.Add(b); }
         parlorBody = Scroll();
         pane.Add(El("parlor", El("mirror", mirrorFrame, zoomTabs), El("panel", parlorSeg, parlorBody)));
     }
@@ -302,6 +302,8 @@ public partial class SLApp {
                 card.RegisterCallback<ClickEvent>(_ => core.Call("set", "hair", k)); binds.Add((card, "hair", k)); grid.Add(card);
             }
             b.Add(grid); hairSig = skin + hc;
+        } else if (parlorTab == "clients") {
+            if (On3) Makeover(b); else { b.Add(L("Makeover clients come to the 3D studio.", "h3")); b.Add(B("Switch to 3D", "btn primary", () => Set3D(true, true))); }
         } else {
             if (On3) { MakeupStudio(b); RefreshBinds(); return; }      // in 3D makeup is painted on by hand
             b.Add(L("Looks", "h3")); var pr = El("row");
@@ -395,7 +397,7 @@ public partial class SLApp {
     }
     void RefreshShop() {
         shopTabs.Clear();
-        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("men", "Menswear") }) {
+        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("designer", "Designer"), ("men", "Menswear") }) {
             string cat = k; shopTabs.Add(B(label, k == shopCat ? "on" : null, () => { shopCat = cat; RefreshShop(); }));
         }
         var list = new List<DItem>(Array.FindAll(data.items, i => i.price > 0 && Allowed(i) && (shopCat == "all" || i.cat == shopCat)));

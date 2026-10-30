@@ -22,6 +22,7 @@ Shader "Starlife/Starlet" {
         _ZPush ("Lose to anything nearly as close (depth units)", Float) = 0
         _MakeupTex ("Makeup painted on the skin", 2D) = "black" {}
         _Makeup ("Wears makeup", Float) = 0
+        _MakeupFx ("Makeup finish: gloss, metallic, glitter", 2D) = "black" {}
         _IsHead ("Is the head (for the makeup studio)", Float) = 0
         _Shaped ("Part of a figure that can be reshaped", Float) = 0
         _Cutoff ("Alpha cutoff", Range(0,1)) = 0
@@ -66,7 +67,7 @@ Shader "Starlife/Starlet" {
         CGPROGRAM
         #pragma surface surf Standard fullforwardshadows alphatest:_Cutoff addshadow finalcolor:solid vertex:vert
         #pragma target 3.0
-        sampler2D _MainTex, _BumpMap, _MakeupTex; half _Makeup;
+        sampler2D _MainTex, _BumpMap, _MakeupTex, _MakeupFx; half _Makeup;
         fixed4 _Tint, _Mean; half _Recolor, _Lift, _Gain, _SatMask, _Glossiness, _Keep, _Sheen, _Detail, _SSS, _Hair; float4 _HairLight; float _Inset, _Shrink, _DetailScale;
         struct Input { float2 uv_MainTex; float3 viewDir; float3 objPos; float3 actorPos; float3 worldPos; float3 worldNormal; INTERNAL_DATA };
         // smooth 3D noise, for surface detail on pieces that have no texture of their own
@@ -131,6 +132,14 @@ Shader "Starlife/Starlet" {
             // skin is not solid: light that enters it comes back out redder, most where the surface turns away (ears, nostrils, the edge of a cheek) and in its shadows
             o.Emission += albedo * half3(1.0, 0.30, 0.20) * _SSS * (0.10 + 0.55 * rim * rim) + hairGlow;
             o.Metallic = 0; o.Smoothness = _Glossiness; o.Alpha = c.a;
+            // the makeup's finish: gloss (wet lips), metallic (foiled lids, highlighter) and glitter (sparks that twinkle as she moves)
+            fixed4 fx = tex2D(_MakeupFx, IN.uv_MainTex) * _Makeup;
+            o.Smoothness = lerp(o.Smoothness, 0.94, fx.r); o.Metallic = lerp(o.Metallic, 0.7, fx.g);
+            if (fx.b > 0.01) {
+                float2 cell = floor(IN.uv_MainTex * 1400); float3 Vg = normalize(_WorldSpaceCameraPos - IN.worldPos);
+                float spark = step(0.955, hash3(float3(cell, floor(dot(Vg, float3(7.1, 3.3, 5.7)) * 6)))) * fx.b;
+                o.Emission += spark * (o.Albedo * 1.5 + 0.8);
+            }
         }
         ENDCG
         // The lit passes leave the picture's alpha untouched, so mark every pixel she covers as opaque here.

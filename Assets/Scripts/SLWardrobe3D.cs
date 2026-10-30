@@ -41,6 +41,9 @@ public static class SLWardrobe3D {
         { "blazer", "f_blazer:top" }, { "trench", "f_trench:outer" }, { "biker", "f_hoodiejk:outer" }, { "denimjk", "f_hoodiejk:outer" }, { "puffer", "f_hoodiejk:outer" }, { "tracktop", "f_hoodiejk:outer" },
         { "cardigan", "f_monohood:outer" }, { "pencil", "f_blazer:bottom" }, { "pleated", "f_tieredsk:bottom" }, { "mini", "f_sixtiessk:bottom" }, { "tennisskirt", "f_sixtiessk:bottom" },
         { "ankleboots", "f_chelsea" }, { "workboots", "f_workboot" },
+        // designer pieces: the refitted garments in each house's monogram ("!": the print is the fabric, not dyed)
+        { "ms_hoodie", "f_monohood_boutique:outer!" }, { "ms_tee", "f_tee_boutique!" }, { "mv_blouse", "f_silk_velours!" }, { "mv_wrap", "f_wrap_velours:dress!" },
+        { "no_trousers", "f_leather_noir!" }, { "no_tee", "f_tee_noir!" }, { "hw_blazer", "f_blazer_hartwell:top!" }, { "sv_runners", "f_runners_sneakers!" }, { "sv_track", "f_hoodiejk_sneakers:outer!" },
         // eyewear: one pair of frames, dyed
         { "roundspecs", "cute:extra" }, { "cateye", "cute:extra" }, { "sunnies", "cute:extra" }, { "heartsunnies", "cute:extra" },
     };

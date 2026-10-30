@@ -178,6 +178,22 @@ Bringing art in (all through Blender; `Tools/blender` must be on Blender's `sys.
   barber chairs, lounge chairs, chandeliers, pendants, shelves, tills, a coffee cart, cakes, mirrors); each room shuffles
   the town's 21 passers-by (`p_*`, 13 of them added with their own face shapes: `face_shape()` in `make_men.py`) so
   nobody is in a room twice. MPFB's age is 0.5 at 25 (0.3 is a teenager): keep grown-ups at 0.5 and up.
+- **Brands** (`Tools/brands/make_brands.py`): original logos, badges and monogram prints for every house and eatery
+  (`Resources/Brands`), on storefronts, blade signs over the doors, shop walls, desks and bags, and nine designer pieces
+  (Designer tab) whose fabric is the house's monogram (`Assets/Starlets/f_*_<brand>`, mapped with "!" so they keep it).
+  Maison Starlife and Sneaker Vault are brand shops too. Unity's text shader draws through walls (and mirrored
+  from behind), so 3D text uses `Resources/SLText.shader` (`TextMat`).
+- **Pulse Fitness** (the gym, next to the Galleria) and the suite's GYM: workouts are animations in `SLRigMotion`
+  (`treadmill`, `box`, `curl`, `squat`, `jacks`, `yoga`, `stretch`; legs and arms aimed with `Aim`/`Legs`), and the
+  suite's gym figure is rigged in `SLStage3D.Gym` (its slot key gets "#rig" so other views compose a fresh one).
+- **The Starphone Duo**: the town phone is a phone, with a home screen of apps (icons by `Tools/phone/make_icons.py`),
+  a camera that saves town photos and selfies to the album, and the 3D phone in her hand while it is open.
+- **Makeup and makeovers** (`SLSim.cs`, `SLMakeover.cs`): products paint a finish layer too (gloss, metallic, glitter;
+  `_MakeupFx` in `StarletTint.shader`), full looks are painted with the same brushes, and the Makeover tab brings
+  clients with briefs to style (hair, base, eyes, lips), scored on how well the look fits the brief.
+- **Hair**: `Tools/blender/fix_hair.py` re-exports a finished style with its scalp cap rebuilt or a ponytail dropped;
+  braids have knotless roots, flyaways, curled ends, gold cuffs and laid edges (`make_hair.py`). The scalp cap is drawn
+  with a negative `_ZPush` so a fuller head never shows through it.
 - **Directions:** the town is mirrored into Unity (`W` flips z), so a larger heading turns left on screen: walking
   uses `Atan2(-ix, iz)` and steering subtracts. The tour logs `walk right/left` and `steer right` checks in `town-log.txt`.
 - **Fashion Week** (`SLTownFashion.cs`): at the Grand Hall in the evening, pick a theme, four hero pieces (the looks are

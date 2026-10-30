@@ -1,0 +1,32 @@
+{
+ "id": "f_silk_velours",
+ "scale": 1.0,
+ "marks": {},
+ "parts": [
+  {
+   "mesh": "top",
+   "material": "Wolf3D_Outfit_Top",
+   "tex": "top.png",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.7,
+   "metal": 0.0,
+   "tone": [
+    0.3804,
+    0.1137,
+    0.1569
+   ],
+   "lum": 0.217,
+   "zmin": 0.789,
+   "zmax": 1.441,
+   "xmax": 0.336,
+   "tris": 4954
+  }
+ ]
+}

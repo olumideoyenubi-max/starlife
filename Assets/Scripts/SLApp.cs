@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -359,6 +360,12 @@ public partial class SLApp : MonoBehaviour {
         parlorTab = "makeup"; RefreshParlorPanel(); core.Call("preset", "Night Out"); yield return Snap("parlor-makeup");
         for (int i = 0; i < 4; i++) yield return null;
         MkDemo(); yield return Snap("makeup-painted");
+        MkWipe(); MkPaintLook("Glitter"); yield return Snap("makeup-glitter"); MkWipe(); MkPaintLook("Red carpet"); yield return Snap("makeup-redcarpet");
+        // a makeover client, styled to her brief, then revealed
+        parlorTab = "clients"; moClient = null; RefreshParlorPanel(); for (int i = 0; i < 20; i++) yield return null; yield return Snap("makeover-client");
+        foreach (var cat in new[] { "hair", "base", "eyes", "lips" }) { var all = MoChoicesFor()[cat]; moPick[cat] = MoOffer(cat).OrderByDescending(i => all[i].tags.Count(t => moClient.wants.Contains(t))).First(); }
+        MoRepaint(); RefreshParlorPanel(); for (int i = 0; i < 30; i++) yield return null; yield return Snap("makeover-styled");
+        MoReveal(); yield return Snap("makeover-verdict");
         zoom = "full"; RefreshParlor(); yield return Snap("parlor-full");
         SetView("salon"); yield return Snap("salon");
         SetHair3D(Av, "h:boxbraids"); yield return Snap("salon-boxbraids");
@@ -381,6 +388,8 @@ public partial class SLApp : MonoBehaviour {
         core.Call("grant", Json(new[] { "sportsbra", "leggings", "trainers" })); foreach (var id in new[] { "sportsbra", "leggings", "trainers" }) core.Call("equip", id);
         OpenDrawer(null); SetView("gym"); yield return Snap("gym");
         Workout("Weights", 5); yield return Snap("gym-workout");
+        foreach (var m in GymMoves) { gymMove = m.move; gymUntil = Time.time + 30; for (float w0 = Time.time; Time.time - w0 < (m.move == "yoga" ? 3.5f : 1.1f);) yield return null; yield return Snap("gym-" + m.move); }
+        gymMove = null;
         SetView("career"); yield return Snap("career");
         TakeJob(Array.Find(Jobs, j => j.id == "nurse")); foreach (var id in new[] { "scrubtop", "scrubpants" }) core.Call("equip", id); yield return Snap("career-nurse");
         Work(); yield return Snap("career-worked");

@@ -58,7 +58,9 @@ def cap(color=(0.035, 0.028, 0.025, 1), lift=0.0025, low=1.50, slope=1.5):
     ref = bpy.data.objects['REF_head']; me = ref.data.copy(); me.transform(ref.matrix_world)
     c = bpy.data.objects.new('CAP', me); bpy.context.scene.collection.objects.link(c)
     bm = bmesh.new(); bm.from_mesh(me)
-    def scalp(v): return v.co.z > low + max(0.0, -v.co.y - 0.02) * slope and (v.co.z > 1.61 or abs(v.co.x) < 0.074)
+    # the forehead pokes furthest forward in the middle, which lifts the line there: the middle is held at the height of
+    # the hairline beside it, or a square notch of bare scalp shows through at the front
+    def scalp(v): return (v.co.z > low + max(0.0, -v.co.y - 0.02) * slope and (v.co.z > 1.61 or abs(v.co.x) < 0.074)) or (v.co.y < -0.03 and abs(v.co.x) < 0.045 and v.co.z > 1.641)
     bmesh.ops.delete(bm, geom=[f for f in bm.faces if not all(scalp(v) for v in f.verts)], context='FACES')
     bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=0.0002); bm.normal_update()    # close the texture seam so it does not open when lifted
     for v in bm.verts: v.co += v.normal * lift

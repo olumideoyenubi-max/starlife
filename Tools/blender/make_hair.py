@@ -49,7 +49,7 @@ def mat(name, color, rough=0.55):
         b = m.node_tree.nodes['Principled BSDF']; b.inputs['Base Color'].default_value = color; b.inputs['Roughness'].default_value = rough
     return m
 
-def tube(points, radius, kind='braid', name='strand', material='Hair', res=2):
+def tube(points, radius, kind='braid', name='strand', material='Hair', res=2, radii=None):
     """A tube along points. kind sets how its thickness varies: knotted for braids, a tighter ripple for twists, uneven for locs."""
     cu = bpy.data.curves.new(name, 'CURVE'); cu.dimensions = '3D'; cu.bevel_depth = radius; cu.bevel_resolution = res; cu.use_fill_caps = True
     sp = cu.splines.new('POLY'); sp.points.add(len(points) - 1)
@@ -62,7 +62,7 @@ def tube(points, radius, kind='braid', name='strand', material='Hair', res=2):
         elif kind == 'plain': r = 1.0
         else: r = 1.0
         if i >= len(points) - 2 and kind not in ('ridge', 'plain'): r *= 0.6            # taper the tip
-        sp.points[i].radius = r
+        sp.points[i].radius = r * (radii[i] if radii else 1.0)
     o = bpy.data.objects.new(name, cu); bpy.context.scene.collection.objects.link(o); o.data.materials.append(mat(material, DARK if material == 'Hair' else GOLD, 0.35 if material != 'Hair' else 0.55))
     return o
 
@@ -88,16 +88,57 @@ def frames(points):
         prev = n; res.append((n, t.cross(n).normalized()))
     return res
 
-def braid(points, radius, material='Hair', flat=1.0, res=1):
-    """A real three-strand plait along the path: each strand weaves over and under the other two."""
-    pts = resample(points, radius * 1.15); fr = frames(pts); n = len(pts); made = []
+def braid(points, radius, material='Hair', flat=1.0, res=1, knotless=False, fuzz=0.0, ends=False, seed=0):
+    """A real three-strand plait along the path: each strand weaves over and under the other two.
+    knotless: it starts slim at the scalp and fills out (no knot of extra hair at the root); fuzz: fine hairs escaping
+    the plait along its length; ends: a little loose, curled tail where the plait finishes."""
+    pts = resample(points, radius * 1.15); fr = frames(pts); n = len(pts); made = []; rnd = random.Random(seed * 31 + n)
+    grow = [min(1.0, 0.45 + 0.55 * i / 6.0) if knotless else 1.0 for i in range(n)]
     for k in range(3):
         strand = []
         for i, p in enumerate(pts):
-            th = i * 1.15 / 3.4 + k * math.tau / 3; taper = 1.0 if i < n - 4 else max(0.35, (n - i) / 4.0)
+            th = i * 1.15 / 3.4 + k * math.tau / 3; taper = (1.0 if i < n - 4 else max(0.35, (n - i) / 4.0)) * grow[i]
             strand.append(p + fr[i][1] * (radius * 0.95 * math.sin(th) * taper) + fr[i][0] * (radius * 0.45 * math.sin(2 * th) * flat * taper))
-        made.append(tube(strand, radius * 0.62, 'plain', material=material, res=res))
+        made.append(tube(strand, radius * 0.62, 'plain', material=material, res=res, radii=grow))
+    if fuzz > 0:      # flyaways: short, fine hairs standing out of the plait here and there
+        for i in range(2, n - 2):
+            if rnd.random() > fuzz: continue
+            side = fr[i][0] * math.cos(rnd.uniform(0, math.tau)) + fr[i][1] * math.sin(rnd.uniform(0, math.tau)); t = (pts[i + 1] - pts[i]).normalized()
+            base = pts[i] + side * radius * 0.9; L = rnd.uniform(0.004, 0.011)
+            tube([base, base + (side * 0.8 + t * 0.6).normalized() * L * 0.5, base + (side * 0.5 + t * 1.0).normalized() * L], 0.00028, 'plain', res=0)
+    if ends and n > 3:  # the loose end: three little curls of unbraided hair
+        e = pts[-1]; t = (pts[-1] - pts[-3]).normalized(); a, b = fr[-1]
+        for k in range(3):
+            ph = k * math.tau / 3; curl = []
+            for j in range(9):
+                u = j / 8.0; ang = ph + u * 3.2
+                curl.append(e + t * (u * 0.016) + (a * math.cos(ang) + b * math.sin(ang)) * (radius * 0.35 + u * 0.0035))
+            tube(curl, radius * 0.22, 'plain', res=0, radii=[1.0 - 0.6 * j / 8.0 for j in range(9)])
     return made
+
+def cuff(points, at, radius):
+    """A gold cuff round a braid, a little way along it."""
+    pts = resample(points, radius); i = max(1, min(len(pts) - 2, int(len(pts) * at))); t = (pts[i + 1] - pts[i - 1]).normalized()
+    tube([pts[i] - t * 0.004, pts[i] + t * 0.004], radius * 1.45, 'ridge', material='Bead', res=2)
+    for d in (-0.0045, 0.0045): tube([pts[i] + t * (d - 0.0006), pts[i] + t * (d + 0.0006)], radius * 1.6, 'ridge', material='Bead', res=2)
+
+def on_brow(x, z, lift=0.0008):
+    """The point of the forehead in front of (x, z), raised a hair's breadth."""
+    hit = bvh.ray_cast(Vector((x, -0.4, z)), Vector((0, 1, 0)))
+    return (hit[0] + hit[1] * lift) if hit[0] is not None else None
+
+def edges(spots=((-0.062, 1.624, -1), (-0.03, 1.638, -1), (0.0, 1.641, 1), (0.03, 1.638, 1), (0.062, 1.624, 1)), seed=3):
+    """Baby hairs laid along the hairline: fine strands swept into flat waves and swirls against the skin."""
+    rnd = random.Random(seed)
+    for (x0, z0, s) in spots:
+        for k in range(6):
+            pts = []
+            for j in range(12):
+                u = j / 11.0; ang = u * (2.4 + rnd.uniform(-0.3, 0.3))
+                x = x0 + s * (0.004 + u * 0.016 + k * 0.0011); z = z0 - 0.002 - 0.0055 * math.sin(ang) * (1 - u * 0.4) + k * 0.0006
+                q = on_brow(x, z); 
+                if q is not None: pts.append(q)
+            if len(pts) > 3: tube(pts, 0.00042, 'plain', res=0, radii=[0.6 + 0.4 * math.sin(math.pi * j / max(1, len(pts) - 1)) for j in range(len(pts))])
 
 def twist(points, radius, material='Hair', res=1):
     """A two-strand twist: two strands wound round each other."""
@@ -271,8 +312,11 @@ if want('silkpress'):       # a silk press: straight, sleek hair past the should
 if want('boxbraids'):       # long box braids to the middle of the back, the front ones over the shoulders
     for i, (co, n) in enumerate(roots(0.0215, 1, off_face)):
         back = co.y > -0.02 or abs(co.x) < 0.05
-        braid(hang(co, n, 1.02 + (i % 5) * 0.012 if back else 1.20 + (i % 4) * 0.015, back=back, sway=0.02, seed=i), 0.0056)
-    finish('boxbraids', 'Box braids')
+        path = hang(co, n, 1.02 + (i % 5) * 0.012 if back else 1.20 + (i % 4) * 0.015, back=back, sway=0.02, seed=i)
+        braid(path, 0.0056, knotless=True, fuzz=0.18, ends=True, seed=i)
+        if i % 7 == 3: cuff(path, 0.35 + (i % 3) * 0.12, 0.0056)
+    edges()
+    finish('boxbraids', 'Box braids', faces=420000)
 
 if want('twists'):          # two-strand twists to the jaw, standing a little away from the head
     for i, (co, n) in enumerate(roots(0.0165, 2, off_face)):
@@ -317,14 +361,16 @@ if want('fulani'):          # cornrows running back from the hairline into braid
         ridge = [p for p in (on_scalp(x * (1 - 0.25 * max(0, t - 0.6)), -0.118 + t * 0.20) for t in [i / 22 for i in range(23)]) if p is not None]
         last = ridge[-1]; n = Vector((0, 0.6, -0.3)).normalized()
         tail = hang(last, n, 1.16 + (k % 3) * 0.03, back=True, lift=0.006, sway=0.015, seed=k)[1:]
-        braid(ridge + tail, 0.0060, flat=0.7); ball(tail[-1], 0.0085, material='Bead', subdiv=2)
+        braid(ridge + tail, 0.0060, flat=0.7, fuzz=0.12, seed=k); ball(tail[-1], 0.0085, material='Bead', subdiv=2)
+        if k % 2 == 0: cuff(ridge + tail, 0.72, 0.006)
     for s in (-1, 1):
         for j, y in enumerate((-0.075, -0.045)):
             start = on_scalp(s * 0.078, y)
             if start is None: continue
             pts = hang(start, Vector((s, -0.2, 0)).normalized(), 1.36 - j * 0.03, back=False, lift=0.008, seed=30 + j)
-            braid(pts, 0.0054); ball(pts[-1], 0.008, material='Bead', subdiv=2); ball(pts[-4], 0.0075, material='Bead', subdiv=2)
-    finish('fulani', 'Fulani braids')
+            braid(pts, 0.0054, fuzz=0.12, seed=40 + j); ball(pts[-1], 0.008, material='Bead', subdiv=2); ball(pts[-4], 0.0075, material='Bead', subdiv=2)
+    edges(((-0.062, 1.624, -1), (-0.03, 1.638, -1), (0.03, 1.638, 1), (0.062, 1.624, 1)))
+    finish('fulani', 'Fulani braids', faces=380000)
 
 if want('braidbun'):        # braids swept up from all round the hairline into a coiled bun on the crown
     top = Vector((0, 0.005, 1.722))
@@ -335,10 +381,11 @@ if want('braidbun'):        # braids swept up from all round the hairline into a
             if hit is not None and is_scalp(hit): edge = p; break
         if edge is None: continue
         pts = [q for q in (on_scalp(edge.x + (top.x - edge.x) * t, edge.y + (top.y - edge.y) * t, 0.0045) for t in [i / 12 for i in range(13)]) if q is not None]
-        if len(pts) > 3: braid(pts, 0.0058, flat=0.6)
+        if len(pts) > 3: braid(pts, 0.0058, flat=0.6, knotless=True, fuzz=0.1, seed=k)
+    edges()
     coil = [Vector((math.cos(t) * (0.058 - 0.0024 * t), 0.005 + math.sin(t) * (0.058 - 0.0024 * t), 1.722 + 0.0022 * t)) for t in [i * 0.35 for i in range(64)]]
-    braid(coil, 0.014, res=2)
-    finish('braidbun', 'Braided bun')
+    braid(coil, 0.014, res=2, fuzz=0.25, seed=99)
+    finish('braidbun', 'Braided bun', faces=380000)
 
 def coil_ball(centre, radius, count, seed=1, squash=(1, 1, 1), length=0.5, strand=0.0019, curl=(0.0055, 30.0), frizz=0.0016, points=22):
     """A puff of coily hair: a dark core, and curled strands growing out of it in every direction."""

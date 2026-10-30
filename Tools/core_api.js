@@ -114,12 +114,22 @@ reward = function (coins, fame) {
   ['catears', 'Cat-ear Band', 'hat', 'goth', 'tiara', '#18151a', 30, ['goth', 'casual']],
   ['crossear', 'Cross Earrings', 'earrings', 'goth', 'drops', '#c9ccd6', 25, ['goth', 'edgy']],
   ['coffinbag', 'Coffin Bag', 'bag', 'goth', 'crossbody', '#18151a', 55, ['goth', 'edgy']],
+  // designer pieces from Starlife Town's houses, in each brand's own monogram (made for 3D by Tools/brands/make_brands.py)
+  ['ms_hoodie', 'Maison Starlife Monogram Hoodie', 'outer', 'designer', 'cardigan', '#e9dcc0', 140, ['casual', 'chic']],
+  ['ms_tee', 'Maison Starlife Monogram Tee', 'top', 'designer', 'tee', '#e9dcc0', 80, ['casual', 'chic']],
+  ['mv_blouse', 'Velours Monogram Blouse', 'top', 'designer', 'blouse', '#5a1424', 180, ['chic', 'glam']],
+  ['mv_wrap', 'Velours Monogram Wrap Dress', 'dress', 'designer', 'wrap', '#5a1424', 260, ['chic', 'glam', 'night']],
+  ['no_trousers', 'Noir & Or Monogram Trousers', 'bottom', 'designer', 'wide', '#141416', 190, ['chic', 'night']],
+  ['no_tee', 'Noir & Or Monogram Tee', 'top', 'designer', 'tee', '#141416', 95, ['casual', 'edgy']],
+  ['hw_blazer', 'Hartwell Crest Blazer', 'outer', 'designer', 'blazer', '#1f2a44', 220, ['office', 'chic']],
+  ['sv_runners', 'Sneaker Vault Monogram Runners', 'shoes', 'designer', 'sneakers', '#f4f4f4', 110, ['sport', 'casual']],
+  ['sv_track', 'Sneaker Vault Monogram Track Jacket', 'outer', 'designer', 'denimjk', '#f4f4f4', 95, ['sport', 'casual']],
 ].forEach(function (e) {
   if (ITEM[e[0]]) return;     // the artifact has it already (its own drawing wins)
   var it = Object.assign({}, ITEM[e[4]], { id: e[0], name: e[1], slot: e[2], cat: e[3], color: e[5], group: '' });
   ITEMS.push(it); ITEM[it.id] = it; PRICES[it.id] = e[6]; TAGS[it.id] = e[7];
 });
-TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.prints = 'Ankara & Prints'; TAG_LABEL.season = 'New Season';
+TAG_LABEL.designer = 'Designer'; TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.prints = 'Ankara & Prints'; TAG_LABEL.season = 'New Season';
 // the artifact's menswear goes under the Menswear tab of the wardrobe and the shop
 ['shirt', 'polo', 'hoodie', 'chinos', 'suitpants', 'suit', 'tux', 'tie', 'bowtie', 'oxfords', 'loafers', 'cap'].forEach(function (id) { if (ITEM[id]) ITEM[id].cat = 'men'; }); TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
 ['corset', 'biker', 'choker', 'kneeboots', 'ankleboots', 'lbd', 'crossbody'].forEach(function (id) { if (TAGS[id]) TAGS[id].push('goth'); });   // older pieces that suit the look

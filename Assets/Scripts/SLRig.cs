@@ -143,7 +143,11 @@ public sealed class SLRigMotion {
     public string emote, sitStyle;
     float emoteW, emoteT;
     static readonly Dictionary<string, string> EmoteClips = new Dictionary<string, string> {
-        { "dance", "Dance_Simple" }, { "phone", "Idle_TalkingPhone" }, { "arms", "Idle_FoldArms" }, { "nod", "Yes" }, { "crouch", "Crouch_Idle" }, { "eat", "Consume" } };
+        { "dance", "Dance_Simple" }, { "phone", "Idle_TalkingPhone" }, { "arms", "Idle_FoldArms" }, { "nod", "Yes" }, { "crouch", "Crouch_Idle" }, { "eat", "Consume" },
+        { "box", "Punch_Cross" } };
+    /// <summary>Workouts: running on a treadmill (the run cycle on the spot), boxing (a clip), and by hand: dumbbell curls,
+    /// squats, jumping jacks, a yoga flow and stretches.</summary>
+    public static readonly string[] Workouts = { "treadmill", "box", "curl", "squat", "jacks", "yoga", "stretch" };
     float t, cycle, idleT, runW, moveW, sitW;
     readonly Vector3[] cur; readonly Quaternion[] a = new Quaternion[22], b = new Quaternion[22], c3 = new Quaternion[22];
     public Transform CupHolder { get; private set; }
@@ -196,6 +200,8 @@ public sealed class SLRigMotion {
     readonly Quaternion[] keep = new Quaternion[22]; Vector3 keepHips;
     public void Animate(float dt, float speed) {
         t += dt; float k = 1 - Mathf.Exp(-dt * 12);
+        if (emote == "treadmill") speed = 3.1f;      // running, on the spot
+        Dumbbells(emote == "curl");
         var rr = root.rotation;
         sitW = Mathf.MoveTowards(sitW, pose == "sit" ? 1 : 0, dt * 3.5f);
         if (sitW >= 1) { Sit(dt); return; }
@@ -257,6 +263,47 @@ public sealed class SLRigMotion {
                 Rot(SLRig.LFore, -0.3f, 0, 0, k); Rot(SLRig.RFore, -0.3f, 0, 0, k); Rot(SLRig.Head, -0.15f, Mathf.Sin(t * 0.3f) * 0.3f, 0, k); break;
         }
     }
+    /// <summary>Both legs along these directions (the left's; the right's mirrored), the hips lowered so the feet stay on the floor, plus a hop.</summary>
+    void Legs(Vector3 thigh, Vector3 shin, float hop) {
+        thigh.Normalize(); shin.Normalize();
+        float drop = hipsHeight * (1 - (Mathf.Abs(thigh.y) + Mathf.Abs(shin.y)) / 2);
+        bones[SLRig.Hips].position += root.up * (hop * hipsHeight - drop);
+        Aim(SLRig.LUp, thigh); Aim(SLRig.LLeg, shin); Aim(SLRig.RUp, new Vector3(-thigh.x, thigh.y, thigh.z)); Aim(SLRig.RLeg, new Vector3(-shin.x, shin.y, shin.z));
+    }
+    readonly List<GameObject> bells = new List<GameObject>();
+    GameObject phone;
+    /// <summary>Her phone, the Starphone Duo, in her right hand: a slim slab with a lit screen and two camera lenses on the back.</summary>
+    public void Phone(bool on) {
+        if (!on) { if (phone != null) UnityEngine.Object.Destroy(phone); phone = null; return; }
+        if (phone != null) return;
+        var sh = Resources.Load<Shader>("SLTown"); int layer = bones[SLRig.RHand].gameObject.layer;
+        Material M(Color c, float g, float m, Color? glow = null) { var x = new Material(sh); x.SetColor("_Color", c); x.SetFloat("_Glossiness", g); x.SetFloat("_Metallic", m); if (glow.HasValue) { x.SetColor("_EmissionColor", glow.Value); x.SetFloat("_EmA", 1); } return x; }
+        var h = new GameObject("Starphone Duo").transform; h.SetParent(bones[SLRig.RHand], false); h.localPosition = new Vector3(0.0f, -0.085f, 0.03f);
+        h.rotation = Quaternion.LookRotation(-root.forward, root.up) * Quaternion.Euler(-35, 0, 0);       // screen up toward her face
+        void P(PrimitiveType ty, Vector3 at, Vector3 size, Material m) { var g = GameObject.CreatePrimitive(ty); UnityEngine.Object.Destroy(g.GetComponent<Collider>()); g.transform.SetParent(h, false); g.transform.localPosition = at; g.transform.localScale = size; g.GetComponent<Renderer>().sharedMaterial = m; g.layer = layer; }
+        P(PrimitiveType.Cube, Vector3.zero, new Vector3(0.072f, 0.148f, 0.008f), M(new Color(0.85f, 0.78f, 0.72f), 0.8f, 0.9f));          // titanium, rose
+        P(PrimitiveType.Cube, new Vector3(0, 0, -0.0042f), new Vector3(0.066f, 0.142f, 0.001f), M(Color.black, 0.95f, 0, new Color(0.45f, 0.35f, 0.75f) * 1.4f));   // the screen, lit
+        P(PrimitiveType.Cube, new Vector3(0.016f, 0.05f, 0.0048f), new Vector3(0.03f, 0.03f, 0.002f), M(new Color(0.75f, 0.68f, 0.62f), 0.9f, 0.9f));         // the camera bump
+        foreach (float y in new[] { 0.042f, 0.058f }) P(PrimitiveType.Cylinder, new Vector3(0.016f, y, 0.0062f), new Vector3(0.012f, 0.001f, 0.012f), M(new Color(0.05f, 0.05f, 0.08f), 1, 0.3f));
+        foreach (Transform c in h) c.localRotation = c.GetComponent<MeshFilter>().sharedMesh.name.Contains("Cylinder") ? Quaternion.Euler(90, 0, 0) : Quaternion.identity;
+        h.gameObject.layer = layer; phone = h.gameObject;
+    }
+    /// <summary>A dumbbell in each hand while she curls.</summary>
+    void Dumbbells(bool on) {
+        if (!on) { foreach (var b in bells) UnityEngine.Object.Destroy(b); bells.Clear(); return; }
+        if (bells.Count > 0) return;
+        var sh = Resources.Load<Shader>("SLTown");
+        var iron = new Material(sh); iron.SetColor("_Color", new Color(0.12f, 0.12f, 0.14f)); iron.SetFloat("_Glossiness", 0.55f); iron.SetFloat("_Metallic", 0.6f);
+        var grip = new Material(sh); grip.SetColor("_Color", new Color(0.75f, 0.76f, 0.78f)); grip.SetFloat("_Glossiness", 0.8f); grip.SetFloat("_Metallic", 1);
+        foreach (int hand in new[] { SLRig.LHand, SLRig.RHand }) {
+            var h = new GameObject("dumbbell").transform; h.SetParent(bones[hand], false); h.localPosition = new Vector3(0, -0.08f, 0.02f);
+            h.rotation = Quaternion.LookRotation(root.forward, root.up) * Quaternion.Euler(0, 0, 90); bells.Add(h.gameObject);
+            void P(PrimitiveType ty, Vector3 at, Vector3 size, Material m) { var g = GameObject.CreatePrimitive(ty); UnityEngine.Object.Destroy(g.GetComponent<Collider>()); g.transform.SetParent(h, false); g.transform.localPosition = at; g.transform.localScale = size; g.GetComponent<Renderer>().sharedMaterial = m; g.layer = bones[hand].gameObject.layer; }
+            P(PrimitiveType.Cylinder, Vector3.zero, new Vector3(0.028f, 0.09f, 0.028f), grip);
+            foreach (float y in new[] { -0.09f, 0.09f }) P(PrimitiveType.Cylinder, new Vector3(0, y, 0), new Vector3(0.085f, 0.03f, 0.085f), iron);
+            h.gameObject.layer = bones[hand].gameObject.layer;
+        }
+    }
     /// <summary>Points an arm segment along a direction in her own space (x toward her left side, y up, z forward), the way the
     /// clips' arms are put on, so a gesture comes out the same on every figure whatever its bones' axes.</summary>
     void Aim(int j, Vector3 dir) {
@@ -289,6 +336,46 @@ public sealed class SLRigMotion {
                 Rot(SLRig.Spine, 0, 0, 0.08f, k); Rot(SLRig.Head, 0, -0.2f, -0.12f, k); break;
             case "wave":
                 Rot(SLRig.RArm, -0.2f, 0, -2.5f, k); Rot(SLRig.RFore, 0, Mathf.Sin(t * 9) * 0.5f, -0.5f, k); break;
+            case "text": {     // looking at her phone, held in both hands in front of her
+                Aim(SLRig.LArm, new Vector3(0.14f, -0.88f, 0.42f)); Aim(SLRig.RArm, new Vector3(-0.14f, -0.88f, 0.42f));
+                Aim(SLRig.LFore, new Vector3(-0.4f, 0.42f, 0.82f)); Aim(SLRig.RFore, new Vector3(0.4f, 0.42f, 0.82f));
+                Rot(SLRig.Head, 0.38f, 0, 0, k); Rot(SLRig.Neck, 0.12f, 0, 0, k); break; }
+            case "curl": {     // dumbbell curls, one arm and then the other
+                float a = Mathf.SmoothStep(0, 1, Mathf.PingPong(t / 0.9f, 1)), b2 = Mathf.SmoothStep(0, 1, Mathf.PingPong(t / 0.9f + 1, 1));
+                Aim(SLRig.LArm, new Vector3(0.14f, -0.97f, 0.12f)); Aim(SLRig.RArm, new Vector3(-0.14f, -0.97f, 0.12f));
+                Aim(SLRig.LFore, Vector3.Lerp(new Vector3(0.1f, -0.97f, 0.2f), new Vector3(0.05f, 0.62f, 0.78f), a)); Aim(SLRig.RFore, Vector3.Lerp(new Vector3(-0.1f, -0.97f, 0.2f), new Vector3(-0.05f, 0.62f, 0.78f), b2));
+                break; }
+            case "squat": {    // down with the arms out in front, and up again
+                float p = Mathf.SmoothStep(0, 1, Mathf.PingPong(t / 1.1f, 1));
+                Legs(Vector3.Lerp(new Vector3(0.08f, -1, 0), new Vector3(0.22f, -0.42f, 0.88f), p), Vector3.Lerp(new Vector3(0.05f, -1, 0), new Vector3(0.05f, -0.95f, -0.28f), p), 0);
+                Rot(SLRig.Spine, 0.35f * p, 0, 0, k);
+                Aim(SLRig.LArm, Vector3.Lerp(new Vector3(0.15f, -0.95f, 0.1f), new Vector3(0.12f, 0.05f, 1), p)); Aim(SLRig.RArm, Vector3.Lerp(new Vector3(-0.15f, -0.95f, 0.1f), new Vector3(-0.12f, 0.05f, 1), p));
+                Aim(SLRig.LFore, Vector3.Lerp(new Vector3(0.15f, -0.95f, 0.15f), new Vector3(0.1f, 0.05f, 1), p)); Aim(SLRig.RFore, Vector3.Lerp(new Vector3(-0.15f, -0.95f, 0.15f), new Vector3(-0.1f, 0.05f, 1), p));
+                break; }
+            case "jacks": {    // jumping jacks: arms over the head and the feet apart, then together
+                float p = Mathf.SmoothStep(0, 1, Mathf.PingPong(t / 0.38f, 1));
+                Legs(Vector3.Lerp(new Vector3(0.04f, -1, 0), new Vector3(0.32f, -0.95f, 0), p), Vector3.Lerp(new Vector3(0.04f, -1, 0), new Vector3(0.3f, -0.95f, 0), p), Mathf.Sin(p * Mathf.PI) * 0.06f);
+                var up = Vector3.Lerp(new Vector3(0.3f, -0.95f, 0.05f), new Vector3(0.45f, 0.89f, 0.05f), p);
+                Aim(SLRig.LArm, up); Aim(SLRig.LFore, up); Aim(SLRig.RArm, new Vector3(-up.x, up.y, up.z)); Aim(SLRig.RFore, new Vector3(-up.x, up.y, up.z));
+                break; }
+            case "yoga": {     // a slow flow: arms raised, warrior two, tree pose
+                float c = Mathf.Repeat(t / 4.5f, 3); int i0 = (int)c; float f = Mathf.SmoothStep(0, 1, Mathf.Clamp01((c - i0 - 0.7f) / 0.3f));
+                var P = new[] {
+                    (lu: new Vector3(0.12f, 0.99f, 0.05f), lf: new Vector3(0.05f, 1, 0.05f), th: new Vector3(0.06f, -1, 0), sh: new Vector3(0.05f, -1, 0), rth: new Vector3(-0.06f, -1, 0), rsh: new Vector3(-0.05f, -1, 0)),
+                    (lu: new Vector3(1, 0.02f, 0), lf: new Vector3(1, 0.02f, 0), th: new Vector3(0.45f, -0.7f, 0.25f), sh: new Vector3(0.2f, -1, -0.1f), rth: new Vector3(-0.45f, -0.9f, 0), rsh: new Vector3(-0.4f, -0.92f, 0)),
+                    (lu: new Vector3(0.45f, -0.55f, 0.6f), lf: new Vector3(-0.7f, 0.45f, 0.55f), th: new Vector3(0.04f, -1, 0), sh: new Vector3(0.03f, -1, 0), rth: new Vector3(-0.85f, -0.35f, 0.3f), rsh: new Vector3(0.75f, -0.65f, 0.05f)) };
+                var A = P[i0]; var B = P[(i0 + 1) % 3];
+                Vector3 L(Vector3 x, Vector3 y) => Vector3.Slerp(x.normalized, y.normalized, f);
+                Aim(SLRig.LArm, L(A.lu, B.lu)); Aim(SLRig.LFore, L(A.lf, B.lf));
+                var ru = L(A.lu, B.lu); var rf = L(A.lf, B.lf); Aim(SLRig.RArm, new Vector3(-ru.x, ru.y, ru.z)); Aim(SLRig.RFore, new Vector3(-rf.x, rf.y, rf.z));
+                Aim(SLRig.LUp, L(A.th, B.th)); Aim(SLRig.LLeg, L(A.sh, B.sh)); Aim(SLRig.RUp, L(A.rth, B.rth)); Aim(SLRig.RLeg, L(A.rsh, B.rsh));
+                break; }
+            case "stretch": {  // side bends, one arm over the head
+                float sb = Mathf.Sin(t * 1.2f);
+                Rot(SLRig.Spine, 0, 0, 0.22f * sb, k); Rot(SLRig.Spine1, 0, 0, 0.15f * sb, k);
+                if (sb > 0) { Aim(SLRig.LArm, new Vector3(0.2f, 0.98f, 0)); Aim(SLRig.LFore, new Vector3(-0.45f, 0.89f, 0)); Aim(SLRig.RArm, new Vector3(-0.3f, -0.95f, 0.1f)); }
+                else { Aim(SLRig.RArm, new Vector3(-0.2f, 0.98f, 0)); Aim(SLRig.RFore, new Vector3(0.45f, 0.89f, 0)); Aim(SLRig.LArm, new Vector3(0.3f, -0.95f, 0.1f)); }
+                break; }
         }
         if (w < 1) for (int j = 0; j < bones.Length; j++) bones[j].localRotation = Quaternion.Slerp(keepR[j], bones[j].localRotation, w);
     }
