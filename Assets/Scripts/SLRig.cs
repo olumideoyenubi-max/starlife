@@ -49,6 +49,23 @@ public sealed class SLRig {
             }
         }
     }
+    // ---- accessories ride one part of her: on the head (hats, glasses, earrings), rigid in her hand (a tote, a clutch), or on
+    // her body but never her arms or legs (necklaces, ties, a bag across her), so nothing swings with a hand going past it
+    static bool OnHead(string part) => part.StartsWith("hat_") || part.StartsWith("glasses_") || part.StartsWith("ear_") || part == "horns" || part == "catears" || part == "earrings_m";
+    static bool InHand(string part) => part.StartsWith("hand_");
+    static void Pin(BoneWeight[] bw, Vector3[] v, Matrix4x4 toFig, SLRig src, string part) {
+        if (OnHead(part)) { for (int i = 0; i < bw.Length; i++) bw[i] = new BoneWeight { boneIndex0 = Head, weight0 = 1 }; return; }
+        if (InHand(part)) {      // the bone at the top of the piece (where she holds the handle), for all of it
+            int top = 0; for (int i = 1; i < v.Length; i++) if (toFig.MultiplyPoint3x4(v[i]).y > toFig.MultiplyPoint3x4(v[top]).y) top = i;
+            var w = src.Nearest(toFig.MultiplyPoint3x4(v[top])); int b = w.boneIndex0 >= LShoulder && w.boneIndex0 <= RHand ? (w.boneIndex0 <= LHand ? LHand : RHand) : w.boneIndex0;
+            for (int i = 0; i < bw.Length; i++) bw[i] = new BoneWeight { boneIndex0 = b, weight0 = 1 }; return;
+        }
+        for (int i = 0; i < bw.Length; i++) {      // the torso: an arm's or a leg's weight goes to the chest or the hips
+            var w = bw[i]; float y = toFig.MultiplyPoint3x4(v[i]).y;
+            int Fix(int b) => b >= LShoulder && b <= RHand ? Spine2 : b >= LUp ? (y > 0.95f ? Spine : Hips) : b;
+            bw[i] = new BoneWeight { boneIndex0 = Fix(w.boneIndex0), weight0 = w.weight0, boneIndex1 = Fix(w.boneIndex1), weight1 = w.weight1, boneIndex2 = Fix(w.boneIndex2), weight2 = w.weight2, boneIndex3 = Fix(w.boneIndex3), weight3 = w.weight3 };
+        }
+    }
     static long Key(Vector3 p) => Key(Mathf.FloorToInt(p.x / Cell), Mathf.FloorToInt(p.y / Cell), Mathf.FloorToInt(p.z / Cell));
     static long Key(int x, int y, int z) => ((long)(x + 20000) * 40000 + (y + 20000)) * 40000 + (z + 20000);
     /// <summary>The weights of the point of this avatar nearest to p (her own space, metres).</summary>
@@ -94,6 +111,7 @@ public sealed class SLRig {
                 mesh = UnityEngine.Object.Instantiate(mf.sharedMesh); mesh.name = mf.sharedMesh.name + " (skinned)";
                 var v = mf.sharedMesh.vertices; var bw = new BoneWeight[v.Length];
                 for (int i = 0; i < v.Length; i++) bw[i] = src != null ? src.Nearest(toFig.MultiplyPoint3x4(v[i])) : new BoneWeight { boneIndex0 = Head, weight0 = 1 };
+                if (src != null && (parts[1] == "acc" || parts[1] == "goth")) Pin(bw, v, toFig, src, parts[2]);
                 mesh.boneWeights = bw;
                 var bp = new Matrix4x4[bones.Length]; for (int j = 0; j < bones.Length; j++) bp[j] = bones[j].worldToLocalMatrix * c.localToWorldMatrix;
                 mesh.bindposes = bp;

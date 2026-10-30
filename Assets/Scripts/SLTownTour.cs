@@ -67,6 +67,8 @@ public partial class SLApp {
         yield return Snap("galleria-inside");
         // her walk and run, close up from the side and the front
         Go("theatre", 14, 12, 1.4f); cam.dist = 3.2f; cam.pitch = 0.08f;
+        // walking and running wearing accessories, to see them move with her
+        var accs = new[] { "beret", "sunnies", "pearls", "hoops", "crossbody" }; core.Call("grant", Json(accs)); foreach (var id in accs) core.Call("equip", id); player.look = MyLook(null); Dress(player);
         autoWalk = new Vector2(0, 1); autoFixed = true; for (float t = 0; t < 1.5f; t += Time.deltaTime) yield return null;
         cam.yaw = player.ry + Mathf.PI / 2; cam.lastDrag = Time.time + 60; yield return Snap("walk-side", 10);
         for (int f = 0; f < 8; f++) { for (float w0 = Time.time; Time.time - w0 < 0.13f;) yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "strip-walk-" + f + ".png")); yield return null; }

@@ -1,0 +1,732 @@
+{
+ "id": "acc",
+ "label": "acc",
+ "parts": [
+  {
+   "mesh": "pearls_m",
+   "material": "BeadPearl",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.949999988079071,
+    0.9300000071525574,
+    0.8799999952316284,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 2560
+  },
+  {
+   "mesh": "pendant_m",
+   "material": "BeadGem",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6499999761581421,
+    0.07999999821186066,
+    0.20000000298023224,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 80
+  },
+  {
+   "mesh": "pendant_m2",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 2080
+  },
+  {
+   "mesh": "choker_m",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 80
+  },
+  {
+   "mesh": "choker",
+   "material": "Velvet",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 112
+  },
+  {
+   "mesh": "tie",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 424
+  },
+  {
+   "mesh": "bowtie",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 360
+  },
+  {
+   "mesh": "ear_hoops_m",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1600
+  },
+  {
+   "mesh": "ear_studs_m",
+   "material": "BeadDiamond",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.9200000166893005,
+    0.949999988079071,
+    1.0,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 160
+  },
+  {
+   "mesh": "ear_drops_m",
+   "material": "BeadGem",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6499999761581421,
+    0.07999999821186066,
+    0.20000000298023224,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 160
+  },
+  {
+   "mesh": "ear_drops_m2",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 72
+  },
+  {
+   "mesh": "glasses_round_m",
+   "material": "BeadClear",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8500000238418579,
+    0.8999999761581421,
+    0.949999988079071,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 60
+  },
+  {
+   "mesh": "glasses_round",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1488
+  },
+  {
+   "mesh": "glasses_cat_m",
+   "material": "BeadClear",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8500000238418579,
+    0.8999999761581421,
+    0.949999988079071,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 60
+  },
+  {
+   "mesh": "glasses_cat",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1488
+  },
+  {
+   "mesh": "glasses_sun_m",
+   "material": "BeadLens",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.05999999865889549,
+    0.05000000074505806,
+    0.07000000029802322,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 76
+  },
+  {
+   "mesh": "glasses_sun",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1808
+  },
+  {
+   "mesh": "glasses_heart_m",
+   "material": "BeadRose",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8500000238418579,
+    0.20000000298023224,
+    0.44999998807907104,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 76
+  },
+  {
+   "mesh": "glasses_heart",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1808
+  },
+  {
+   "mesh": "hat_beret",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 560
+  },
+  {
+   "mesh": "hat_beanie",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 672
+  },
+  {
+   "mesh": "hat_sunhat_m",
+   "material": "BeadRibbon",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.11999999731779099,
+    0.10000000149011612,
+    0.09000000357627869,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 96
+  },
+  {
+   "mesh": "hat_sunhat",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 576
+  },
+  {
+   "mesh": "hat_cap",
+   "material": "Fabric",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 668
+  },
+  {
+   "mesh": "hat_tiara_m",
+   "material": "BeadDiamond",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.9200000166893005,
+    0.949999988079071,
+    1.0,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 560
+  },
+  {
+   "mesh": "hat_tiara_m2",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1008
+  },
+  {
+   "mesh": "crossbody_m",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 80
+  },
+  {
+   "mesh": "crossbody",
+   "material": "Leather",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 1336
+  },
+  {
+   "mesh": "heartbag_m",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 960
+  },
+  {
+   "mesh": "heartbag",
+   "material": "Leather",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 828
+  },
+  {
+   "mesh": "hand_tote",
+   "material": "Leather",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 300
+  },
+  {
+   "mesh": "hand_clutch_m",
+   "material": "BeadGold",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8600000143051147,
+    0.6600000262260437,
+    0.30000001192092896,
+    1.0
+   ],
+   "rough": 0.2,
+   "metal": 0.8,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 80
+  },
+  {
+   "mesh": "hand_clutch",
+   "material": "Leather",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.6,
+    0.6,
+    0.6,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0,
+   "tris": 328
+  }
+ ]
+}

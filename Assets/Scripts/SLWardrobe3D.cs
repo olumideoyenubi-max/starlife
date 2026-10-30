@@ -45,7 +45,12 @@ public static class SLWardrobe3D {
         { "ms_hoodie", "f_monohood_boutique:outer!" }, { "ms_tee", "f_tee_boutique!" }, { "mv_blouse", "f_silk_velours!" }, { "mv_wrap", "f_wrap_velours:dress!" },
         { "no_trousers", "f_leather_noir!" }, { "no_tee", "f_tee_noir!" }, { "hw_blazer", "f_blazer_hartwell:top!" }, { "sv_runners", "f_runners_sneakers!" }, { "sv_track", "f_hoodiejk_sneakers:outer!" },
         // eyewear: one pair of frames, dyed
-        { "roundspecs", "cute:extra" }, { "cateye", "cute:extra" }, { "sunnies", "cute:extra" }, { "heartsunnies", "cute:extra" },
+        // everyday accessories, modelled to her (Tools/blender/make_accessories.py); their gold, pearl and lens parts keep their own colour
+        { "roundspecs", "acc:glasses_round+glasses_round_m" }, { "cateye", "acc:glasses_cat+glasses_cat_m" }, { "sunnies", "acc:glasses_sun+glasses_sun_m" }, { "heartsunnies", "acc:glasses_heart+glasses_heart_m" },
+        { "pearls", "acc:pearls_m" }, { "pendant", "acc:pendant_m+pendant_m2" }, { "tie", "acc:tie" }, { "bowtie", "acc:bowtie" },
+        { "hoops", "acc:ear_hoops_m" }, { "studs", "acc:ear_studs_m" }, { "drops", "acc:ear_drops_m+ear_drops_m2" },
+        { "beret", "acc:hat_beret" }, { "beanie", "acc:hat_beanie" }, { "sunhat", "acc:hat_sunhat+hat_sunhat_m" }, { "cap", "acc:hat_cap" }, { "tiara", "acc:hat_tiara_m+hat_tiara_m2" },
+        { "tote", "acc:hand_tote" }, { "clutch", "acc:hand_clutch+hand_clutch_m" }, { "crossbody", "acc:crossbody+crossbody_m" }, { "heartbag", "acc:heartbag+heartbag_m" },
     };
     // The men wear menswear made on their shared body (Tools/blender/make_men.py): every item, women's included, maps to
     // one of those sets. Dresses become a suit; accessories have no 3D piece on a man yet.

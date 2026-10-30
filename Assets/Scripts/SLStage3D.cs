@@ -306,7 +306,7 @@ public sealed class SLStage3D {
     static Color? GenHair(string id) => id != null && (GenHairHex.TryGetValue(id, out var h) || id.StartsWith("m_") && GenHairHex.TryGetValue("manbase", out h)) ? H(h) : (Color?)null;
     public static bool IsMale(string id) => id != null && (MenIds.Contains(id) || id.StartsWith("m_"));
     /// <summary>Avatars that are only there to lend clothes (and the town's passers-by): not offered as faces or outfits.</summary>
-    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_") || id.StartsWith("f_");
+    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == "acc" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_") || id.StartsWith("f_");
     static readonly Dictionary<string, Color> ToneOf = new Dictionary<string, Color> {   // skin tones of the one-piece avatars
         { "aria", new Color(0.93f, 0.76f, 0.66f) }, { "mina", new Color(0.90f, 0.73f, 0.63f) }, { "luz", new Color(0.70f, 0.50f, 0.39f) } };
     static readonly Dictionary<string, Color> HairDye = new Dictionary<string, Color> {  // hairstyles whose own texture is only a pale strand pattern
