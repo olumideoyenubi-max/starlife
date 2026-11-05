@@ -111,7 +111,7 @@ public sealed class SLRig {
                 mesh = UnityEngine.Object.Instantiate(mf.sharedMesh); mesh.name = mf.sharedMesh.name + " (skinned)";
                 var v = mf.sharedMesh.vertices; var bw = new BoneWeight[v.Length];
                 for (int i = 0; i < v.Length; i++) bw[i] = src != null ? src.Nearest(toFig.MultiplyPoint3x4(v[i])) : new BoneWeight { boneIndex0 = Head, weight0 = 1 };
-                if (src != null && (parts[1] == "acc" || parts[1] == "goth")) Pin(bw, v, toFig, src, parts[2]);
+                if (src != null && (parts[1] == "acc" || parts[1] == "goth" || parts[1] == "lib")) Pin(bw, v, toFig, src, parts[2]);
                 mesh.boneWeights = bw;
                 var bp = new Matrix4x4[bones.Length]; for (int j = 0; j < bones.Length; j++) bp[j] = bones[j].worldToLocalMatrix * c.localToWorldMatrix;
                 mesh.bindposes = bp;

@@ -279,7 +279,7 @@ public partial class SLApp {
         foreach (var s in room.seats) town.seats.Add(s);
         SLTownWorld.SetLayer(room.root);
         foreach (var r in room.root.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; r.receiveShadows = true; }
-        QualitySettings.pixelLightCount = 8;
+        QualitySettings.pixelLightCount = RoomLights;
         // in through the door, facing into the room; a friend who is with you follows you in
         StandUp(); stepT = 0; groundSit = false; player.mo.emote = null;
         var at = RoomPt(0, 3.6f); player.pos = new Vector3(at.x, 0, at.y); player.ry = RoomRy(0); player.speed = 0;

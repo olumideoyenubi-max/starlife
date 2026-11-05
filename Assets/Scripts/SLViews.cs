@@ -139,7 +139,7 @@ public partial class SLApp {
         if (on && stage3d == null) stage3d = new SLStage3D();
         if (on && !stage3d.Ok) { on = false; ShowToast("The 3D starlets are not in this build"); }
         mode3d = on; yaw3d = 0;
-        if (remember) { PlayerPrefs.SetInt("sl3d", on ? 1 : 0); ShowToast(on ? "3D on: drag your starlet to turn her around" : "Back to the drawn game"); }
+        if (remember) { PlayerPrefs.SetInt("sl3d", on ? 1 : 0); ShowToast(on ? "3D on: drag your starlet to turn around" : "Back to the drawn game"); }
         btn3d.EnableInClassList("on", on);
         dirty = true;
     }
@@ -172,13 +172,15 @@ public partial class SLApp {
     bool Owns(string id) => Array.IndexOf(profile.owned, id) >= 0;
     string Worn(string slot) => core.Call("get", "outfit." + slot);
     SvgImage Thumb(DItem it, bool ownColor) {
+        var photo = Resources.Load<Texture2D>("LibThumbs/" + it.id);      // the fashion library's pieces show their own render (Tools/fashionlib/thumbs.py)
+        if (photo != null) return new SvgImage().Set3D("libthumb:" + it.id, (w, h) => photo);
         string col = ownColor ? core.Call("get", "colors." + it.id) : ""; if (col == "") col = it.color;
         return new SvgImage().Set("thumb:" + it.id + ":" + col, () => core.Call("thumb", it.id, col));
     }
 
     void RenderWardrobe() {
         wardTabs.Clear();
-        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("designer", "Designer"), ("men", "Menswear"), ("basics", "Underwear") }) {
+        foreach (var (k, label) in new[] { ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("designer", "Designer"), ("luxe", "Luxe"), ("everyday", "Everyday"), ("men", "Menswear"), ("basics", "Underwear") }) {
             string cat = k; var b = B(label, k == wardrobeCat ? "on" : null, () => { wardrobeCat = cat; RenderWardrobe(); }); wardTabs.Add(b);
         }
         if (wardrobeCat == "basics") { RenderBasics(); return; }
@@ -193,7 +195,7 @@ public partial class SLApp {
             DragToWear(card, it, OnStarlet, () => core.Call("equip", id)); wardGrid.Add(card);      // drag it onto her, or just click
         }
         VisualElement Note(string text) { var n = L(text, "muted"); n.style.width = Length.Percent(100); n.style.whiteSpace = WhiteSpace.Normal; return n; }   // full width, wrapped: a long line must not make the grid scroll sideways
-        wardGrid.Add(Note("Drag a piece onto her to wear it. Drag it off her to take it off."));
+        wardGrid.Add(Note("Drag a piece onto " + him + " to wear it. Drag it off " + him + " to take it off."));
         if (stored > 0) wardGrid.Add(Note(stored + (stored == 1 ? " piece is" : " pieces are") + " in storage: too dear for a " + CurJob.name.ToLowerInvariant() + ". Change jobs in Career."));
         if (locked > 0) { var more = El("item more", L("+" + locked, "h2"), L("More in the Shop")); more.RegisterCallback<ClickEvent>(_ => SetView("shop")); wardGrid.Add(more); }
 
@@ -239,7 +241,7 @@ public partial class SLApp {
             string slot = ls[i].slot; var dot = El("dot"); dot.style.backgroundColor = C(ls[i].color);
             layersBody.Add(El("placed", L((i + 1) + "  ", "muted"), dot, L(ls[i].name), B("×", null, () => core.Call("remove", slot))));
         }
-        if (ls.Length == 0) layersBody.Add(L("Just her underwear. Pick something from the wardrobe.", "muted"));
+        if (ls.Length == 0) layersBody.Add(L("Just " + her + " underwear. Pick something from the wardrobe.", "muted"));
         if (Worn("top") != "" && Worn("bottom") != "") layersBody.Add(B(state.tucked ? "Top tucked in" : "Top worn out", "chip" + (state.tucked ? " on" : ""), () => core.Call("set", "tucked", state.tucked ? "false" : "true")));
     }
 
@@ -354,7 +356,7 @@ public partial class SLApp {
         var turn = El("row", B("‹ Turn", "btn small", () => salonYaw -= 45), B("Front", "btn small", () => salonYaw = 0), B("Back", "btn small", () => salonYaw = 180), B("Turn ›", "btn small", () => salonYaw += 45));
         turn.style.position = Position.Absolute; turn.style.left = 14; turn.style.bottom = 14; view.Add(turn);
         salonBody = Scroll();
-        pane.Add(El("parlor", view, El("panel", L("Hair Salon", "h2"), L("Pick a style and a colour. Drag her to turn her round.", "muted"), salonBody)));
+        pane.Add(El("parlor", view, El("panel", L("Hair Salon", "h2"), L("Pick a style and a colour. Drag to turn your starlet round.", "muted"), salonBody)));
     }
     void RefreshSalon() {
         var b = salonBody; b.Clear();
@@ -370,7 +372,7 @@ public partial class SLApp {
             }
             b.Add(grid);
         }
-        var african = new List<(string, string)>(); var more = new List<(string, string)> { ("", "Her own") };
+        var african = new List<(string, string)>(); var more = new List<(string, string)> { ("", Her + " own") };
         foreach (var e in stage3d.Hair) if (Made.Contains(e.id)) african.Add(("h:" + e.id, e.label));
         foreach (var e in stage3d.Hair) if (!Made.Contains(e.id)) african.Add(("h:" + e.id, e.label));
         foreach (var e in stage3d.Starlets) if (e.id != me && !SLStage3D.IsHelper(e.id) && Array.Exists(e.parts, q => q.mesh == "hair")) more.Add(("s:" + e.id, char.ToUpperInvariant(e.id[0]) + e.id.Substring(1) + "'s"));
@@ -397,7 +399,7 @@ public partial class SLApp {
     }
     void RefreshShop() {
         shopTabs.Clear();
-        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("designer", "Designer"), ("men", "Menswear") }) {
+        foreach (var (k, label) in new[] { ("all", "All"), ("top", "Tops"), ("bottom", "Bottoms"), ("dress", "Dresses"), ("outer", "Jackets"), ("shoes", "Shoes"), ("acc", "Accessories"), ("sport", "Sports"), ("work", "Workwear"), ("prints", "Ankara & Prints"), ("season", "New Season"), ("goth", "Goth"), ("designer", "Designer"), ("luxe", "Luxe"), ("everyday", "Everyday"), ("men", "Menswear") }) {
             string cat = k; shopTabs.Add(B(label, k == shopCat ? "on" : null, () => { shopCat = cat; RefreshShop(); }));
         }
         var list = new List<DItem>(Array.FindAll(data.items, i => i.price > 0 && Allowed(i) && (shopCat == "all" || i.cat == shopCat)));
@@ -420,7 +422,7 @@ public partial class SLApp {
         }
         string ids = "[" + string.Join(",", tryOn.ConvertAll(s => "\"" + s + "\"")) + "]";
         if (On3) Doll3D(fitDoll, "fit", "full", MyLook(ids)); else fitDoll.Set("fit:" + dollKey + ids, () => core.Call("tryOnDoll", ids));
-        fitNote.text = tryOn.Count > 0 ? "Trying on: " + string.Join(", ", tryOn.ConvertAll(s => itemById[s].name)) : "Press Try on to see a piece on her before you buy.";
+        fitNote.text = tryOn.Count > 0 ? "Trying on: " + string.Join(", ", tryOn.ConvertAll(s => itemById[s].name)) : "Press Try on to see a piece on " + him + " before you buy.";
     }
 
     // ================================================================ contests
@@ -445,7 +447,7 @@ public partial class SLApp {
         s.Add(L("Judging checklist", "h3"));
         foreach (var l in brief.lines) { var tick = Icon(l.ok ? "check" : "ring", l.ok ? "#1d9a63" : "#c9bfd6", 18); tick.style.marginRight = 8; var row = El("row", tick, L(l.text, "check" + (l.ok ? " ok" : ""))); row.style.flexWrap = Wrap.NoWrap; s.Add(row); }
         s.Add(L(brief.best >= 0 ? "Today's best: " + brief.best + " points" : "Prize: up to 50 coins and 25 fame", "muted"));
-        var acts = El("row", B("Enter the contest", "btn primary big", EnterContest), B("Change her outfit", "btn", () => { SetView("suite"); OpenDrawer("wardrobe"); })); acts.style.marginTop = 12; s.Add(acts);
+        var acts = El("row", B("Enter the contest", "btn primary big", EnterContest), B("Change " + her + " outfit", "btn", () => { SetView("suite"); OpenDrawer("wardrobe"); })); acts.style.marginTop = 12; s.Add(acts);
         if (lastResult != null && lastResultTheme == th.id) {
             var r = lastResult;
             var ring = El("score-ring", L(r.score.ToString(), "score-num"), L("points", "muted")); ring.style.borderTopColor = ring.style.borderBottomColor = ring.style.borderLeftColor = ring.style.borderRightColor = C(r.medalColor);
@@ -458,7 +460,7 @@ public partial class SLApp {
             }
         }
     }
-    void EnterContest() { lastResult = core.Get<DResult>("enter", themeSel); lastResultTheme = themeSel; dirty = true; }
+    void EnterContest() { lastResult = core.Get<DResult>("enter", themeSel); lastResultTheme = themeSel; dirty = true; if (lastResult.score >= 60) SLAudio.I?.Play("win"); }
 
     // ================================================================ album and the save dialog
     VisualElement albumBody, saveOverlay; SvgImage savePreview; TextField lookName; readonly Dictionary<string, Texture2D> photos = new Dictionary<string, Texture2D>();
@@ -479,7 +481,7 @@ public partial class SLApp {
     }
     void BuildSaveModal() {
         savePreview = new SvgImage(); lookName = new TextField(); lookName.AddToClassList("input"); lookName.textEdition.placeholder = "Name this look";
-        saveOverlay = El("overlay", El("modal", L("Save to My Album", "h2"), L("A photo of your starlet in her suite. You earn 5 coins and 10 fame.", "muted"), El("modal-prev", savePreview), lookName,
+        saveOverlay = El("overlay", El("modal", L("Save to My Album", "h2"), L("A photo of your starlet at home in the suite. You earn 5 coins and 10 fame.", "muted"), El("modal-prev", savePreview), lookName,
             El("row", El("grow"), B("Cancel", "btn", () => saveOverlay.RemoveFromClassList("on")), B("Save photo", "btn primary", () => ConfirmSave(lookName.value)))));
         saveOverlay.Q(className: "modal-prev").style.marginTop = 10;
         overlayHost.Add(saveOverlay);
@@ -500,6 +502,6 @@ public partial class SLApp {
         string file = Path.Combine(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".png");
         File.WriteAllBytes(file, tex.EncodeToPNG()); photos[file] = tex;
         core.Call("albumAdd", name ?? "", file);
-        saveOverlay.RemoveFromClassList("on"); core.Flush();
+        saveOverlay.RemoveFromClassList("on"); core.Flush(); SLAudio.I?.Play("shutter");
     }
 }

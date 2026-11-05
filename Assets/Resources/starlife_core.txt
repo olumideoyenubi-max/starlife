@@ -2561,10 +2561,21 @@ showResult = function () {};
 saveProfile = function () { lsSet(LS_PROFILE, profile); host.profile(); };
 reward = function (coins, fame) {
   const before = level();
-  profile.coins += coins; profile.fame += fame;
+  profile.coins = Math.max(0, profile.coins + coins); profile.fame = Math.max(0, profile.fame + fame);
   saveProfile();
   if (level() > before) host.toast(`Level up! ${starletName()} is now level ${level()} ✦`);
 };
+
+profile.fame = Math.max(0, profile.fame);   // a missed invitation could take an older save below zero
+// The men are "he": what the core says about the starlet being played.
+const isMan = () => ['kai', 'leo', 'jin', 'theo', 'omar'].includes(state.starlet);
+const herWord = () => isMan() ? 'his' : 'her', himWord = () => isMan() ? 'him' : 'her';
+// The stylist's guide, for this game: the artifact's mentions its Life panel and Chat, which live in the town here.
+GUIDE[1] = () => `Open the <b>Wardrobe</b> and drag clothes onto ${himWord()}. Changed your mind? Drag a piece off ${himWord()} to take it off.`;
+GUIDE[2] = () => `Head to the <b>Beauty Parlor</b> to change ${herWord()} hair, eyes and makeup.`;
+GUIDE[4] = () => `Win coins and fame in <b>Contests</b>, then spend your coins in the <b>Shop</b> on new clothes for ${herWord()} wardrobe.`;
+GUIDE[5] = () => `Find a job in <b>Career</b>, train at the <b>Gym</b>, and press <b>Go Out</b> to walk the town: shops, restaurants, friends and Fashion Week.`;
+GUIDE[6] = () => `Check <b>Events</b> for holidays, get-togethers and invitations. Dress for the occasion: the better the fit, the bigger the reward.`;
 
 // More starlets than the artifact has: each has a 3D avatar (Assets/Starlets/<id>) and a drawn look for the 2D game.
 [
@@ -2675,12 +2686,39 @@ reward = function (coins, fame) {
   ['hw_blazer', 'Hartwell Crest Blazer', 'outer', 'designer', 'blazer', '#1f2a44', 220, ['office', 'chic']],
   ['sv_runners', 'Sneaker Vault Monogram Runners', 'shoes', 'designer', 'sneakers', '#f4f4f4', 110, ['sport', 'casual']],
   ['sv_track', 'Sneaker Vault Monogram Track Jacket', 'outer', 'designer', 'denimjk', '#f4f4f4', 95, ['sport', 'casual']],
+  // the fashion library (Tools/fashionlib): made in Blender, fitted to the shared body; 3D pieces in Starlets/lib and libfit
+  ['lux_aviator', 'Gold Aviators', 'glasses', 'luxe', 'roundspecs', '#b3a47f', 160, ['summer', 'chic']],
+  ['lux_ballet', 'Patent Ballet Flats', 'shoes', 'luxe', 'flats', '#9b8982', 190, ['chic', 'casual']],
+  ['lux_bangle', 'Malachite Gold Cuff', 'bracelet', 'luxe', 'pearls', '#b2a885', 240, ['chic', 'glam']],
+  ['lux_belt', 'Star Buckle Belt', 'belt', 'luxe', 'choker', '#807e79', 150, ['chic', 'glam']],
+  ['lux_clutch', 'Emerald Satin Clutch', 'bag', 'luxe', 'clutch', '#629e88', 260, ['glam', 'night', 'redcarpet']],
+  ['lux_fedora', 'Felt Fedora', 'hat', 'luxe', 'sunhat', '#bca68a', 140, ['chic', 'summer']],
+  ['lux_flapbag', 'Quilted Chain Bag', 'bag', 'luxe', 'crossbody', '#4c4948', 320, ['chic', 'glam', 'night']],
+  ['lux_hoops', 'Pearl Drop Hoops', 'earrings', 'luxe', 'hoops', '#f0dfb8', 170, ['chic', 'glam']],
+  ['lux_loafer', 'Gold Bar Loafers', 'shoes', 'luxe', 'loafers', '#8b5f56', 210, ['office', 'chic']],
+  ['lux_necklace', 'Star Pendant Necklace', 'necklace', 'luxe', 'pendant', '#f2ddac', 200, ['chic', 'glam']],
+  ['lux_scarf', 'Adire Silk Scarf', 'necklace', 'luxe', 'choker', '#656d88', 120, ['chic', 'office']],
+  ['lux_tote', 'Cognac Top-handle Tote', 'bag', 'luxe', 'tote', '#a17959', 280, ['office', 'chic']],
+  ['lux_watch', 'Gold Dress Watch', 'watch', 'luxe', 'choker', '#8d836e', 300, ['office', 'chic']],
+  ['mid_backpack', 'Mini Nylon Backpack', 'bag', 'everyday', 'crossbody', '#48484c', 45, ['casual', 'sport']],
+  ['mid_beads', 'Stacked Bead Bracelets', 'bracelet', 'everyday', 'pearls', '#ada999', 45, ['casual']],
+  ['mid_belt', 'Webbing Belt', 'belt', 'everyday', 'choker', '#767a65', 45, ['casual']],
+  ['mid_bucket', 'Twill Bucket Hat', 'hat', 'everyday', 'sunhat', '#bbb49d', 45, ['summer', 'casual']],
+  ['mid_cap', 'Six-panel Cap', 'hat', 'everyday', 'cap', '#5b6784', 45, ['casual', 'sport']],
+  ['mid_chain', 'Silver Curb Chain', 'necklace', 'everyday', 'pearls', '#f0f1f3', 45, ['casual']],
+  ['mid_crossbody', 'Nylon Camera Bag', 'bag', 'everyday', 'crossbody', '#696b5c', 45, ['casual']],
+  ['mid_slide', 'Moulded Slides', 'shoes', 'everyday', 'sandals', '#4e4e4e', 45, ['summer', 'casual']],
+  ['mid_sneaker', 'Leather Low-tops', 'shoes', 'everyday', 'sneakers', '#aeaba5', 45, ['casual', 'sport']],
+  ['mid_studs', 'Star Studs and Ear Cuff', 'earrings', 'everyday', 'studs', '#eeeff1', 45, ['casual']],
+  ['mid_sunglasses', 'Tortoiseshell Sunglasses', 'glasses', 'everyday', 'sunnies', '#8c6b41', 45, ['summer', 'casual']],
+  ['mid_tote', 'Canvas Tote', 'bag', 'everyday', 'tote', '#c2b9ab', 45, ['casual', 'summer']],
+  ['mid_watch', 'Steel Field Watch', 'watch', 'everyday', 'choker', '#8e9186', 45, ['casual', 'work']],
 ].forEach(function (e) {
   if (ITEM[e[0]]) return;     // the artifact has it already (its own drawing wins)
   var it = Object.assign({}, ITEM[e[4]], { id: e[0], name: e[1], slot: e[2], cat: e[3], color: e[5], group: '' });
   ITEMS.push(it); ITEM[it.id] = it; PRICES[it.id] = e[6]; TAGS[it.id] = e[7];
 });
-TAG_LABEL.designer = 'Designer'; TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.prints = 'Ankara & Prints'; TAG_LABEL.season = 'New Season';
+TAG_LABEL.designer = 'Designer'; TAG_LABEL.luxe = 'Luxe'; TAG_LABEL.everyday = 'Everyday'; TAG_LABEL.sport = 'Sporty'; TAG_LABEL.men = 'Menswear'; TAG_LABEL.prints = 'Ankara & Prints'; TAG_LABEL.season = 'New Season';
 // the artifact's menswear goes under the Menswear tab of the wardrobe and the shop
 ['shirt', 'polo', 'hoodie', 'chinos', 'suitpants', 'suit', 'tux', 'tie', 'bowtie', 'oxfords', 'loafers', 'cap'].forEach(function (id) { if (ITEM[id]) ITEM[id].cat = 'men'; }); TAG_LABEL.work = 'Workwear'; TAG_LABEL.goth = 'Goth';
 ['corset', 'biker', 'choker', 'kneeboots', 'ankleboots', 'lbd', 'crossbody'].forEach(function (id) { if (TAGS[id]) TAGS[id].push('goth'); });   // older pieces that suit the look
@@ -2763,7 +2801,7 @@ const SL = {
     return JSON.stringify([...order, 'bag', 'necklace', 'earrings', 'glasses', 'hat'].filter(k => o[k]).map(k => ({ slot: k, name: ITEM[o[k]].name, color: colOf(o[k]) })));
   },
   remove(slot) { state.outfit[slot] = null; update(true); },
-  undress() { for (const k of Object.keys(state.outfit)) state.outfit[k] = null; update(true); toast(`${starletName()} is back in her underwear`); },
+  undress() { for (const k of Object.keys(state.outfit)) state.outfit[k] = null; update(true); toast(`${starletName()} is back in ${herWord()} underwear`); },
   recolor(c) {
     const f = state.focus && ITEM[state.focus]; if (!f) return;
     if (c === 'reset') delete state.colors[f.id]; else state.colors[f.id] = c;
@@ -2795,7 +2833,7 @@ const SL = {
   depth(y) { return depth(y); },
   random() { randomize(); }, undo() { undo(); }, preset(n) { applyPreset(n); }, buy(id) { buy(id); }, equip(id) { equip(id); },
   // ---- shop ----
-  bonus() { if (profile.lastBonus !== today()) { profile.lastBonus = today(); reward(50, 5); toast('+50 coins! Treat her to something in the Shop.'); } },
+  bonus() { if (profile.lastBonus !== today()) { profile.lastBonus = today(); reward(50, 5); toast(`+50 coins! Treat ${himWord()} to something in the Shop.`); } },
   tryOnDoll(idsJson) { UID = 0; const s = clone(state); JSON.parse(idsJson).forEach(id => wearOn(s, id)); return renderDoll(s); },
   wearNow(id) { equip(id, true); },
   // ---- contests ----

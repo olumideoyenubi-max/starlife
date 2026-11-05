@@ -306,7 +306,7 @@ public sealed class SLStage3D {
     static Color? GenHair(string id) => id != null && (GenHairHex.TryGetValue(id, out var h) || id.StartsWith("m_") && GenHairHex.TryGetValue("manbase", out h)) ? H(h) : (Color?)null;
     public static bool IsMale(string id) => id != null && (MenIds.Contains(id) || id.StartsWith("m_"));
     /// <summary>Avatars that are only there to lend clothes (and the town's passers-by): not offered as faces or outfits.</summary>
-    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == "acc" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_") || id.StartsWith("f_");
+    public static bool IsHelper(string id) => id == "basics" || id == "goth" || id == "acc" || id == "lib" || id == "libfit" || id == ManBase || id.StartsWith("m_") || id.StartsWith("p_") || id.StartsWith("f_");
     static readonly Dictionary<string, Color> ToneOf = new Dictionary<string, Color> {   // skin tones of the one-piece avatars
         { "aria", new Color(0.93f, 0.76f, 0.66f) }, { "mina", new Color(0.90f, 0.73f, 0.63f) }, { "luz", new Color(0.70f, 0.50f, 0.39f) } };
     static readonly Dictionary<string, Color> HairDye = new Dictionary<string, Color> {  // hairstyles whose own texture is only a pale strand pattern
@@ -342,7 +342,37 @@ public sealed class SLStage3D {
         else if (tint.HasValue) m.SetColor("_Tint", m.GetColor("_Tint") * tint.Value);
         m.SetFloat("_Inset", inset); m.SetFloat("_Shrink", shrink); m.SetFloat("_ZPush", zpush);
     }
-    void Compose(Transform t, Look3 L) {
+    void Compose(Transform t, Look3 L) { ComposeLook(t, L); TuckHair(t); }
+    static readonly Dictionary<(Mesh, Mesh), Mesh> tucked = new Dictionary<(Mesh, Mesh), Mesh>();
+    /// <summary>Under a library hat, hair above the band is drawn in to fit the crown, so a bun or a full style cannot poke through it.</summary>
+    static void TuckHair(Transform t) {
+        MeshFilter hat = null;
+        foreach (Transform c in t) if (c.name.StartsWith("Starlets/lib/hat_") && c.TryGetComponent<MeshFilter>(out var f) && f.sharedMesh != null && (hat == null || f.sharedMesh.vertexCount > hat.sharedMesh.vertexCount)) hat = f;
+        if (hat == null) return;
+        var toT = t.worldToLocalMatrix * hat.transform.localToWorldMatrix; float lo = float.MaxValue, hi = float.MinValue; var hv = hat.sharedMesh.vertices;
+        for (int i = 0; i < hv.Length; i++) { float y = toT.MultiplyPoint3x4(hv[i]).y; lo = Mathf.Min(lo, y); hi = Mathf.Max(hi, y); }
+        float mid = (lo + hi) / 2, band = lo + (hi - lo) * 0.35f, x0 = float.MaxValue, x1 = float.MinValue, z0 = float.MaxValue, z1 = float.MinValue;
+        for (int i = 0; i < hv.Length; i++) { var p = toT.MultiplyPoint3x4(hv[i]); if (p.y < mid) continue; x0 = Mathf.Min(x0, p.x); x1 = Mathf.Max(x1, p.x); z0 = Mathf.Min(z0, p.z); z1 = Mathf.Max(z1, p.z); }
+        float cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, rx = (x1 - x0) / 2 * 0.92f, rz = (z1 - z0) / 2 * 0.92f;
+        foreach (Transform c in t) {
+            if (!c.name.StartsWith("Hair/") && !c.name.EndsWith("/hair")) continue;
+            if (!c.TryGetComponent<MeshFilter>(out var mf) || mf.sharedMesh == null) continue;
+            if (!tucked.TryGetValue((mf.sharedMesh, hat.sharedMesh), out var mesh)) {
+                mesh = UnityEngine.Object.Instantiate(mf.sharedMesh); mesh.name = mf.sharedMesh.name + " (tucked)";
+                var v = mesh.vertices; var to = t.worldToLocalMatrix * c.localToWorldMatrix; var back = to.inverse;
+                for (int i = 0; i < v.Length; i++) {
+                    var p = to.MultiplyPoint3x4(v[i]); float s = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(band - 0.03f, band + 0.02f, p.y)); if (s <= 0) continue;
+                    float dx = p.x - cx, dz = p.z - cz, e = Mathf.Sqrt(dx * dx / (rx * rx) + dz * dz / (rz * rz)), k = e > 1 ? Mathf.Lerp(1, 1 / e, s) : 1;
+                    p.x = cx + dx * k; p.z = cz + dz * k; p.y = Mathf.Lerp(p.y, Mathf.Min(p.y, hi - 0.012f), s); v[i] = back.MultiplyPoint3x4(p);
+                }
+                mesh.vertices = v; mesh.RecalculateBounds(); tucked[(mf.sharedMesh, hat.sharedMesh)] = mesh;
+            }
+            mf.sharedMesh = mesh;
+        }
+    }
+    /// <summary>Library belts and bag straps lie over whatever she wears, and a loose top stands further off her than they do, so they win where the two are close.</summary>
+    static bool OverCloth(SLWardrobe3D.Piece g) => g.donor == "lib" && (g.slot == "belt" || g.slot == "bag") && !g.part.StartsWith("hand_");
+    void ComposeLook(Transform t, Look3 L) {
         for (int i = t.childCount - 1; i >= 0; i--) UnityEngine.Object.DestroyImmediate(t.GetChild(i).gameObject);   // at once: several looks can be drawn in one frame
         string me = "Starlets/" + (HasPart(L.id, "head") ? L.id : "aria"), id = HasPart(L.id, "head") ? L.id : "aria";
         Color? skinTint = L.skinTint == Color.white ? (Color?)null : L.skinTint; Color tone = Tone(id) * L.skinTint;
@@ -399,7 +429,7 @@ public sealed class SLStage3D {
         foreach (var g in plan) {
             // mary's knee boots were made for a slimmer calf: eased outward so the shared body's leg stays inside
             // a top or jacket hangs over a bottom, so where the two lie together the bottom gives way
-            Add(t, "Starlets/" + g.donor, g.part, Dye(g), null, g.donor == "mary" && g.part == "shoes" ? -0.008f : 0, false, 0, g.part == "fishnets" ? 34000 : g.slot == "bottom" && topOn && g.donor != "goth" ? 20000 : 0, SLWardrobe3D.IsClothing(g.slot) && g.slot != "shoes" && !(g.donor == "lina" && g.part == "bottom"));   // that skirt's two-colour print dyes badly: one colour   // tights sit under the skirt   // shoes and frames take the dye whole; clothes keep their trims
+            Add(t, "Starlets/" + g.donor, g.part, Dye(g), null, g.donor == "mary" && g.part == "shoes" ? -0.008f : 0, false, 0, g.part == "fishnets" ? 34000 : g.slot == "bottom" && topOn && g.donor != "goth" ? 20000 : OverCloth(g) ? -14000 : 0, SLWardrobe3D.IsClothing(g.slot) && g.slot != "shoes" && !(g.donor == "lina" && g.part == "bottom"));   // that skirt's two-colour print dyes badly: one colour   // tights sit under the skirt   // shoes and frames take the dye whole; clothes keep their trims
             if (g.part == "shoes") { shoes = true; Add(t, "Starlets/" + g.donor, "feet", tone, null, 0, true, 0, Skin); }
         }
         if (!shoes) Add(t, b, "feet", tone, null, 0, true);

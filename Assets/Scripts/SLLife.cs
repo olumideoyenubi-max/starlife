@@ -8,6 +8,17 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public partial class SLApp {
+    // ================================================================ words for the starlet being played: the men are "he"
+    bool Man => SLStage3D.IsMale(Av);
+    string She => Man ? "He" : "She";
+    string she => Man ? "he" : "she";
+    string Her => Man ? "His" : "Her";
+    string her => Man ? "his" : "her";
+    string him => Man ? "him" : "her";
+    /// <summary>Fills in {she}, {She}, {her}, {Her} and {him} in the fixed texts (jobs, events, salon steps).</summary>
+    string Pn(string s) => s.Replace("{she}", she).Replace("{She}", She).Replace("{her}", her).Replace("{Her}", Her).Replace("{him}", him);
+    static string An(string word) => ("aeiou".IndexOf(char.ToLowerInvariant(word[0])) >= 0 ? "an " : "a ") + word;
+
     // ================================================================ settings kept with the save, per starlet
     string P(string key, string def = "") => core.Pref(key + "." + Av, def);
     void SetP(string key, string value) { core.SetPref(key + "." + Av, value); dirty = true; }
@@ -110,10 +121,10 @@ public partial class SLApp {
         new Job { id = "popstar", name = "Pop star", tier = "star", pay = 70, fame = 8, tags = new[] { "Glam", "Night out" }, blurb = "Sold-out arenas and a number one single." },
         new Job { id = "actress", name = "Film star", tier = "star", pay = 80, fame = 9, tags = new[] { "Red carpet", "Glam" }, blurb = "Premieres, press tours and awards season." },
         new Job { id = "model", name = "Supermodel", tier = "star", pay = 75, fame = 8, tags = new[] { "Chic", "Edgy" }, blurb = "Runways in four cities and every magazine cover." },
-        new Job { id = "designer", name = "Fashion designer", tier = "star", pay = 65, fame = 6, tags = new[] { "Chic", "Office" }, blurb = "Her own label, shown twice a year." },
+        new Job { id = "designer", name = "Fashion designer", tier = "star", pay = 65, fame = 6, tags = new[] { "Chic", "Office" }, blurb = "{Her} own label, shown twice a year." },
         new Job { id = "athlete", name = "Pro athlete", tier = "star", pay = 70, fame = 7, tags = new[] { "Sporty" }, blurb = "Medals, sponsors and early mornings." },
-        new Job { id = "mogul", name = "Business mogul", tier = "star", pay = 90, fame = 5, tags = new[] { "Office", "Chic" }, blurb = "A boardroom with her name on the building." },
-        new Job { id = "influencer", name = "Influencer", tier = "star", pay = 55, fame = 7, tags = new[] { "Casual", "Summer" }, blurb = "Ten million followers watch what she wears." },
+        new Job { id = "mogul", name = "Business mogul", tier = "star", pay = 90, fame = 5, tags = new[] { "Office", "Chic" }, blurb = "A boardroom with {her} name on the building." },
+        new Job { id = "influencer", name = "Influencer", tier = "star", pay = 55, fame = 7, tags = new[] { "Casual", "Summer" }, blurb = "Ten million followers watch what {she} wears." },
         new Job { id = "rockstar", name = "Rock star", tier = "star", pay = 72, fame = 8, tags = new[] { "Goth", "Edgy" }, blurb = "Black eyeliner, loud guitars and a world tour." },
         new Job { id = "barista", name = "Barista", tier = "everyday", pay = 16, budget = 35, tags = new[] { "Workwear", "Casual" }, uniform = new[] { "staffpolo", "workpants" }, blurb = "Flat whites from six in the morning." },
         new Job { id = "nurse", name = "Nurse", tier = "everyday", pay = 24, budget = 40, tags = new[] { "Workwear" }, uniform = new[] { "scrubtop", "scrubpants" }, blurb = "Long shifts on the ward, in scrubs." },
@@ -125,10 +136,12 @@ public partial class SLApp {
     static readonly Dictionary<string, string> FirstJob = new Dictionary<string, string> {
         { "aria", "popstar" }, { "zuri", "model" }, { "mina", "popstar" }, { "luz", "actress" }, { "noor", "actress" }, { "ivy", "designer" }, { "charlotte", "influencer" }, { "jenny", "athlete" },
         { "lina", "athlete" }, { "lucy", "athlete" }, { "mary", "popstar" }, { "olivia", "athlete" }, { "rosie", "influencer" }, { "songbird", "popstar" }, { "eve", "actress" }, { "cute", "designer" },
-        { "pigtail", "mogul" }, { "custom", "influencer" } };
+        { "pigtail", "mogul" }, { "custom", "influencer" }, { "kai", "rockstar" }, { "leo", "actress" }, { "jin", "popstar" }, { "theo", "athlete" }, { "omar", "mogul" } };
     Job CurJob { get { string id = P("job", FirstJob.TryGetValue(Av, out var f) ? f : "popstar"); return Array.Find(Jobs, j => j.id == id) ?? Jobs[0]; } }
     /// <summary>A star can wear anything; on an everyday wage only modest pieces and the uniform are in the wardrobe.</summary>
     bool Allowed(DItem it) { var j = CurJob; return j.budget == 0 || it.price <= j.budget || Array.IndexOf(j.uniform, it.id) >= 0; }
+    /// <summary>The same limit for a town boutique's piece, which has its own price.</summary>
+    bool OverBudget(int price, string id) { var j = CurJob; return j.budget > 0 && price > j.budget && Array.IndexOf(j.uniform, id) < 0; }
     int ShiftsLeft => Mathf.Max(0, 3 - (int)Num(core.Pref("shifts." + Today, "0"), 0));
 
     void TakeJob(Job job) {
@@ -137,7 +150,7 @@ public partial class SLApp {
         var d = JsonUtility.FromJson<DLook3>(core.Call("look3d")); var off = new List<string>();
         if (d.worn != null) foreach (var w in d.worn) if (itemById.TryGetValue(w.id, out var it) && !Allowed(it)) off.Add(w.id);
         if (off.Count > 0) core.Call("takeOff", Json(off));
-        ShowToast(job.tier == "star" ? "Now a " + job.name.ToLowerInvariant() + ": the whole wardrobe is hers" : "Now a " + job.name.ToLowerInvariant() + ": the pricey pieces go into storage");
+        ShowToast("Now " + An(job.name.ToLowerInvariant()) + (job.tier == "star" ? ": the whole wardrobe is " + (Man ? "his" : "hers") : ": the pricey pieces go into storage"));
     }
     (List<DLine> lines, int score, int match) DressCheck(string[] tags, int need) {
         var d = JsonUtility.FromJson<DLook3>(core.Call("look3d")); bool top = false, bottom = false, dress = false, shoes = false; int match = 0;
@@ -163,19 +176,19 @@ public partial class SLApp {
         if (On3) Doll3D(careerDoll, "career", "full"); else careerDoll.Set("doll:" + dollKey + ":career", () => core.Call("doll"));
         var s = careerBody; s.Clear(); var job = CurJob; var (lines, score, _) = DressCheck(job.tags, 2);
         s.Add(L(profile.name + ", " + job.name.ToLowerInvariant(), "h2"));
-        s.Add(L(job.blurb + (job.tier == "star" ? " A star career: nothing in the shop is out of reach." : " An everyday job: only pieces up to " + job.budget + " coins, and the uniform, are in her wardrobe and the shop."), "muted"));
+        s.Add(L(Pn(job.blurb) + (job.tier == "star" ? " A star career: nothing in the shop is out of reach." : " An everyday job: only pieces up to " + job.budget + " coins, and the uniform, are in " + her + " wardrobe and the shop."), "muted"));
         s.Add(L("Dress code for work", "h3")); Checklist(s, lines);
         s.Add(L("Pay: up to " + job.pay + " coins" + (job.fame > 0 ? " and " + job.fame + " fame" : "") + " a shift. Shifts left today: " + ShiftsLeft + " of 3 (a workout at the gym gives one back).", "muted"));
         var go = B("Go to work", "btn primary big", Work); go.SetEnabled(ShiftsLeft > 0);
-        var acts = El("row", go, B("Change her outfit", "btn", () => { SetView("suite"); OpenDrawer("wardrobe"); })); acts.style.marginTop = 12; s.Add(acts);
+        var acts = El("row", go, B("Change " + her + " outfit", "btn", () => { SetView("suite"); OpenDrawer("wardrobe"); })); acts.style.marginTop = 12; s.Add(acts);
         if (workResult != "") { var r = L(workResult, "h3"); s.Add(r); }
         foreach (var (tier, title) in new[] { ("star", "STAR CAREERS"), ("everyday", "EVERYDAY JOBS") }) {
             s.Add(L(title, "sec")); var grid = El("grid");
             foreach (var j in Jobs) {
                 if (j.tier != tier) continue; var jj = j; bool cur = j.id == job.id;
-                var take = B(cur ? "Her job now" : "Take this job", "btn small" + (cur ? "" : " primary"), () => TakeJob(jj)); take.SetEnabled(!cur);
+                var take = B(cur ? Her + " job now" : "Take this job", "btn small" + (cur ? "" : " primary"), () => TakeJob(jj)); take.SetEnabled(!cur);
                 string wardrobe = j.budget == 0 ? "Whole wardrobe" : "Wardrobe up to " + j.budget + " coins" + (j.uniform.Length > 0 ? ", uniform provided" : "");
-                var card = El(null, L(j.name.ToUpperInvariant(), "tile-h"), L(j.pay + " coins a shift", "look-name"), L(j.blurb, "muted"), L("Wears: " + string.Join(", ", j.tags).ToLowerInvariant() + ". " + wardrobe + ".", "muted"), take);
+                var card = El(null, L(j.name.ToUpperInvariant(), "tile-h"), L(j.pay + " coins a shift", "look-name"), L(Pn(j.blurb), "muted"), L("Wears: " + string.Join(", ", j.tags).ToLowerInvariant() + ". " + wardrobe + ".", "muted"), take);
                 card.style.width = 268; card.style.marginRight = 12; card.style.marginBottom = 12; card.style.paddingLeft = card.style.paddingRight = 14; card.style.paddingTop = card.style.paddingBottom = 12;
                 card.style.borderTopLeftRadius = card.style.borderTopRightRadius = card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 14;
                 card.style.borderLeftWidth = card.style.borderRightWidth = card.style.borderTopWidth = card.style.borderBottomWidth = cur ? 2 : 1;
@@ -191,7 +204,7 @@ public partial class SLApp {
         int pay = Mathf.RoundToInt(job.pay * (0.3f + 0.7f * score / 100f)), fame = Mathf.RoundToInt(job.fame * score / 100f);
         core.SetPref("shifts." + Today, ((int)Num(core.Pref("shifts." + Today, "0"), 0) + 1).ToString());
         core.Call("earn", (double)pay, (double)fame);
-        workResult = (score >= 85 ? "A great shift, dressed for the part. " : score >= 55 ? "A decent shift. " : "A hard shift: she was not dressed for it. ") + "She earned " + pay + " coins" + (fame > 0 ? " and " + fame + " fame." : ".");
+        workResult = (score >= 85 ? "A great shift, dressed for the part. " : score >= 55 ? "A decent shift. " : "A hard shift: " + she + " was not dressed for it. ") + She + " earned " + pay + " coins" + (fame > 0 ? " and " + fame + " fame." : ".");
         dirty = true;
     }
 
@@ -206,7 +219,7 @@ public partial class SLApp {
         view.RegisterCallback<PointerMoveEvent>(e => { if (!gymTurn || !view.HasPointerCapture(e.pointerId)) return; gymYaw -= (e.position.x - gymFrom) * 0.7f; gymFrom = e.position.x; });
         view.RegisterCallback<PointerUpEvent>(e => { if (view.HasPointerCapture(e.pointerId)) view.ReleasePointer(e.pointerId); gymTurn = false; });
         gymBody = Scroll();
-        pane.Add(El("parlor", view, El("panel", L("Gym", "h2"), L("Kit her out in sports gear, then train. A workout earns fame and gives back a work shift.", "muted"), gymBody)));
+        pane.Add(El("parlor", view, El("panel", L("Gym", "h2"), L("Kit your starlet out in sports gear, then train. A workout earns fame and gives back a work shift.", "muted"), gymBody)));
     }
     void RefreshGym() {
         var b = gymBody; b.Clear();
@@ -242,7 +255,7 @@ public partial class SLApp {
         // she does it, there on the screen, for a few seconds; training shapes her (cardio slims, weights build muscle)
         var mv = GymMoves.First(m => m.name == name); gymMove = mv.move; gymUntil = Time.time + 7;
         string body = BodyChange(Av, mv.weight, mv.muscle);
-        gymResult = name + " done: +" + fame + " fame" + (back ? ", and she has the energy for another shift at work." : ".") + body;
+        gymResult = name + " done: +" + fame + " fame" + (back ? ", and " + she + " has the energy for another shift at work." : ".") + body;
         dirty = true;
     }
     /// <summary>Food and exercise change her build a little at a time (weight -1..1, muscle 0..1, as in the avatar studio).
@@ -255,10 +268,10 @@ public partial class SLApp {
         if (sh[0] == w0 && sh[1] == m0) return "";
         core.SetPref("shape." + sid, string.Join(",", Array.ConvertAll(sh, v => v.ToString("0.###", CultureInfo.InvariantCulture)))); dirty = true;
         bodyDirty = true;
-        if (dWeight < 0 && sh[1] > m0) return " She looks leaner and more toned.";
-        if (dWeight < 0) return " She looks a little slimmer.";
-        if (dWeight > 0) return " She has filled out a little.";
-        return " She looks more toned.";
+        if (dWeight < 0 && sh[1] > m0) return " " + She + " looks leaner and more toned.";
+        if (dWeight < 0) return " " + She + " looks a little slimmer.";
+        if (dWeight > 0) return " " + She + " has filled out a little.";
+        return " " + She + " looks more toned.";
     }
     bool bodyDirty;
     void TickGym() {
@@ -271,7 +284,7 @@ public partial class SLApp {
     // ================================================================ avatar studio (Beauty Parlor > Avatar, 3D)
     void AvatarStudio(VisualElement b) {
         string me = Av; var mine = SigLook(me);
-        b.Add(L("Avatar studio", "h3")); b.Add(L("Make her your own: a face, the outfit she arrives in, her height and her build. Hair is done in the Hair Salon.", "muted"));
+        b.Add(L("Avatar studio", "h3")); b.Add(L("Make " + him + " your own: a face, the outfit " + she + " arrives in, " + her + " height and " + her + " build. Hair is done in the Hair Salon.", "muted"));
         if (me == "custom") {
             var name = new TextField { value = profile.name }; name.AddToClassList("input"); name.style.flexGrow = 1; name.style.marginRight = 8;
             var row = El("row", name, B("Save name", "btn small primary", () => { string v = name.value.Trim(); if (v == "") return; core.SetPref("name.custom", v); core.Call("rename", v); foreach (var x in data.starlets) if (x.id == "custom") x.name = v; dirty = true; }));
@@ -297,12 +310,12 @@ public partial class SLApp {
         }
         b.Add(fits);
         // her build: sliders, and a few ready-made builds to start from
-        b.Add(L("Build", "h3")); b.Add(L("Height, weight, muscle and proportions. Her clothes change shape with her. Press Full length under the mirror to see all of her.", "muted"));
+        b.Add(L("Build", "h3")); b.Add(L("Height, weight, muscle and proportions. " + Her + " clothes change shape with " + him + ". Press Full length under the mirror to see all of " + him + ".", "muted"));
         string[] names = { "Weight", "Muscle", "Shoulders", "Hips", "Bust", "Leg length", "Head size", "Bum" };
         float[] cur = SigLook(me).shape; float height = Num(core.Pref("height." + me, "1"));
         void Save() { core.SetPref("shape." + me, string.Join(",", Array.ConvertAll(cur, v => v.ToString("0.###", CultureInfo.InvariantCulture)))); core.SetPref("height." + me, height.ToString("0.###", CultureInfo.InvariantCulture)); dirty = true; }
         var presets = El("row");
-        foreach (var (label, h, v) in new[] { ("As she came", 1f, new float[] { 0, 0, 0, 0, 0, 0, 0 }), ("Petite", 0.93f, new float[] { -0.3f, 0, -0.2f, -0.1f, -0.2f, -0.3f, 0.3f }), ("Slim", 1f, new float[] { -0.7f, 0, -0.2f, -0.4f, -0.3f, 0.2f, 0 }),
+        foreach (var (label, h, v) in new[] { ("Original", 1f, new float[] { 0, 0, 0, 0, 0, 0, 0 }), ("Petite", 0.93f, new float[] { -0.3f, 0, -0.2f, -0.1f, -0.2f, -0.3f, 0.3f }), ("Slim", 1f, new float[] { -0.7f, 0, -0.2f, -0.4f, -0.3f, 0.2f, 0 }),
                 ("Tall model", 1.08f, new float[] { -0.5f, 0.1f, 0.1f, -0.2f, -0.1f, 0.8f, -0.3f }), ("Athletic", 1.02f, new float[] { -0.1f, 0.55f, 0.4f, 0, 0, 0.2f, 0 }), ("Curvy", 1f, new float[] { 0.3f, 0, 0, 1.1f, 1.1f, 0, 0, 1.1f }), ("Hourglass", 1.01f, new float[] { -0.15f, 0.1f, 0.1f, 1.4f, 1.4f, 0.1f, 0, 1.4f }),
                 ("Bodybuilder", 1.03f, new float[] { 0.2f, 1f, 1f, 0.2f, 0.2f, 0, -0.2f }), ("Plus size", 1f, new float[] { 1f, 0, 0.3f, 0.9f, 0.9f, -0.1f, 0, 0.9f }) }) {
             float hh = h; var vv = v; presets.Add(B(label, "chip", () => { height = hh; Array.Clear(cur, 0, cur.Length); Array.Copy(vv, cur, Mathf.Min(vv.Length, cur.Length)); Save(); RefreshParlorPanel(); }));

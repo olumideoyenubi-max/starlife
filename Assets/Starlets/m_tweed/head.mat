@@ -53,6 +53,7 @@ Material:
     - _Keep: 0
     - _Lift: 0
     - _Makeup: 0
+    - _Metallic: 0
     - _Recolor: 0
     - _SSS: 0.32
     - _SatMask: 0

@@ -219,7 +219,14 @@ Renderer checks without Unity: `node Tools/run_core.js` writes sample SVGs to `T
 `Tools/chrome_ref.sh <name>` renders them with Chrome, the harness in `Tools/harness` renders them with `SLSvg`,
 and `Tools/sidebyside.sh <name> <height>` puts the two next to each other.
 
+## Sound and settings
+
+`SLAudio.cs` makes all the sound at start-up (two music loops, the street, an engine, interface sounds and footsteps), so there are no audio files. `SLSettings.cs` is the settings panel (top bar, Esc, or the town phone's clock): music and sound volume, graphics quality, full screen and quit; the town waits while it is open. The volumes and graphics choice are in PlayerPrefs (`sl.music`, `sl.sound`, `sl.quality`).
+
+## Saves
+
+`SLCore.Flush` writes `<save>.tmp` and swaps it in, keeping the previous save as `<save>.bak`. A save that cannot be read is copied to `<save>.damaged-<time>`, and the game goes back to the `.bak`. The tour's rule checks (saves, fame, invitations, pronouns, budgets, sound) are written to `checks.txt` in its folder.
+
 ## Not ported yet
 
-Events and Chat, drag-and-drop dressing (click a piece instead), the custom colour picker, and text inside
-drawings (the "Starlife" print on the tote, "MOVING CO." on the box).
+Chat, the custom colour picker, and text inside drawings (the "Starlife" print on the tote, "MOVING CO." on the box).

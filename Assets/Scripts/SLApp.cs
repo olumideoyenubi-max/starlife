@@ -81,6 +81,7 @@ public partial class SLApp : MonoBehaviour {
         { "check", "<circle cx='12' cy='12' r='10' fill='COLOR' stroke='none'/><path d='M7 12.5l3.4 3.4L17 9' stroke='#ffffff' stroke-width='2.4'/>" },
         { "cube", "<path d='M12 3l8 4.5v9L12 21l-8-4.5v-9z'/><path d='M4 7.5l8 4.5 8-4.5M12 12v9'/>" },
         { "ring", "<circle cx='12' cy='12' r='9'/>" },
+        { "sliders", "<path d='M4 7h10M18 7h2M4 17h2M10 17h10'/><circle cx='16' cy='7' r='2'/><circle cx='8' cy='17' r='2'/>" },
         { "star", "<path d='M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z' fill='COLOR' stroke-width='1.2' stroke='#b98300'/>" },
     };
     const string StarPath = "M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z";
@@ -114,6 +115,7 @@ public partial class SLApp : MonoBehaviour {
         string save = townTour ? "starlife-town-shots.json" : shotsDir != null ? "starlife-shots.json" : "starlife-save.json";
         if (shotsDir != null) { Directory.CreateDirectory(shotsDir); File.Delete(Path.Combine(Application.persistentDataPath, save)); }
         Application.targetFrameRate = 60;
+        SLAudio.Create(shotsDir != null);
 
         core = new SLCore(save);
         core.Changed = _ => dirty = true; core.ProfileChanged = () => dirty = true; core.Toast = ShowToast;
@@ -132,7 +134,9 @@ public partial class SLApp : MonoBehaviour {
         Reload();
         SetView("home");
         if (shotsDir != null || PlayerPrefs.GetInt("sl3d", 1) == 1) Set3D(true, false);
+        ApplyQuality();
         if (!profile.hasSave || !profile.guideSeen) OpenPicker();
+        if (core.LoadNote != null) ShowToast(core.LoadNote);
         if (shotsDir != null) StartCoroutine(townTour ? TownShots() : Shots());
     }
 
@@ -156,7 +160,8 @@ public partial class SLApp : MonoBehaviour {
         Fit();
         SLArt.Pump();
         if (dirty) { dirty = false; Reload(); if (!inTown) RefreshView(); }
-        if (inTown) { TickTown(); return; }
+        if (TickSettings()) return;
+        if (inTown) { TickTown(); TickTownSound(); return; }
         Tick3D(); TickSalon(); TickGym(); TickMakeup();
     }
     void OnApplicationPause(bool p) { if (p) { if (inTown) SaveLife(); core?.Flush(); } }
@@ -173,6 +178,7 @@ public partial class SLApp : MonoBehaviour {
         xpFill.style.width = Length.Percent(100f * profile.xp / data.famePerLevel);
         xpText.text = profile.xp + " / " + data.famePerLevel + " fame to level " + (profile.level + 1);
         coinVal.text = profile.coins.ToString(); fameVal.text = profile.fame.ToString();
+        HearProfile();
     }
 
     void BuildShell() {
@@ -184,9 +190,10 @@ public partial class SLApp : MonoBehaviour {
         meFace = new SvgImage();
         var me = El("me", El("me-face", meFace), El("col", meName = L("", "me-name"), El("lvl", meLevel = L("1", "lvl-badge"), El("xp", xpFill = El("xp-fill")), xpText = L("", "xp-text"))));
         me.RegisterCallback<ClickEvent>(_ => OpenPicker());
+        var gear = B("", "help", OpenSettings); gear.style.alignItems = Align.Center; gear.style.justifyContent = Justify.Center; var gi = Icon("sliders", "#ffffff", 20); gi.pickingMode = PickingMode.Ignore; gear.Add(gi);
         var star = Icon("star", "#ffd84a", 26); star.style.marginRight = 8;
         root.Add(El("topbar", star, L("Starlife", "wordmark"), me, El("grow"), Pill("coin", out coinVal), Pill("fame", out fameVal),
-            B("?", "help", () => { SetView("suite"); OpenGuide(0); })));
+            B("?", "help", () => { SetView("suite"); OpenGuide(0); }), gear));
 
         var nav = El("mainnav"); var page = El("page", nav);
         foreach (var (id, label) in new[] { ("home", "HOME"), ("suite", "MY SUITE"), ("parlor", "BEAUTY PARLOR"), ("salon", "HAIR SALON"), ("gym", "GYM"), ("career", "CAREER"), ("events", "EVENTS"), ("shop", "SHOP"), ("contests", "CONTESTS"), ("album", "MY ALBUM") }) {
@@ -198,7 +205,9 @@ public partial class SLApp : MonoBehaviour {
         BuildHome(views["home"]); BuildSuite(views["suite"]); BuildParlor(views["parlor"]); BuildSalon(views["salon"]); BuildGym(views["gym"]); BuildCareer(views["career"]); BuildEvents(views["events"]); BuildShop(views["shop"]); BuildContests(views["contests"]); BuildAlbum(views["album"]);
         overlayHost = El(null); overlayHost.style.position = Position.Absolute; overlayHost.style.left = overlayHost.style.top = overlayHost.style.right = overlayHost.style.bottom = 0;
         overlayHost.pickingMode = PickingMode.Ignore; root.Add(overlayHost);
-        BuildSaveModal(); BuildPicker();
+        BuildSaveModal(); BuildPicker(); BuildSettings();
+        // every button clicks, wherever it is
+        root.RegisterCallback<ClickEvent>(e => { if (e.target is Button || (e.target as VisualElement)?.parent is Button) SLAudio.I?.Play("click"); }, TrickleDown.TrickleDown);
         toast = L("", "toast"); toast.pickingMode = PickingMode.Ignore; overlayHost.Add(toast);
     }
 
@@ -244,7 +253,7 @@ public partial class SLApp : MonoBehaviour {
         var th = Array.Find(data.themes, t => t.id == profile.featured);
         var themeBox = L(th.name, "tile-theme"); themeBox.style.backgroundColor = C(th.bg[0]);
         var bonusBtn = B(profile.bonus ? "Claim 50 coins" : "Claimed", "btn primary small", () => core.Call("bonus")); bonusBtn.SetEnabled(profile.bonus);
-        var cheapest = Array.FindAll(data.items, i => i.price > 0 && Array.IndexOf(profile.owned, i.id) < 0);
+        var cheapest = Array.FindAll(data.items, i => i.price > 0 && Allowed(i) && Array.IndexOf(profile.owned, i.id) < 0);
         Array.Sort(cheapest, (a, b) => a.price.CompareTo(b.price));
         var tiles = El("tiles",
             El("tile", L("DAILY BONUS", "tile-h"), L(profile.coins + " coins", "tile-big"), L("Come back every day for 50 coins and 5 fame.", "muted"), bonusBtn),
@@ -294,13 +303,70 @@ public partial class SLApp : MonoBehaviour {
         else pickerRoom.Set("pick:" + id, () => core.Call("roomFull", core.Call("starletJson", id)));
         foreach (var c in carTrack.Children()) c.EnableInClassList("on", c.name == "pick-" + id);
         var x = Array.Find(data.starlets, s => s.id == id);
-        pickerNote.text = "<b>" + x.name + "</b>, " + x.role.ToLowerInvariant() + ". You can restyle her any time, and there are <b>millions</b> of ways to dress up!";
+        pickerNote.text = "<b>" + x.name + "</b>, " + x.role.ToLowerInvariant() + ". You can restyle " + (SLStage3D.IsMale(id) ? "him" : "her") + " any time, and there are <b>millions</b> of ways to dress up!";
     }
     void ClosePicker(bool go) {
         if (go) core.Call("pickStarlet", pickSel);
         picker.RemoveFromClassList("on");
         Reload(); SetView("suite");
         if (go && !profile.guideSeen) OpenGuide(0);
+    }
+
+    // ---------------------------------------------------------------- rule checks the tour runs first (checks.txt): a line per check, on throwaway saves
+    void Checks() {
+        var log = new List<string>(); void Ok(string what, bool pass) => log.Add((pass ? "ok   " : "FAIL ") + what);
+        string name = "starlife-checks.json", file = Path.Combine(Application.persistentDataPath, name);
+        foreach (var f in new[] { file, file + ".bak", file + ".tmp" }) File.Delete(f);
+        foreach (var f in Directory.GetFiles(Application.persistentDataPath, name + ".damaged-*")) File.Delete(f);
+        var c = new SLCore(name); c.SetPref("a", "1"); c.Flush(); c.SetPref("a", "2"); c.Flush();
+        Ok("a save swaps in whole and leaves no temp file", !File.Exists(file + ".tmp") && File.Exists(file + ".bak") && new SLCore(name).Pref("a") == "2");
+        string good = File.ReadAllText(file); File.WriteAllText(file, good.Substring(0, good.Length / 2));
+        c = new SLCore(name);
+        Ok("a damaged save falls back to the copy before it", c.Recovered && c.Pref("a") == "1");
+        Ok("the damaged save is kept aside", Directory.GetFiles(Application.persistentDataPath, name + ".damaged-*").Length == 1);
+        c.Flush(); Ok("the restored save is written back", new SLCore(name).Pref("a") == "1");
+        foreach (var f in new[] { file + ".bak", file + ".tmp" }) File.Delete(f); File.WriteAllText(file, "{broken");
+        c = new SLCore(name);
+        Ok("with no copy to go back to the player is told, and the damaged file is kept", !c.Recovered && c.LoadNote != null && Directory.GetFiles(Application.persistentDataPath, name + ".damaged-*").Length >= 1);
+        c.Call("earn", 0d, -2d); var pr = c.Get<DProfile>("profile");
+        Ok("fame cannot go below zero (" + pr.fame + ", level " + pr.level + ")", pr.fame == 0 && pr.level == 1 && pr.xp == 0);
+        foreach (var f in Directory.GetFiles(Application.persistentDataPath, name + "*")) File.Delete(f);
+
+        var keep = core;
+        core = new SLCore(name); core.Call("earn", 0d, 20d);
+        core.SetPref("inv.gala.20200106", "accepted"); core.SetPref("inv.gala.20990106", "accepted");
+        MissedInvitations(DateTime.Now.Date); int fame = core.Get<DProfile>("profile").fame;
+        Ok("an invitation missed long ago costs 2 fame, once (" + fame + ")", fame == 18 && core.Pref("inv.gala.20200106") == "missed" && core.Pref("inv.gala.20990106") == "accepted");
+        MissedInvitations(DateTime.Now.Date); Ok("and is not charged twice", core.Get<DProfile>("profile").fame == 18);
+        core = keep;
+        foreach (var f in Directory.GetFiles(Application.persistentDataPath, name + "*")) File.Delete(f);
+
+        foreach (var (id, want) in new[] { ("kai", "He"), ("omar", "He"), ("aria", "She"), ("custom", "She") }) {
+            core.Call("pickStarlet", id); state = core.Get<DState>("state");
+            Ok(id + " is \"" + want + "\"", She == want && !(Man && Pn("{she} {her} {him} {Her}").Contains("her")));
+        }
+        core.Call("pickStarlet", "omar"); state = core.Get<DState>("state");
+        Ok("omar starts in a star job, not a wage (" + CurJob.id + ")", CurJob.tier == "star");
+        Ok("\"an office assistant\", \"a pop star\"", An("office assistant") == "an office assistant" && An("pop star") == "a pop star");
+        core.Call("pickStarlet", "aria"); state = core.Get<DState>("state");
+        var job = CurJob; SetP("job", "barista");
+        Ok("on a barista's wage a 200-coin boutique piece is over budget, the uniform and a 30-coin piece are not", OverBudget(200, "gown") && !OverBudget(30, "tee") && !OverBudget(200, "staffpolo"));
+        SetP("job", "popstar"); Ok("a star has no budget", !OverBudget(320, "gown")); SetP("job", job.id);
+        File.WriteAllLines(Path.Combine(shotsDir, "checks.txt"), log);
+        StartCoroutine(SoundChecks(log));
+    }
+
+    IEnumerator SoundChecks(List<string> log) {
+        for (float t = Time.realtimeSinceStartup; !SLAudio.I.Ready && Time.realtimeSinceStartup - t < 60;) yield return null;
+        void Ok(string what, bool pass) => log.Add((pass ? "ok   " : "FAIL ") + what);
+        Ok("one audio listener", FindObjectsByType<AudioListener>(FindObjectsInactive.Include).Length == 1);
+        foreach (var n in new[] { "music-suite", "music-town", "street", "engine", "click", "coin", "buy", "win", "level", "swish", "shutter", "step" }) {
+            var (p, r) = SLAudio.I.Level(n); Ok(n + " peak " + p.ToString("0.00") + " rms " + r.ToString("0.000"), p > 0.02f && p <= 1f);
+            SLAudio.I.SaveWav(n, Path.Combine(shotsDir, "sound-" + n + ".wav"));
+        }
+        foreach (var q in new[] { 0, 1, 2 }) { Quality = q; Ok("graphics " + q + ": shadows " + QualitySettings.shadows + ", " + QualitySettings.pixelLightCount + " lights, distance " + QualitySettings.shadowDistance, (q == 0) == (QualitySettings.shadows == ShadowQuality.Disable)); }
+        OpenSettings(); yield return null; yield return null; ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, "settings.png")); yield return null; yield return null; CloseSettings();
+        File.WriteAllLines(Path.Combine(shotsDir, "checks.txt"), log);
     }
 
     // ---------------------------------------------------------------- screenshot tour (-slshots <dir>), on its own save file
@@ -314,6 +380,7 @@ public partial class SLApp : MonoBehaviour {
             ScreenCapture.CaptureScreenshot(Path.Combine(shotsDir, (++n).ToString("00") + "-" + name + ".png"));
             yield return null; yield return null;
         }
+        Checks();
         yield return Snap("picker");
         pickSel = "zuri"; RenderPicker(); yield return Snap("picker-zuri");
         pickSel = "aria"; ClosePicker(true); yield return Snap("suite-guide");
@@ -343,7 +410,11 @@ public partial class SLApp : MonoBehaviour {
             // every accessory, on the figure
             "lucy:blouse,jeans,flats,pearls,studs,sunnies,tote", "zuri:tee,wide,sneakers,pendant,hoops,beret,crossbody", "mary:lbd,pumps,choker,drops,cateye,tiara,clutch",
             "aria:cami,shorts,sandals,sunhat,heartsunnies,heartbag", "olivia:puffer,jeans,sneakers,beanie,roundspecs", "jenny:polo,chinos,sneakers,cap,tie" };
-        string[] spin = { "zuri:tee,wide,sneakers,pendant,hoops,beret,crossbody", "lucy:blouse,jeans,flats,pearls,studs,sunnies,tote", "mary:gothgown,platforms,spikecollar,horns", "cute:harness,kilt,creepers,choker,catears,coffinbag", "lina:meshtop,jeans,gothcoat,crosschain,crossear", "rosie:cami,mini", "zuri:tee,jeans,sneakers", "lucy:blouse,pleated,pumps", "charlotte:cami,shorts,sandals", "ivy:slip,sandals", "lucy:sportsbra,leggings,trainers", "aria:blazer,pencil,kneeboots", "lina:sundress,sneakers", "mary:turtle,wide,ankleboots", "zuri:" };
+        string[] spin = { "zuri:tee,wide,sneakers,pendant,hoops,beret,crossbody", "lucy:blouse,jeans,flats,pearls,studs,sunnies,tote", "mary:gothgown,platforms,spikecollar,horns", "cute:harness,kilt,creepers,choker,catears,coffinbag", "lina:meshtop,jeans,gothcoat,crosschain,crossear", "rosie:cami,mini", "zuri:tee,jeans,sneakers", "lucy:blouse,pleated,pumps", "charlotte:cami,shorts,sandals", "ivy:slip,sandals", "lucy:sportsbra,leggings,trainers", "aria:blazer,pencil,kneeboots", "lina:sundress,sneakers", "mary:turtle,wide,ankleboots", "zuri:",
+            // the fashion library (Tools/fashionlib): every piece, on the figure, all the way round
+            "zuri:tee,wide,lux_loafer,lux_necklace,lux_hoops,lux_fedora,lux_flapbag,lux_watch,lux_belt,lux_aviator", "olivia:lbd,lux_ballet,lux_scarf,lux_clutch,lux_bangle",
+            "aria:blouse,wide,lux_loafer,lux_tote", "lucy:blouse,jeans,mid_sneaker,mid_chain,mid_studs,mid_cap,mid_backpack,mid_watch,mid_belt,mid_sunglasses",
+            "mary:cami,shorts,mid_slide,mid_bucket,mid_crossbody,mid_beads", "lina:tee,jeans,mid_sneaker,mid_tote" };
         for (int k = 0; k < spin.Length; k++) {         // the same looks from the side and the back: clothes must hold up all the way round
             var bits = spin[k].Split(':'); var look = new Look3 { id = bits[0], underwear = C("#f4c7d3"), signature = false };
             if (bits[1] != "") foreach (var id in bits[1].Split(',')) look.worn.Add((itemById[id].slot, id, C(itemById[id].color)));
@@ -355,6 +426,8 @@ public partial class SLApp : MonoBehaviour {
             Dump(look, "full", 400, 820, "worn-" + k.ToString("00") + "-" + bits[1].Replace(',', '+'));
         }
         wardrobeCat = "acc"; RefreshSuite(); yield return Snap("wardrobe-acc");
+        { var lib = new List<string>(); foreach (var it in itemById.Values) if (it.cat == "luxe" || it.cat == "everyday") lib.Add(it.id); core.Call("grant", Json(lib.ToArray())); }
+        wardrobeCat = "luxe"; RefreshSuite(); yield return Snap("wardrobe-luxe"); wardrobeCat = "everyday"; RefreshSuite(); yield return Snap("wardrobe-everyday");
         OpenDrawer("decor"); foreach (var k in new[] { "sofa", "armchair", "coffeetable", "boxes", "plant", "floorlamp" }) core.Call("addFurn", k); yield return Snap("decor");
         OpenDrawer(null); ToggleLayers(); yield return Snap("layers"); ToggleLayers();
         SetView("parlor"); yield return Snap("parlor-avatar");

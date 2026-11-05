@@ -10,6 +10,8 @@
 import bpy, bmesh, os, sys, json, math, shutil
 from mathutils import Vector, Matrix
 from mathutils.bvhtree import BVHTree
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shoes import Last, sole_mesh, ZS, M as MSTRIP
 
 args = sys.argv[sys.argv.index('--') + 1:]
 LIB, STAR = args[0], args[1]; ONLY = set(args[2:])
@@ -45,7 +47,7 @@ def subsurf(o, view=1, render=2):
     m = o.modifiers.new('Subdivision', 'SUBSURF'); m.levels = view; m.render_levels = render; return m
 
 def solidify(o, t, offset=-1):
-    m = o.modifiers.new('Solidify', 'SOLIDIFY'); m.thickness = t; m.offset = offset; m.use_even_offset = True; return m
+    m = o.modifiers.new('Solidify', 'SOLIDIFY'); m.thickness = t; m.offset = offset; m.use_even_offset = False; return m
 
 # ======================================================================================================== materials
 MATS = {}
@@ -169,7 +171,9 @@ def chain(name, pts, link_len, wire, material, closed=False, curb=False):
         basis = Matrix((t, s, u)).transposed().to_4x4(); m = Matrix.Translation(p) @ rot @ basis
         if curb: m = m @ Matrix.Diagonal((1, 1, 0.55, 1))
         torus_into(bm, m, link_len * 0.32, wire, seg=14, rseg=6, stretch=link_len * 0.14)
-    return mesh_obj(name, bm, material)
+    o = mesh_obj(name, bm, material); o['trim'] = 1
+    px = tube(name + '_proxy', [p for p, t in resample(pts, link_len * 2, closed)], link_len * 0.3, material, closed=closed, segs=5); px['lod2'] = 1
+    return o
 
 def lathe(name, prof, material, segs=48, m=Matrix(), cap_top=True, cap_bottom=True):
     """Revolve a (radius, height) profile around local Z; m places it."""
@@ -233,6 +237,7 @@ def quilt_box(name, w, h, d, material, cell=0.035, depth=0.004, r=0.012, faces=(
     o = mesh_obj(name, bm, material); bevel(o, r * 0.6, 4, 'ANGLE', 50); return o
 
 # ======================================================================================================== the body
+TORSO = 0.19    # the furthest the torso reaches from its axis; the arms hang beyond this
 class Body:
     def __init__(self):
         bpy.ops.import_scene.fbx(filepath=os.path.join(OLIVIA, 'pieces_thin.fbx')); self.parts = {}
@@ -268,6 +273,48 @@ class Body:
             loc, nrm, _, dist = self.trees[k].ray_cast(Vector(origin), Vector(direction).normalized())
             if loc is not None and (best is None or dist < best[2]): best = (loc, nrm, dist)
         return best
+
+    def waist(self, z, offset, n=80, parts=('body', 'top', 'bottom')):
+        """A closed ring round the torso at height z. Rays go outwards from inside it: from outside, the sides would land on the hanging arms."""
+        pts = []; nrms = []; c = Vector((0, -0.03, z))
+        for k in range(n):
+            a = k * math.tau / n; d = Vector((math.sin(a), -math.cos(a), 0)); r = 0.0
+            for name in parts:      # the body mesh has gaps under her clothes: a ray through one reaches the arm, so anything past the torso does not count
+                loc, _, _, dist = self.trees[name].ray_cast(c, d)
+                if loc is not None and dist < TORSO: r = max(r, dist)
+            r = r or (pts[-1] - c).length - offset if pts else r or 0.14
+            pts.append(c + d * (r + offset)); nrms.append(d)
+        for _ in range(2):      # the seams and folds of the clothes would otherwise show as dents in a stiff strap
+            pts = [Vector((c.x, c.y, z)) + ((pts[i - 1] + pts[i] * 2 + pts[(i + 1) % n]) / 4 - c) for i in range(n)]
+        return pts, nrms
+
+    def sash(self, side_x, start, end, hip, offset, n=64, parts=('body', 'top', 'bottom')):
+        """The line of a bag strap: from `start` on the bag across the chest, over the shoulder at side_x, down the back, round the hip through `hip` to `end`
+        on the bag. Below the shoulders each point is found from inside the torso, so the hanging arm is never hit, then the whole line is smoothed so it runs taut."""
+        key = [start, Vector((side_x, -0.115, 1.27)), Vector((side_x, -0.075, 1.36)), Vector((side_x, -0.03, 1.41)), Vector((side_x, 0.015, 1.36)), Vector((side_x, 0.07, 1.26)), Vector((side_x * 0.4, 0.10, 1.12)), Vector((hip.x * 0.7, 0.10, hip.z + 0.06)), hip, end]
+        line = [q for q, _ in resample(key, sum((key[i + 1] - key[i]).length for i in range(len(key) - 1)) / n)] + [end]
+        pts, nrms = self.lay(line[1:-1], offset, parts)
+        return self.taut([line[0]] + pts + [line[-1]], [Vector((0, -1, 0))] + nrms + [Vector((0, 1, 0))])
+
+    def lay(self, line, offset, parts=('body', 'top', 'bottom')):
+        """Puts points on her: straight down over the shoulder itself (further out that would land on the chest), elsewhere from inside the torso, so the hanging arm is never hit."""
+        pts = []; nrms = []
+        for p in line:
+            h = self.hit(p + Vector((0, 0, 0.4)), (0, 0, -1), parts) if abs(p.y + 0.03) < 0.05 else None
+            if h and h[0].z > 1.2: pts.append(h[0] + h[1] * offset); nrms.append(h[1]); continue
+            c = Vector((0, -0.03, p.z)); d = p - c; d.z = 0; d.normalize(); r = 0.0
+            for name in parts:
+                loc, _, _, dist = self.trees[name].ray_cast(c, d)
+                if loc is not None and dist < TORSO: r = max(r, dist)
+            pts.append(c + d * (r + offset) if r else p); nrms.append(d)
+        return pts, nrms
+
+    def taut(self, pts, nrms, passes=4):
+        """Smooths a line laid on her so a strap runs taut over the folds; its ends stay where they are."""
+        for _ in range(passes):
+            pts = [pts[0]] + [(pts[i - 1] + pts[i] * 2 + pts[i + 1]) / 4 for i in range(1, len(pts) - 1)] + [pts[-1]]
+            nrms = [nrms[0]] + [(nrms[i - 1] + nrms[i] * 2 + nrms[i + 1]).normalized() for i in range(1, len(nrms) - 1)] + [nrms[-1]]
+        return pts, nrms
 
     def drape(self, pts, offset, parts=('body', 'top', 'bottom'), centre=None):
         """Push path points out onto the body surface: rays from far outside towards the torso axis (or straight down for points over the shoulders)."""
@@ -325,16 +372,10 @@ def lux_flapbag(B):
     clasp_z = cz + H / 2 - H * 0.66 + 0.012; cf = cy - D / 2 - 0.012
     rbox('lux_flapbag_plate', (0.05, 0.006, 0.026), (cx, cf + 0.003, clasp_z), M['goldb'], r=0.003)
     emblem('lux_flapbag_star', Vector((cx, cf - 0.002, clasp_z)), (0, -1, 0), 0.016, M['gold'], 0.004)
-    # chain strap: from the bag's top corners, up the front, over the left shoulder, down the back
+    # chain strap: from the bag's top corners, across the chest, over the opposite shoulder, down the back and round the hip
     corner_l = Vector((cx + W / 2 - 0.012, cy, cz + H / 2 + 0.01)); corner_r = Vector((cx - W / 2 + 0.012, cy, cz + H / 2 + 0.01))
-    path = [corner_r, corner_r + Vector((0.01, -0.005, 0.03))]
-    for k in range(1, 15):
-        t = k / 15; path.append(Vector((cx + (0.135 - cx) * t, -0.12, cz + 0.05 + (1.44 - cz - 0.05) * t)))
-    path += [Vector((0.135, -0.03, 1.47)), Vector((0.135, 0.06, 1.43))]
-    for k in range(1, 15):
-        t = k / 15; path.append(Vector((0.135 + (cx - 0.135) * t, 0.10, 1.40 - (1.40 - cz - 0.03) * t)))
-    path += [Vector((cx - 0.12, 0.02, cz + 0.06)), Vector((cx - W / 2 - 0.005, cy + 0.02, cz + 0.06))]
-    path, _ = B.drape(path[2:-2], 0.009); path = [corner_r] + path + [corner_l]
+    start, end = (corner_l, corner_r) if cx < 0 else (corner_r, corner_l)
+    path, _ = B.sash(-math.copysign(0.135, cx), start, end, Vector((cx + math.copysign(W / 2 + 0.03, cx), 0.02, cz + 0.05)), 0.028, n=90)
     chain('lux_flapbag_chain', path, 0.016, 0.0019, M['gold'], curb=True)
     for p in (corner_l, corner_r):
         m = Matrix.Translation(p) @ Matrix.Rotation(math.pi / 2, 4, 'Y'); bm = bmesh.new(); torus_into(bm, m, 0.007, 0.0016); mesh_obj('lux_flapbag_ring', bm, M['gold'])
@@ -428,40 +469,123 @@ def foot_top(B, side, y, offset=0.006):
         pts.append(Vector((x, y, z + offset)))
     pts[0].z = 0.03; pts[-1].z = 0.03; return pts
 
+def arc_normals(pts):
+    """Normals for a ribbon laid across the foot: in the cross-section plane, perpendicular to the arc, pointing out."""
+    c = sum(pts, Vector()) / len(pts); out = []
+    for i, p in enumerate(pts):
+        t = (pts[min(i + 1, len(pts) - 1)] - pts[max(i - 1, 0)]).normalized(); n = Vector((0, 1, 0)).cross(t).normalized()
+        out.append(n if n.dot(p - Vector((c.x, p.y, c.z - 0.05))) > 0 else -n)
+    return out
+
 @item('lux_loafer', 'luxury', 'Calf loafer with a gold bar', 'feet')
 def lux_loafer(B):
     for side in (1, -1):
-        cut = lambda x, y: 0.085 if y > 0.0 else (0.075 + 0.5 * max(0.0, -0.05 - y) if y < -0.05 else 0.072)
-        foot_shell(B, side, lambda x, y: 0.2 if y < -0.045 else 0.072 + (0.016 if y > 0.05 else 0), 0.004, 0.0028, 'lux_loafer_upper', M['burgundy'])
-        ring = footprint(B, side, 0.007)
-        sole('lux_loafer_sole', ring, 0.0, 0.016, M['cognac'], 0.003)                     # leather sole, stacked heel
-        heel = [(x, y) for x, y in ring if y > 0.035]
-        if len(heel) > 3: sole('lux_loafer_heel', heel + [(heel[-1][0], 0.035), (heel[0][0], 0.035)], -0.012, 0.001, M['edge'], 0.002)
-        # the moc-toe seam and the strap across the vamp, with the gold bar
-        top = foot_top(B, side, -0.06, 0.0045); tube('lux_loafer_moc', top, 0.0016, M['thread_dark'], segs=6)
-        strap = foot_top(B, side, -0.02, 0.0055); ribbon('lux_loafer_strap', strap, [Vector((0, 0, 1))] * len(strap), 0.016, 0.003, M['burgundy'])
+        L = Last(B, side, 0.0035)
+        L.upper('lux_loafer_upper', lambda y: 0.068 + 0.004 * max(0.0, y - 0.04) / 0.04 + 2.2 * max(0.0, -0.03 - y) ** 1.3 * 6, M['burgundy'], 0.0022)
+        ring = L.footprint(0.0035)
+        sole_mesh('lux_loafer_sole', ring, 0.012, ZS + 0.001, M['cognac'], 0.0018, spring=0.004)            # leather sole, edge-trimmed
+        heel = [(x, y) for x, y in ring if y > L.heel - 0.075]
+        sole_mesh('lux_loafer_heel', heel, 0.004, 0.0125, M['edge'], 0.0012)                                # stacked heel block
+        welt = [Vector((x, y, ZS + 0.0012)) for x, y in ring]; tube('lux_loafer_welt', welt, 0.0014, M['cognac'], closed=True, segs=6)
+        stitches('lux_loafer_weltst', [w + Vector((0, 0, 0.0012)) for w in welt], 0.0035, 0.0024, 0.00045, M['thread_ivory'], closed=True)
+        # the moc apron: a raised seam loop over the forefoot, hand-stitched
+        apron = []
+        for y in [-0.04 - 0.085 * k / 12 for k in range(13)]: apron.append(L.across(y, 0.24, 0.24, 0.0012, 2)[0])
+        tipy = -0.04 - 0.085; front = L.across(tipy - 0.008, 0.24, 0.76, 0.0012, 9)
+        for y in [-0.04 - 0.085 * k / 12 for k in range(12, -1, -1)]: front.append(L.across(y, 0.76, 0.76, 0.0012, 2)[0])
+        loop = apron + front; tube('lux_loafer_moc', loop, 0.0017, M['burgundy'], segs=8)
+        stitches('lux_loafer_mocst', [p + Vector((0, 0, 0.0016)) for p in loop], 0.003, 0.0022, 0.00045, M['thread_dark'])
+        # saddle strap across the vamp, with the gold bar on it
+        strap = L.across(-0.062, 0.1, 0.9, 0.0026, 21)
+        ribbon('lux_loafer_strap', strap, arc_normals(strap), 0.017, 0.0024, M['burgundy'])
         mid = strap[len(strap) // 2]
-        rbox('lux_loafer_bar', (0.034, 0.007, 0.006), mid + Vector((0, 0, 0.004)), M['gold'], r=0.0025)
-        for s in (-1, 1):
-            bm = bmesh.new(); torus_into(bm, Matrix.Translation(mid + Vector((s * 0.019, 0, 0.004))) @ Matrix.Rotation(math.pi / 2, 4, 'Y'), 0.0045, 0.0013); mesh_obj('lux_loafer_bit', bm, M['gold'])
-    return dict(attach=(0, 0, 0), notes='Flat; fits olivia\'s own feet (the shared body has flat feet, so there are no heeled shoes in this pass).')
+        bar = rbox('lux_loafer_bar', (0.03, 0.0055, 0.004), mid + Vector((0, 0, 0.0035)), M['gold'], r=0.0018)
+        for s_ in (-1, 1):
+            bm = bmesh.new(); torus_into(bm, Matrix.Translation(mid + Vector((s_ * 0.0175, 0, 0.0032))) @ Matrix.Rotation(math.pi / 2, 4, 'Y'), 0.0042, 0.0012); mesh_obj('lux_loafer_bit', bm, M['gold'])
+    return dict(attach=(0, 0, 0), notes='Flat; built on a last taken from olivia\'s own feet.')
 
 @item('lux_ballet', 'luxury', 'Patent ballet flat with a grosgrain bow', 'feet')
 def lux_ballet(B):
     for side in (1, -1):
-        foot_shell(B, side, lambda x, y: 0.2 if y < -0.085 else 0.058 + (0.012 if y > 0.04 else 0), 0.0035, 0.0022, 'lux_ballet_upper', M['patent'])
-        ring = footprint(B, side, 0.005); sole('lux_ballet_sole', ring, 0.004, 0.02, M['patent'], 0.003)
-        sole('lux_ballet_tread', ring, 0.0, 0.005, M['rubberb'], 0.0015, taper=0.02)
-        # the binding round the topline and a flat grosgrain bow at the toe
-        tl = foot_top(B, side, -0.085, 0.004); tube('lux_ballet_bind', tl, 0.0018, M['grosgrain'], segs=6)
-        c = tl[len(tl) // 2] + Vector((0, -0.004, 0.002))
-        for s in (1, -1):
-            loop = [c + Vector((s * (0.012 + 0.010 * math.cos(a)), 0.004 * math.sin(a) - 0.002, 0.006 * math.sin(a) + 0.001)) for a in [k * math.tau / 20 for k in range(20)]]
-            ribbon('lux_ballet_bow', loop, [Vector((0, -0.4, 1))] * 20, 0.010, 0.0012, M['grosgrain'], closed=True, round_edge=False)
-            tail = [c + Vector((s * 0.003 * k, -0.006 - 0.0015 * k, 0.0005 - 0.003 * k)) for k in range(6)]
-            ribbon('lux_ballet_tail', tail, [Vector((0, -1, 0.3))] * 6, 0.008, 0.0012, M['grosgrain'], round_edge=False)
-        rbox('lux_ballet_knot', (0.008, 0.006, 0.010), c + Vector((0, -0.002, 0.001)), M['grosgrain'], r=0.002)
-    return dict(attach=(0, 0, 0), notes='Flat; fits olivia\'s feet.')
+        L = Last(B, side, 0.003)
+        L.upper('lux_ballet_upper', lambda y: 0.05 + 0.008 * max(0.0, y - 0.02) / 0.06 + 13 * max(0.0, -0.07 - y) ** 1.3, M['patent'], 0.0016)
+        ring = L.footprint(0.002)
+        sole_mesh('lux_ballet_sole', ring, 0.0145, ZS + 0.0005, M['calf_lining'] if 'calf_lining' in M else M['edge'], 0.0012, spring=0.003)
+        sole_mesh('lux_ballet_tread', ring, 0.0115, 0.015, M['rubberb'], 0.001, taper=0.02, spring=0.003)
+        tl = L.topline_path(); tube('lux_ballet_bind', tl, 0.0016, M['grosgrain'], segs=8)
+        c = L.across(-0.084, 0.5, 0.5, 0.004, 2)[0]
+        for s_ in (1, -1):        # two loops and two tails of grosgrain
+            loop = [c + Vector((s_ * (0.011 + 0.009 * math.cos(a)), -0.002 + 0.003 * math.sin(a), 0.004 * math.sin(a) + 0.001)) for a in [k * math.tau / 24 for k in range(24)]]
+            ribbon('lux_ballet_bow', loop, [Vector((0, -0.3, 1))] * 24, 0.009, 0.0011, M['grosgrain'], closed=True, round_edge=False)
+            tail = [c + Vector((s_ * 0.0028 * k, -0.005 - 0.0016 * k, 0.0006 - 0.0016 * k)) for k in range(6)]
+            ribbon('lux_ballet_tail', tail, [Vector((0, -1, 0.5))] * 6, 0.007, 0.0011, M['grosgrain'], round_edge=False)
+        rbox('lux_ballet_knot', (0.007, 0.005, 0.008), c + Vector((0, -0.0015, 0.001)), M['grosgrain'], r=0.0018)
+    return dict(attach=(0, 0, 0), notes='Flat; built on a last taken from olivia\'s feet.')
+
+@item('mid_sneaker', 'mid', 'Leather low-top sneaker', 'feet')
+def mid_sneaker(B):
+    for side in (1, -1):
+        L = Last(B, side, 0.006)
+        def throat(y):          # a narrow lace opening along the top of the instep, dropping to a low collar round the ankle
+            if y < -0.066: return 0.5
+            open_ = L.top(y) - 0.012 - 0.006 * max(0.0, y + 0.06) / 0.06
+            if y < 0.0: return open_
+            f = min(1.0, y / 0.032); f = f * f * (3 - 2 * f); return open_ * (1 - f) + 0.086 * f
+        L.upper('mid_sneaker_upper', throat, M['ivory'], 0.0025)
+        ring = L.footprint(0.004)
+        sole_mesh('mid_sneaker_cup', ring, 0.006, ZS + 0.009, M['rubberw'], 0.0035, spring=0.006)           # cupsole wraps up the sides
+        groove = [Vector((x, y, 0.02)) for x, y in L.footprint(0.0045)]; tube('mid_sneaker_groove', groove, 0.0012, M['rubberb'], closed=True, segs=6)
+        sole_mesh('mid_sneaker_tread', ring, 0.003, 0.007, M['rubberb'], 0.0012, taper=0.015, spring=0.006)
+        # suede toe cap and heel counter: the last again, a little larger, cut to the overlay shapes
+        T = Last(B, side, 0.0075); T.upper('mid_sneaker_toecap', lambda y: 0.5, M['suede'], 0.0012, yrange=(-1, -0.112))
+        H = Last(B, side, 0.0075); H.upper('mid_sneaker_heelcap', lambda y: 0.062, M['suede'], 0.0012, yrange=(0.035, 1))
+        # eyestays with eyelets, the tongue, laces crossing between them
+        a = [pts[MSTRIP // 2 - 1] for op, pts in L.rows if op and -0.064 < pts[0].y < 0.0]
+        b = [pts[MSTRIP // 2] for op, pts in L.rows if op and -0.064 < pts[0].y < 0.0]
+        ca = []; cb = []
+        for k in range(5):
+            i = int(k * (len(a) - 1) / 4); pa = a[i] + (a[i] - b[i]).normalized() * 0.006 + Vector((0, 0, -0.002)); pb = b[i] + (b[i] - a[i]).normalized() * 0.006 + Vector((0, 0, -0.002))
+            ca.append(pa); cb.append(pb)
+            for p in (pa, pb):
+                bm = bmesh.new(); torus_into(bm, Matrix.Translation(p + Vector((0, 0, 0.0018))), 0.0024, 0.0007, 12, 6); mesh_obj('mid_sneaker_eyelet', bm, M['steel'])
+        tongue = []
+        for op, pts in L.rows:
+            y = pts[0].y
+            if op and -0.07 < y < 0.012:
+                k = min(range(len(L.ys)), key=lambda i: abs(L.ys[i] - y)); r = L.run(L.rings[k]); mid = [p for p in r if p.z > throat(y) - 0.004]
+                if len(mid) > 2: tongue.append([p + Vector((0, 0, 0.002 + 0.006 * max(0.0, y) / 0.026)) for p in __import__('shoes')._resample(mid, 9)])
+        if len(tongue) > 2:
+            bm = bmesh.new(); g = [[bm.verts.new(p) for p in row] for row in tongue]
+            for i in range(len(g) - 1):
+                for j in range(8): bm.faces.new((g[i][j], g[i][j + 1], g[i + 1][j + 1], g[i + 1][j]))
+            t = mesh_obj('mid_sneaker_tongue', bm, M['ivory']); solidify(t, 0.004, 0); subsurf(t, 1, 2)
+        for k in range(5):
+            m = (ca[k] + cb[k]) / 2 + Vector((0, 0, 0.006))
+            tube('mid_sneaker_lace', [ca[k] + Vector((0, 0, 0.002)), m, cb[k] + Vector((0, 0, 0.002))], 0.0021, M['thread_ivory'], segs=8)
+            if k < 4:
+                m2 = (ca[k] + cb[k + 1]) / 2 + Vector((0, 0, 0.0065))
+                tube('mid_sneaker_lace', [ca[k] + Vector((0, 0, 0.0025)), m2, cb[k + 1] + Vector((0, 0, 0.0025))], 0.002, M['thread_ivory'], segs=8)
+        # padded collar round the opening and a pull tab at the heel
+        tube('mid_sneaker_collar', L.topline_path(), 0.0038, M['ivory'], segs=10)
+        back = max(L.topline_path(), key=lambda p: p.y)
+        tab = [back + Vector((0, 0.003, -0.022 + 0.03 * k / 6)) for k in range(7)]
+        ribbon('mid_sneaker_tab', tab, [Vector((0, 1, 0))] * 7, 0.014, 0.0025, M['suede'])
+    return dict(attach=(0, 0, 0), notes='Low-top with a cupsole; built on a last taken from olivia\'s feet.')
+
+@item('mid_slide', 'mid', 'Moulded slide sandal', 'feet')
+def mid_slide(B):
+    for side in (1, -1):
+        L = Last(B, side, 0.005); L.upper('cut', lambda y: 0.5, None)
+        ring = L.footprint(0.007); bpy.data.objects.remove(bpy.data.objects['cut'], do_unlink=True)
+        bed = sole_mesh('mid_slide_bed', ring, 0.006, 0.025, M['rubberb'], 0.006, spring=0.004)
+        rows = [L.across(y, 0.0, 1.0, 0.0, 25) for y in [-0.075 + 0.006 * k for k in range(11)]]
+        bm = bmesh.new(); g = [[bm.verts.new(p + Vector((0, 0, 0.001))) for p in row] for row in rows]
+        for i in range(len(g) - 1):
+            for j in range(24): bm.faces.new((g[i][j], g[i][j + 1], g[i + 1][j + 1], g[i + 1][j]))
+        st = mesh_obj('mid_slide_strap', bm, M['rubberb']); solidify(st, 0.007, 1); bevel(st, 0.002, 3, 'ANGLE', 50); subsurf(st, 1, 2)
+        top = L.across(-0.045, 0.5, 0.5, 0.0085, 2)[0]
+        emblem('mid_slide_star', top, (0, 0, 1), 0.011, M['rubberw'], 0.0015, up=Vector((0, -1, 0)))
+    return dict(attach=(0, 0, 0), notes='Slides; one wide moulded strap with a raised star.')
 
 # ---------------------------------------------------------------- luxury jewellery and watch
 def wrist(B, side=1):
@@ -541,11 +665,7 @@ def lux_bangle(B):
 
 @item('lux_belt', 'luxury', 'Calf belt with a star buckle', 'waist')
 def lux_belt(B):
-    pts = []
-    for k in range(80):
-        a = k * math.tau / 80; pts.append(Vector((math.sin(a) * 0.3, -0.03 - math.cos(a) * 0.3, 1.0)))
-    pts, nrm = B.drape(pts, 0.004, parts=('bottom', 'body'))
-    for p in pts: p.z = 1.0
+    pts, nrm = B.waist(1.0, 0.012)
     ribbon('lux_belt_strap', pts, [Vector((n.x, n.y, 0)).normalized() for n in nrm], 0.03, 0.0035, M['lamb'], closed=True)
     f = pts[0]
     frame_pts = [Vector((math.cos(a) * 0.024, 0, math.sin(a) * 0.019)) for a in [k * math.tau / 40 for k in range(40)]]
@@ -678,13 +798,9 @@ def mid_crossbody(B):
     ribbon('mid_crossbody_pzip', pocket, [Vector((0, -1, 0))] * 25, 0.006, 0.0015, M['rubberb'], round_edge=False)
     rbox('mid_crossbody_tab', (0.03, 0.003, 0.03), (cx - 0.05, cy - D / 2 - 0.003, cz - 0.03), M['cognac'], r=0.002)
     emblem('mid_crossbody_star', Vector((cx - 0.05, cy - D / 2 - 0.0055, cz - 0.03)), (0, -1, 0), 0.009, M['silver'], 0.0015)
-    # webbing strap: from the left side of the bag up across the chest, over the right shoulder, down the back
-    path = []
-    for k in range(13): t = k / 12; path.append(Vector((cx + W / 2 * 0 + (-0.14 - cx) * t, -0.12, cz + 0.06 + (1.43 - cz - 0.06) * t)))
-    path += [Vector((-0.14, -0.03, 1.47)), Vector((-0.14, 0.05, 1.43))]
-    for k in range(1, 13): t = k / 12; path.append(Vector((-0.14 + (cx - 0.02 + 0.14) * t, 0.10, 1.40 - (1.40 - cz - 0.04) * t)))
-    pts, nrm = B.drape(path, 0.004)
-    ribbon('mid_crossbody_strap', pts, nrm, 0.032, 0.0025, M['webbing'])
+    # webbing strap: from the top of the bag across the chest, over the opposite shoulder, down the back and round the hip to the bag's far end
+    pts, nrm = B.sash(-0.14, Vector((cx - W / 2 + 0.012, cy, cz + H / 2 - 0.004)), Vector((cx + W / 2 - 0.002, cy, cz + H / 2 - 0.012)), Vector((cx + W / 2 + 0.03, 0.02, cz + 0.05)), 0.028)
+    ribbon('mid_crossbody_strap', pts, nrm, 0.024, 0.0025, M['webbing'])
     return dict(attach=(cx, cy, cz), notes='Crossbody: strap over the right shoulder, bag at the left front hip.')
 
 @item('mid_backpack', 'mid', 'Mini nylon backpack', 'back')
@@ -703,48 +819,15 @@ def mid_backpack(B):
     tube('mid_backpack_zip', arc, 0.0025, M['rubberb'], segs=6)
     tube('mid_backpack_loop', [Vector((cx - 0.025, cy - 0.01, cz + H / 2 + 0.02)), Vector((cx, cy - 0.01, cz + H / 2 + 0.05)), Vector((cx + 0.025, cy - 0.01, cz + H / 2 + 0.02))], 0.004, M['webbing'], segs=8)
     for side in (1, -1):
-        path = [Vector((side * 0.06, cy - D / 2, cz + H / 2 - 0.02)), Vector((side * 0.10, 0.05, 1.43)), Vector((side * 0.11, -0.03, 1.46)), Vector((side * 0.12, -0.10, 1.38)),
-                Vector((side * 0.15, -0.09, 1.25)), Vector((side * 0.17, -0.02, 1.15)), Vector((side * 0.13, cy - D / 2, cz - H / 2 + 0.03))]
+        path = [Vector((side * 0.06, cy - D / 2, cz + H / 2 - 0.02)), Vector((side * 0.11, 0.03, 1.36)), Vector((side * 0.12, -0.03, 1.41)), Vector((side * 0.125, -0.085, 1.34)),
+                Vector((side * 0.14, -0.11, 1.25)), Vector((side * 0.16, -0.05, 1.14)), Vector((side * 0.13, cy - D / 2, cz - H / 2 + 0.03))]
         fine = []
         for a, b in zip(path[:-1], path[1:]): fine += [a.lerp(b, k / 5) for k in range(5)]
-        fine.append(path[-1]); mid_pts, nrm = B.drape(fine[1:-1], 0.006)
-        ribbon('mid_backpack_strap', [fine[0]] + mid_pts + [fine[-1]], [Vector((0, -1, 0))] + nrm + [Vector((0, -1, 0))], 0.045, 0.008, M['nylon'])
+        fine.append(path[-1]); mid_pts, nrm = B.lay(fine[1:-1], 0.024)
+        pts, nrm = B.taut([fine[0]] + mid_pts + [fine[-1]], [Vector((0, 1, 0))] + nrm + [Vector((0, 1, 0))])
+        ribbon('mid_backpack_strap', pts, nrm, 0.04, 0.006, M['nylon'])
     emblem('mid_backpack_star', Vector((cx, cy + D / 2 + 0.028, cz - H * 0.15)), (0, 1, 0), 0.012, M['silver'], 0.0015)
     return dict(attach=(0, cy, cz), notes='On the back, straps over both shoulders and under the arms.')
-
-# ---------------------------------------------------------------- mid-range shoes
-@item('mid_sneaker', 'mid', 'Leather low-top sneaker', 'feet')
-def mid_sneaker(B):
-    for side in (1, -1):
-        foot_shell(B, side, lambda x, y: 0.105 + (0.02 if y > 0.04 else 0) + (0.01 if -0.05 < y < 0.0 else 0), 0.006, 0.003, 'mid_sneaker_upper', M['ivory'])
-        ring = footprint(B, side, 0.009)
-        sole('mid_sneaker_cup', ring, 0.0, 0.028, M['rubberw'], 0.004)                    # cupsole wrapping up the sides
-        sole('mid_sneaker_tread', ring, -0.003, 0.002, M['rubberb'], 0.0015, taper=0.015)
-        # suede overlays on toe and heel, laces across the throat, a heel tab
-        toe = foot_shell(B, side, lambda x, y: 0.2 if y < -0.10 else 0.0, 0.0085, 0.0015, 'mid_sneaker_toecap', M['suede'])
-        heel = foot_shell(B, side, lambda x, y: 0.0 if y < 0.04 else 0.09, 0.0085, 0.0015, 'mid_sneaker_heelcap', M['suede'])
-        for k in range(5):
-            y = -0.075 + k * 0.016; row = foot_top(B, side, y, 0.009); mid = len(row) // 2
-            lace = row[mid - 3:mid + 4]; tube('mid_sneaker_lace', lace, 0.0016, M['thread_ivory'], segs=6)
-            for p in (lace[0], lace[-1]):
-                bm = bmesh.new(); torus_into(bm, Matrix.Translation(p + Vector((0, 0, -0.001))), 0.0025, 0.0008, 12, 6); mesh_obj('mid_sneaker_eyelet', bm, M['steel'])
-        back = max((v.co for v in B.parts['feet'].data.vertices if v.co.x * side > 0), key=lambda c: c.y)
-        rbox('mid_sneaker_tab', (0.02, 0.006, 0.03), (back.x, back.y + 0.012, 0.095), M['suede'], r=0.002)
-    return dict(attach=(0, 0, 0), notes='Low-top; fits olivia\'s feet.')
-
-@item('mid_slide', 'mid', 'Moulded slide sandal', 'feet')
-def mid_slide(B):
-    for side in (1, -1):
-        ring = footprint(B, side, 0.008)
-        sole('mid_slide_bed', ring, 0.0, 0.022, M['rubberb'], 0.006)
-        strap = foot_top(B, side, -0.045, 0.006); width = 0.055
-        pts = [Vector((p.x, p.y, max(p.z, 0.022))) for p in strap]
-        nrm = []
-        for i, p in enumerate(pts):
-            a = pts[max(i - 1, 0)]; b = pts[min(i + 1, len(pts) - 1)]; t = (b - a).normalized(); nrm.append(t.cross(Vector((0, 1, 0))).normalized() * -1)
-        o = ribbon('mid_slide_strap', pts, [n if n.z > 0 else -n for n in nrm], width, 0.007, M['rubberb']); subsurf(o, 1, 2)
-        emblem('mid_slide_star', pts[len(pts) // 2] + Vector((0, 0, 0.0045)), (0, 0, 1), 0.012, M['rubberw'], 0.0015, up=Vector((0, -1, 0)))
-    return dict(attach=(0, 0, 0), notes='Slides on olivia\'s feet; one wide strap with a raised star.')
 
 # ---------------------------------------------------------------- mid-range watch, eyewear, jewellery, belt, hats
 @item('mid_watch', 'mid', 'Steel field watch on a woven strap', 'wrist_l')
@@ -815,9 +898,7 @@ def mid_studs(B):
 
 @item('mid_belt', 'mid', 'Webbing belt with a roller buckle', 'waist')
 def mid_belt(B):
-    pts = [Vector((math.sin(a) * 0.3, -0.03 - math.cos(a) * 0.3, 1.0)) for a in [k * math.tau / 80 for k in range(80)]]
-    pts, nrm = B.drape(pts, 0.0035, parts=('bottom', 'body'))
-    for p in pts: p.z = 1.0
+    pts, nrm = B.waist(1.0, 0.012)
     ribbon('mid_belt_strap', pts, [Vector((n.x, n.y, 0)).normalized() for n in nrm], 0.032, 0.0025, M['webbing'], closed=True)
     f = pts[0] + Vector((0.02, -0.006, 0))
     frame_pts = [f + Vector((x, 0, z)) for x, z in ((-0.012, -0.019), (0.012, -0.019), (0.012, 0.019), (-0.012, 0.019))]
@@ -890,6 +971,7 @@ def game_copy(objs, name, view_levels=True):
     dg = bpy.context.evaluated_depsgraph_get(); parts = []
     for o in objs:
         me = bpy.data.meshes.new_from_object(o.evaluated_get(dg)); c = link(bpy.data.objects.new(o.name + '_g', me)); c.matrix_world = o.matrix_world; parts.append(c)
+        at = me.attributes.new('trim', 'INT', 'FACE'); at.data.foreach_set('value', [1 if o.get('trim') else 0] * len(me.polygons))
     select(parts); bpy.ops.object.join(); g = bpy.context.view_layer.objects.active; g.name = g.data.name = name
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True); return g
 
@@ -920,15 +1002,139 @@ def shoot(scene, objs, path, direction, pad=1.25, lens=85):
     cam_d = bpy.data.cameras.new('cam'); cam_d.lens = lens; cam = link(bpy.data.objects.new('cam', cam_d)); scene.camera = cam
     dist = size * pad / (2 * math.tan(cam_d.angle / 2)); d = Vector(direction).normalized(); cam.location = c + d * dist
     cam.rotation_euler = (-d).to_track_quat('-Z', 'Y').to_euler(); cam_d.clip_start = 0.005; cam_d.clip_end = 50
-    for L in [o for o in scene.objects if o.type == 'LIGHT']:       # lights stay 3 m away, so close-ups are exposed like full-body shots
+    for L in [o for o in scene.objects if o.type == 'LIGHT' and 'dir' in o]:       # lights stay 3 m away, so close-ups are exposed like full-body shots
         d0 = Vector(L['dir']); L.location = c + d0 * 3.0; L.rotation_euler = (-d0).to_track_quat('-Z', 'Y').to_euler()
     scene.render.filepath = path; bpy.ops.render.render(write_still=True); bpy.data.objects.remove(cam, do_unlink=True)
+
+def principled(m): return next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None) if m and m.use_nodes else None
+def is_alpha(m):
+    b = principled(m); return b is not None and (m.surface_render_method == 'BLENDED' or b.inputs['Transmission Weight'].default_value > 0.5)
+def metal_of(m):
+    b = principled(m); return b.inputs['Metallic'].default_value if b else 0.0
+
+def face_flags(o):
+    """Per-face integer attributes that survive joins and decimation: 'metal' (1 on metal parts) and 'lens' (1 on see-through parts)."""
+    for key, test in (('metal', lambda m: metal_of(m) > 0.5), ('lens', is_alpha)):
+        at = o.data.attributes.get(key) or o.data.attributes.new(key, 'INT', 'FACE')
+        vals = [1 if test(o.data.materials[p.material_index] if p.material_index < len(o.data.materials) else None) else 0 for p in o.data.polygons]
+        at.data.foreach_set('value', vals)
+
+def split_faces(o, keep, name):
+    """A new object holding the faces of o for which keep(metal, lens) is true (or None if there are none)."""
+    me = o.data; metal = [a.value for a in me.attributes['metal'].data]; lens = [a.value for a in me.attributes['lens'].data]
+    trim = [a.value for a in me.attributes['trim'].data] if 'trim' in me.attributes else [0] * len(me.polygons)
+    bm = bmesh.new(); bm.from_mesh(me); bm.faces.ensure_lookup_table()
+    drop = [f for f in bm.faces if not keep(metal[f.index], lens[f.index] or 0, trim[f.index])]
+    if len(drop) == len(bm.faces): bm.free(); return None
+    bmesh.ops.delete(bm, geom=drop, context='FACES'); m2 = bpy.data.meshes.new(name); bm.to_mesh(m2); bm.free()
+    for mat in me.materials: m2.materials.append(mat)
+    c = link(bpy.data.objects.new(name, m2)); c.matrix_world = o.matrix_world; return c
+
+def emit_copy(m, what):
+    """A copy of a material that emits its base colour ('col') or its metalness ('met'), for baking those through EMIT."""
+    if m is None: m = M['tort']
+    c = m.copy(); nt = c.node_tree; b = principled(c); out = next(n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL')
+    e = nt.nodes.new('ShaderNodeEmission'); e.inputs['Strength'].default_value = 1.0
+    if what == 'col':
+        src = b.inputs['Base Color']
+        if src.is_linked: nt.links.new(src.links[0].from_socket, e.inputs['Color'])
+        else: e.inputs['Color'].default_value = src.default_value
+    else:
+        v = metal_of(m); e.inputs['Color'].default_value = (v, v, v, 1)
+    nt.links.new(e.outputs['Emission'], out.inputs['Surface']); return c
+
+RES = {'feet': 2048, 'crossbody': 2048, 'hand_r': 2048, 'back': 2048, 'shoulder_r': 2048, 'head': 2048}
+
+def bake_maps(id, objs, g0, out, res):
+    """Bake the cinematic version onto LOD0: albedo (with ambient-occlusion grime), tangent normal, roughness, metalness."""
+    scene = bpy.context.scene; scene.render.engine = 'CYCLES'; scene.cycles.device = 'CPU'
+    bk = scene.render.bake; bk.margin = 6; bk.cage_extrusion = 0.003; bk.max_ray_distance = 0.02
+    for o in objs:
+        for m in o.modifiers:
+            if m.type == 'SUBSURF': m.levels = m.render_levels
+    hi = game_copy(objs, id + '_high'); face_flags(hi)
+    for o in objs:
+        for m in o.modifiers:
+            if m.type == 'SUBSURF': m.levels = 1
+    lens_hi = split_faces(hi, lambda mt, ln, tr: ln or tr, 'tmp'); opaque_hi = split_faces(hi, lambda mt, ln, tr: not ln and not tr, id + '_high_o')
+    for x in (hi, lens_hi):
+        if x: bpy.data.objects.remove(x, do_unlink=True)
+    hi = opaque_hi
+    # the target's UVs: one non-overlapping atlas
+    select([g0])
+    for l in list(g0.data.uv_layers): g0.data.uv_layers.remove(l)
+    g0.data.uv_layers.new(name='UVMap')
+    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.004, scale_to_bounds=False)
+    bpy.ops.uv.pack_islands(margin=0.004); bpy.ops.object.mode_set(mode='OBJECT')
+    imgs = {}
+    for k in ('col', 'nrm', 'rgh', 'met', 'ao'):
+        im = bpy.data.images.new(id + '_' + k, res, res, alpha=False)
+        if k != 'col': im.colorspace_settings.name = 'Non-Color'
+        imgs[k] = im
+    tgt = bpy.data.materials.new(id + '_bake'); tgt.use_nodes = True; node = tgt.node_tree.nodes.new('ShaderNodeTexImage'); tgt.node_tree.nodes.active = node
+    g0.data.materials.clear(); g0.data.materials.append(tgt)
+    for p in g0.data.polygons: p.material_index = 0
+    for o in bpy.data.objects: o.hide_render = o not in (g0, hi)
+    def bake(kind, key, samples=1, selected=True, **kw):
+        node.image = imgs[key]; scene.cycles.samples = samples; bk.use_selected_to_active = selected
+        select([hi, g0] if selected else [g0], g0); bpy.ops.object.bake(type=kind, use_selected_to_active=selected, margin=6, **kw)
+    bake('NORMAL', 'nrm', normal_space='TANGENT')
+    bake('ROUGHNESS', 'rgh')
+    orig = list(hi.data.materials)
+    for what in ('col', 'met'):
+        for i, m in enumerate(orig): hi.data.materials[i] = emit_copy(m, what)
+        bake('EMIT', what)
+    for i, m in enumerate(orig): hi.data.materials[i] = m
+    hi.hide_render = True; bake('AO', 'ao', samples=48, selected=False); hi.hide_render = False
+    # grime: darken the albedo where the surface is occluded (creases, seams, under hardware)
+    import numpy as np
+    col = np.array(imgs['col'].pixels[:]).reshape(-1, 4); ao = np.array(imgs['ao'].pixels[:]).reshape(-1, 4)[:, :1]
+    met = np.array(imgs['met'].pixels[:]).reshape(-1, 4)[:, :1]          # metal stays bright (a dark-albedo metal reads grey), fabric and leather take the grime
+    col[:, :3] *= (0.55 + 0.45 * ao) * (1 - met) + (0.88 + 0.12 * ao) * met; imgs['col'].pixels = col.ravel().tolist()
+    paths = {}
+    for k, im in imgs.items():
+        if k == 'ao': continue
+        path = os.path.join(out, id + '_' + k + '.png'); im.filepath_raw = path; im.file_format = 'PNG'
+        im.save(); paths[k] = path
+    bpy.data.objects.remove(hi, do_unlink=True)
+    # the game material: the four maps on one Principled shader
+    m = bpy.data.materials.new(id); m.use_nodes = True; nt = m.node_tree; b = principled(m)
+    def tex(k, colour):
+        t = nt.nodes.new('ShaderNodeTexImage'); t.image = bpy.data.images.load(paths[k]); t.image.colorspace_settings.name = 'sRGB' if colour else 'Non-Color'; return t
+    nt.links.new(tex('col', True).outputs['Color'], b.inputs['Base Color'])
+    nt.links.new(tex('rgh', False).outputs['Color'], b.inputs['Roughness'])
+    nt.links.new(tex('met', False).outputs['Color'], b.inputs['Metallic'])
+    nm = nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(tex('nrm', False).outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
+    g0.data.materials[0] = m; bpy.data.materials.remove(tgt)
+    for o in bpy.data.objects: o.hide_render = False
+    return paths
+
+def lights(scene, mode):
+    """Studio (grey sweep, three soft boxes), day (sun and a blue sky) or night (dark blue ambient, one warm street lamp, a cool rim)."""
+    for o in [o for o in scene.objects if o.type == 'LIGHT']: bpy.data.objects.remove(o, do_unlink=True)
+    w = bpy.data.worlds.new(mode); scene.world = w; w.use_nodes = True; bgn = w.node_tree.nodes['Background']
+    if mode == 'studio':
+        bgn.inputs['Color'].default_value = (0.82, 0.8, 0.78, 1); bgn.inputs['Strength'].default_value = 0.6
+        rig = (('key', (1.2, -1.6, 2.4), 260, 1.2, (1, 1, 1)), ('fill', (-1.8, -1.0, 1.4), 90, 2.0, (1, 1, 1)), ('rim', (0.4, 1.8, 2.2), 180, 1.0, (1, 1, 1)))
+    elif mode == 'day':
+        bgn.inputs['Color'].default_value = (0.45, 0.62, 0.95, 1); bgn.inputs['Strength'].default_value = 0.9
+        L = bpy.data.lights.new('sun', 'SUN'); L.energy = 4.5; L.angle = math.radians(1.5); L.color = (1, 0.96, 0.9); o = link(bpy.data.objects.new('sun', L)); o.rotation_euler = (math.radians(40), 0, math.radians(30)); o['fixed'] = True
+        rig = ()
+    else:
+        bgn.inputs['Color'].default_value = (0.02, 0.03, 0.07, 1); bgn.inputs['Strength'].default_value = 0.5
+        rig = (('lamp', (1.0, -1.2, 3.0), 380, 0.4, (1.0, 0.72, 0.42)), ('rim', (-0.6, 1.6, 1.8), 120, 1.0, (0.55, 0.7, 1.0)))
+    for name, loc, energy, size, colr in rig:
+        L = bpy.data.lights.new(name, 'AREA'); L.energy = energy; L.size = size; L.color = colr; o = link(bpy.data.objects.new(name, L)); o.location = loc; o['dir'] = Vector(loc).normalized()
+    scene.view_settings.view_transform = 'AgX'
 
 def build(id):
     fn, tier, name, slot = ITEMS[id]
     scene = reset(); materials(); B = Body()
     before = set(bpy.data.objects); info = fn(B)
-    objs = [o for o in bpy.data.objects if o not in before and o.type == 'MESH']
+    objs = [o for o in bpy.data.objects if o not in before and o.type == 'MESH' and not o.get('lod2')]
+    proxies = [o for o in bpy.data.objects if o not in before and o.get('lod2')]
+    for o in proxies: o.hide_render = True
     coll = bpy.data.collections.new(id); scene.collection.children.link(coll)
     for o in objs:
         for c in o.users_collection: c.objects.unlink(o)
@@ -937,43 +1143,81 @@ def build(id):
     out = os.path.join(LIB, tier, id); os.makedirs(out, exist_ok=True)
     # cinematic .blend: everything live, the body as a hidden reference
     B.coll.hide_render = True; B.coll.hide_viewport = True
-    bpy.ops.file.pack_all() if False else None
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, id + '.blend'), copy=True, relative_remap=True)
     cine_tris = sum(tris_render(o) for o in objs)
-    # game LODs
-    full = game_copy(objs, id + '_full'); tf = tri_count(full)
-    g0 = lod(full, id + '_LOD0', min(1.0, BUDGET.get(slot, 8000) / tf)); bpy.data.objects.remove(full, do_unlink=True); t0 = tri_count(g0)
-    g1 = lod(g0, id + '_LOD1', 0.4); g2 = lod(g0, id + '_LOD2', 0.15)
-    t1 = tri_count(g1); t2 = tri_count(g2)
-    for g in (g0, g1, g2): g.hide_render = True
+    # game version: LOD0 at the slot's budget, the cinematic detail baked into its maps, then LOD1 and LOD2 from it
+    full = game_copy(objs, id + '_full'); face_flags(full); tf = tri_count(full)
+    # see-through parts (lenses, crystals) and trim (chains) keep their own simple materials; the rest is baked into one atlas
+    extra = split_faces(full, lambda mt, ln, tr: ln or tr, id + '_extra'); body = split_faces(full, lambda mt, ln, tr: not ln and not tr, id + '_body')
+    tb = tri_count(body) if body else 0; te = tri_count(extra) if extra else 0; bpy.data.objects.remove(full, do_unlink=True)
+    ratio = min(1.0, BUDGET.get(slot, 8000) / (tb + te))
+    B.coll.hide_render = True
+    if body:
+        g0 = lod(body, id + '_LOD0', ratio); bpy.data.objects.remove(body, do_unlink=True)
+        paths = bake_maps(id, objs, g0, out, RES.get(slot, 1024)); g2 = lod(g0, id + '_LOD2', 0.15)   # far away: coarse, with plain tubes in place of chains
+    else:              # nothing to bake (a chain on its own): LOD0 is the trim, LOD2 the plain tube
+        g0 = lod(extra, id + '_LOD0', ratio); bpy.data.objects.remove(extra, do_unlink=True); extra = None; paths = {}
+        g2 = game_copy(proxies, id + '_LOD2') if proxies else lod(g0, id + '_LOD2', 0.15); proxies = []
+    if proxies and body is not None:
+        pc = game_copy(proxies, id + '_px'); select([g2, pc], g2); bpy.ops.object.join()
+    if extra:
+        ex0 = lod(extra, id + '_extra0', ratio); bpy.data.objects.remove(extra, do_unlink=True)
+        select([g0, ex0], g0); bpy.ops.object.join()
+    t0 = tri_count(g0); g1 = lod(g0, id + '_LOD1', 0.4); t1 = tri_count(g1); t2 = tri_count(g2)
     gcoll = bpy.data.collections.new(id + '_game'); scene.collection.children.link(gcoll)
     for g in (g0, g1, g2):
         for c in g.users_collection: c.objects.unlink(g)
         gcoll.objects.link(g)
     select([g0, g1, g2])
     bpy.ops.export_scene.gltf(filepath=os.path.join(out, id + '.glb'), use_selection=True, export_format='GLB', export_apply=True, export_yup=True, export_image_format='AUTO')
-    select([g0])
+    # Starlife: LOD0 cut into its non-metal, metal and see-through parts (one material each in the game)
+    parts = []
+    for suffix, keep in (('', lambda mt, ln, tr: not mt and not ln and not tr), ('_m', lambda mt, ln, tr: mt and not ln and not tr), ('_a', lambda mt, ln, tr: ln), ('_t', lambda mt, ln, tr: tr and not ln)):
+        o = split_faces(g0, keep, id + suffix)
+        if o: parts.append(o)
+    select(parts)
     bpy.ops.export_scene.fbx(filepath=os.path.join(out, id + '_starlife.fbx'), use_selection=True, object_types={'MESH'}, bake_space_transform=True,
                              apply_scale_options='FBX_SCALE_UNITS', mesh_smooth_type='FACE', path_mode='STRIP', embed_textures=False, bake_anim=False)
-    # renders: the product on its own, then worn
-    studio(scene)
+    def flat(o):      # an untextured part's colour: its main material's base colour (the mean of its texture, if it has one)
+        m = max(o.data.materials, key=lambda m: sum(1 for p in o.data.polygons if o.data.materials[p.material_index] == m)); b = principled(m); src = b.inputs['Base Color']
+        if src.is_linked and src.links[0].from_node.type == 'TEX_IMAGE':
+            im = src.links[0].from_node.image; px = im.pixels[:]; n = len(px) // 4; step = max(1, n // 4096)
+            return [sum(px[i * 4 + c] for i in range(0, n, step)) / len(range(0, n, step)) for c in range(3)] + [1.0]
+        return list(src.default_value)
+    sl_parts = []
+    for o in parts:
+        k = o.name[len(id):]; textured = k in ('', '_m')
+        sl_parts.append(dict(mesh=o.name, metal=1.0 if k in ('_m', '_t') else 0.0, alpha=k == '_a', tex=os.path.basename(paths['col']) if textured else '',
+                             normal=os.path.basename(paths['nrm']) if textured else '', rough={'': 0.5, '_m': 0.22, '_a': 0.05, '_t': 0.18}[k],
+                             color=[1, 1, 1, 1] if textured else flat(o)))
+    for o in parts: bpy.data.objects.remove(o, do_unlink=True)
+    # renders: product (cinematic), product (game LOD0 with its baked maps), and worn in studio, daylight and night light
+    scene.render.engine = 'BLENDER_EEVEE'; scene.render.resolution_x = scene.render.resolution_y = 640
+    try: scene.eevee.taa_render_samples = 48
+    except Exception: pass
     for g in (g0, g1, g2): g.hide_render = True
-    shoot(scene, objs, os.path.join(out, 'preview.png'), (0.55, -1.0, 0.45))
+    lights(scene, 'studio'); shoot(scene, objs, os.path.join(out, 'preview.png'), (0.55, -1.0, 0.45))
+    for o in objs: o.hide_render = True
+    g0.hide_render = False; shoot(scene, [g0], os.path.join(out, 'game.png'), (0.55, -1.0, 0.45)); g0.hide_render = True
+    for o in objs: o.hide_render = False
     B.coll.hide_render = False
     show = {'body', 'head', 'hair', 'eyes', 'teeth', 'top', 'bottom', 'feet', 'shoes'}
     if slot == 'feet': show -= {'shoes'}
     for k, o in B.parts.items(): o.hide_render = k not in show
-    region = {'feet': 0.35, 'head': 0.45, 'eyes': 0.3, 'ears': 0.3, 'neck': 0.45, 'wrist_l': 0.35, 'wrist_r': 0.35}.get(slot)
-    lo, hi = bounds(objs)
-    framing = objs if region is None else objs
-    shoot(scene, [B.parts['body'], B.parts['head']] + objs if region is None else objs, os.path.join(out, 'onbody.png'), (0.6, -1.0, 0.25), pad=1.15 if region is None else 2.6)
-    shoot(scene, [B.parts['body'], B.parts['head']] + objs if region is None else objs, os.path.join(out, 'onbody_back.png'), (-0.7, 1.0, 0.3), pad=1.15 if region is None else 2.6)
+    close = slot in ('feet', 'head', 'eyes', 'ears', 'neck', 'wrist_l', 'wrist_r')
+    frame = objs if close else [B.parts['body'], B.parts['head']] + objs; pad = 2.6 if close else 1.15
+    shoot(scene, frame, os.path.join(out, 'onbody.png'), (0.6, -1.0, 0.25), pad=pad)
+    shoot(scene, frame, os.path.join(out, 'onbody_back.png'), (-0.7, 1.0, 0.3), pad=pad)
+    lights(scene, 'day'); shoot(scene, frame, os.path.join(out, 'day.png'), (0.6, -1.0, 0.25), pad=pad)
+    lights(scene, 'night'); shoot(scene, frame, os.path.join(out, 'night.png'), (0.6, -1.0, 0.25), pad=pad)
     mats = sorted({m.name for o in objs for m in o.data.materials if m})
     texs = sorted({MATS[m]['tex'] for m in mats if m in MATS and MATS[m]['tex']})
     man = dict(id=id, name=name, tier=tier, slot=slot, space='olivia (Starlife shared body), metres; FBX Z-up, GLB Y-up, forward -Y in Blender',
-               attach=[round(x, 4) for x in info['attach']], notes=info['notes'], materials=mats, textures=texs,
-               triangles={'cinematic': cine_tris, 'LOD0': t0, 'LOD1': t1, 'LOD2': t2},
-               files={'blend': id + '.blend', 'glb': id + '.glb', 'starlife_fbx': id + '_starlife.fbx', 'preview': 'preview.png', 'onbody': ['onbody.png', 'onbody_back.png']})
+               attach=[round(x, 4) for x in info['attach']], notes=info['notes'], materials=mats, source_textures=texs,
+               triangles={'cinematic': cine_tris, 'LOD0': t0, 'LOD1': t1, 'LOD2': t2}, maps={k: os.path.basename(v) for k, v in paths.items()}, map_size=RES.get(slot, 1024),
+               starlife_parts=sl_parts,
+               files={'blend': id + '.blend', 'glb': id + '.glb', 'starlife_fbx': id + '_starlife.fbx', 'preview': 'preview.png', 'game': 'game.png',
+                      'onbody': ['onbody.png', 'onbody_back.png', 'day.png', 'night.png']})
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('ITEM', id, man['triangles'])
     return man

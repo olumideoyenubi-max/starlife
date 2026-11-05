@@ -69,7 +69,7 @@ public partial class SLApp {
 
     void MakeupStudio(VisualElement b) {
         MkInitTools(); MkInitMirror(); mkSubject = null;
-        b.Add(L("Makeup studio", "h3")); b.Add(L("Pick a product, a shade and a finish, then paint straight onto her face in the mirror. It stays on her everywhere.", "muted"));
+        b.Add(L("Makeup studio", "h3")); b.Add(L("Pick a product, a shade and a finish, then paint straight onto " + her + " face in the mirror. It stays on " + him + " everywhere.", "muted"));
         var tools = El("row");
         foreach (var t in mkTools) { var tt = t; tools.Add(B(t.label, "chip" + (t == mkTool ? " on" : ""), () => { mkTool = tt; mkSize = tt.size; RefreshParlorPanel(); })); }
         b.Add(Field("Product", tools));
@@ -90,7 +90,7 @@ public partial class SLApp {
         var looks = El("row");
         foreach (var lk in MkLooks.Keys) { string n = lk; looks.Add(B(n, "chip", () => { MkWipe(); MkPaintLook(n); })); }
         b.Add(looks);
-        b.Add(L("Tips", "h3")); b.Add(L("Build foundation, contour and blush up softly: go over the same spot for more. Lipstick, liner and brows draw solid lines with a small brush. Gloss adds wet shine over a colour; Glitter sparkles as she moves. The remover takes makeup off where you rub.", "muted"));
+        b.Add(L("Tips", "h3")); b.Add(L("Build foundation, contour and blush up softly: go over the same spot for more. Lipstick, liner and brows draw solid lines with a small brush. Gloss adds wet shine over a colour; Glitter sparkles as " + she + " moves. The remover takes makeup off where you rub.", "muted"));
     }
     void MkWipe() { if (mkPx == null) return; MkKeepUndo(); for (int i = 0; i < mkPx.Length; i++) mkPx[i] = new Color32(0, 0, 0, 0); if (mkFxPx != null) for (int i = 0; i < mkFxPx.Length; i++) mkFxPx[i] = new Color32(0, 0, 0, 0); MkShow(); MkSave(); }
     Vector2 MkPos(Vector3 local) => new Vector2(local.x / Mathf.Max(1, makeupImg.resolvedStyle.width), 1 - local.y / Mathf.Max(1, makeupImg.resolvedStyle.height));
@@ -269,8 +269,8 @@ public partial class SLApp {
     // Picking a style starts a session: shampoo, rinse, blow-dry, comb out, then style, each done by dragging the
     // tool over her hair until its bar fills. The new style goes on when the last step is done.
     static readonly (string name, string hint, string fx)[] SimSteps = {
-        ("Shampoo", "Rub the shampoo all over her hair.", "bubble"), ("Rinse", "Rinse the lather out with the shower head.", "water"),
-        ("Blow-dry", "Dry her hair with the dryer.", "air"), ("Comb out", "Comb through from the roots to the tips.", "comb"), ("Style", "Work the style in, section by section.", "spark") };
+        ("Shampoo", "Rub the shampoo all over {her} hair.", "bubble"), ("Rinse", "Rinse the lather out with the shower head.", "water"),
+        ("Blow-dry", "Dry {her} hair with the dryer.", "air"), ("Comb out", "Comb through from the roots to the tips.", "comb"), ("Style", "Work the style in, section by section.", "spark") };
     string simStyle, simLabel; int simStep; float simProg; Vector2 simLast; bool simHas; float simFx; VisualElement salonView, simLayer, simBar; readonly List<VisualElement> simBubbles = new List<VisualElement>();
 
     void StartSim(string style, string label) {
@@ -296,7 +296,7 @@ public partial class SLApp {
             var tick = Icon(done ? "check" : "ring", done ? "#1d9a63" : now ? "#9b6bf2" : "#c9bfd6", 18); tick.style.marginRight = 8;
             var row = El("row", tick, L(name, now ? "look-name" : "check" + (done ? " ok" : ""))); row.style.flexWrap = Wrap.NoWrap; b.Add(row);
         }
-        var hint = L(SimSteps[simStep].hint + " Drag over her in the picture.", "muted"); hint.style.marginTop = 10; hint.style.whiteSpace = WhiteSpace.Normal; b.Add(hint);
+        var hint = L(Pn(SimSteps[simStep].hint) + " Drag over " + him + " in the picture.", "muted"); hint.style.marginTop = 10; hint.style.whiteSpace = WhiteSpace.Normal; b.Add(hint);
         simBar = El(null); simBar.style.height = 12; simBar.style.backgroundColor = C("#9b6bf2"); simBar.style.width = Length.Percent(simProg * 100);
         simBar.style.borderTopLeftRadius = simBar.style.borderTopRightRadius = simBar.style.borderBottomLeftRadius = simBar.style.borderBottomRightRadius = 6;
         var track = El(null, simBar); track.style.height = 12; track.style.backgroundColor = C("#ece6f7"); track.style.marginTop = 8; track.style.marginBottom = 12;

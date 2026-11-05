@@ -2,6 +2,7 @@
 // answer first. Part of SLApp. An event pays by how well her outfit fits its dress code (DressCheck in SLLife.cs).
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -53,13 +54,13 @@ public partial class SLApp {
     /// <summary>This week's and next week's invitations: three a week, the same ones every time the week is looked at.</summary>
     static List<Ev> Invitations(DateTime today) {
         (string id, string name, string bg, string blurb, string[] tags)[] pool = {
-            ("premiere", "Film Premiere", "#8f1d2c", "A red carpet, a wall of cameras, and her name on the list.", new[] { "Red carpet", "Glam" }),
+            ("premiere", "Film Premiere", "#8f1d2c", "A red carpet, a wall of cameras, and {her} name on the list.", new[] { "Red carpet", "Glam" }),
             ("gala", "Charity Gala", "#2e2a4f", "Black tie, a silent auction and a seat at the top table.", new[] { "Glam", "Chic" }),
-            ("runway", "Fashion Week Show", "#3a3f4a", "Front row. Everyone will look at what she wears.", new[] { "Chic", "Edgy" }),
+            ("runway", "Fashion Week Show", "#3a3f4a", "Front row. Everyone will look at what {she} wears.", new[] { "Chic", "Edgy" }),
             ("launch", "Album Launch Party", "#7c4ee0", "A warehouse, a guest list and a very loud speaker stack.", new[] { "Night out", "Edgy" }),
             ("garden", "Garden Party", "#86aba1", "Lawn games, a marquee and a string quartet.", new[] { "Summer", "Casual" }),
-            ("awards", "Awards Night", "#d6b25e", "She is nominated. The speech is optional, the outfit is not.", new[] { "Red carpet", "Glam" }),
-            ("birthday", "A Friend's Birthday", "#f4b8c8", "Cake, karaoke and people who knew her before the fame.", new[] { "Casual", "Night out" }),
+            ("awards", "Awards Night", "#d6b25e", "{She} is nominated. The speech is optional, the outfit is not.", new[] { "Red carpet", "Glam" }),
+            ("birthday", "A Friend's Birthday", "#f4b8c8", "Cake, karaoke and people who knew {him} before the fame.", new[] { "Casual", "Night out" }),
             ("boardroom", "Investors' Dinner", "#3b4a5f", "Quiet money, a private room and a firm handshake.", new[] { "Office", "Chic" }),
             ("skilodge", "Lodge Weekend", "#a9c6ef", "An open fire and snow up to the windows.", new[] { "Winter", "Casual" }) };
         var res = new List<Ev>(); DateTime monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
@@ -87,7 +88,7 @@ public partial class SLApp {
         var top = El(null, L(when.ToUpperInvariant() + (e.rsvp ? " · INVITATION" : " · OPEN TO ALL"), "tile-h"), head); top.style.backgroundColor = C(e.bg);
         top.style.paddingLeft = top.style.paddingRight = 14; top.style.paddingTop = 10; top.style.paddingBottom = 10; top.style.borderTopLeftRadius = top.style.borderTopRightRadius = 13;
         foreach (var k in top.Children()) if (k is Label lab) lab.style.color = Color.white;
-        var blurb = L(e.blurb, "muted"); blurb.style.whiteSpace = WhiteSpace.Normal;
+        var blurb = L(Pn(e.blurb), "muted"); blurb.style.whiteSpace = WhiteSpace.Normal;
         var dress = L("Dress code: " + string.Join(" or ", e.tags).ToLowerInvariant() + ". Up to " + e.coins + " coins and " + e.fame + " fame.", "muted"); dress.style.whiteSpace = WhiteSpace.Normal;
         var body = El(null, blurb, dress); body.style.paddingLeft = body.style.paddingRight = 14; body.style.paddingTop = 10; body.style.paddingBottom = 12;
         foreach (var x in extra) if (x != null) body.Add(x);
@@ -105,11 +106,8 @@ public partial class SLApp {
         var intro = L("Holidays and the week's get-togethers are open to everyone: just turn up. Invitations want an answer first. Either way, dress for it.", "muted"); intro.style.whiteSpace = WhiteSpace.Normal; s.Add(intro);
         if (eventResult != "") { var r = L(eventResult, "h3"); r.style.whiteSpace = WhiteSpace.Normal; s.Add(r); }
 
-        // invitations she accepted and then missed cost a little fame, once
+        MissedInvitations(today);
         var invites = Invitations(today);
-        foreach (var e in invites) if (e.day < today && core.Pref("inv." + e.Key) == "accepted") {
-            core.SetPref("inv." + e.Key, "missed"); core.Call("earn", 0d, -2d); ShowToast("She missed the " + e.name + " she said yes to: -2 fame");
-        }
 
         // ---- on today: holidays in their window, the weekly event, and accepted invitations for today
         var now = new List<Ev>(); var soon = new List<Ev>();
@@ -121,11 +119,11 @@ public partial class SLApp {
         foreach (var e in now) {
             var ev = e; string done = "evdone." + e.Key + "." + stamp; bool been = core.Pref(done) == "1";
             var (lines, _, _) = DressCheck(e.tags, 2); var check = El(null); check.style.marginTop = 8; Checklist(check, lines);
-            var go = B(been ? "She has been" : "Go to the event", "btn small" + (been ? "" : " primary"), () => Attend(ev, done)); go.SetEnabled(!been); go.style.marginTop = 8; go.style.alignSelf = Align.FlexStart;
+            var go = B(been ? She + " has been" : "Go to the event", "btn small" + (been ? "" : " primary"), () => Attend(ev, done)); go.SetEnabled(!been); go.style.marginTop = 8; go.style.alignSelf = Align.FlexStart;
             grid.Add(EventCard(e, e.rsvp ? "Today" : e.day == today ? "Today" : "On now, " + e.day.ToString("d MMMM"), check, go));
         }
         s.Add(grid);
-        var change = B("Change her outfit", "btn", () => { SetView("suite"); OpenDrawer("wardrobe"); }); change.style.alignSelf = Align.FlexStart; s.Add(change);
+        var change = B("Change " + her + " outfit", "btn", () => { SetView("suite"); OpenDrawer("wardrobe"); }); change.style.alignSelf = Align.FlexStart; s.Add(change);
 
         // ---- invitations: accept or decline ahead of the day
         s.Add(L("INVITATIONS", "sec")); grid = El("grid"); int shown = 0;
@@ -134,11 +132,11 @@ public partial class SLApp {
             if (e.day < today || st == "declined" || st == "attended" || st == "missed" || (e.day == today && st == "accepted")) continue;
             VisualElement act;
             if (st == "accepted") {
-                var yes = L("She is going. Come back " + When(e.day, today).ToLowerInvariant() + " to attend.", "check ok"); yes.style.whiteSpace = WhiteSpace.Normal;
+                var yes = L(She + " is going. Come back " + When(e.day, today).ToLowerInvariant() + " to attend.", "check ok"); yes.style.whiteSpace = WhiteSpace.Normal;
                 var cancel = B("Send apologies", "btn small", () => { core.SetPref(key, "declined"); dirty = true; }); cancel.style.alignSelf = Align.FlexStart; cancel.style.marginTop = 6;
                 act = El(null, yes, cancel);
             } else {
-                act = El("row", B("Accept", "btn small primary", () => { core.SetPref(key, "accepted"); ShowToast("RSVP sent: she will be at the " + ev.name); dirty = true; }),
+                act = El("row", B("Accept", "btn small primary", () => { core.SetPref(key, "accepted"); ShowToast("RSVP sent: " + she + " will be at the " + ev.name); dirty = true; }),
                                 B("Decline", "btn small", () => { core.SetPref(key, "declined"); dirty = true; }));
             }
             act.style.marginTop = 8; grid.Add(EventCard(e, When(e.day, today), act)); shown++;
@@ -153,12 +151,21 @@ public partial class SLApp {
         s.Add(grid);
     }
 
+    /// <summary>Invitations accepted and then missed cost a little fame, once, however long ago they were.</summary>
+    void MissedInvitations(DateTime today) {
+        foreach (var key in core.PrefKeys("inv.")) {
+            if (core.Pref(key) != "accepted") continue; int dot = key.LastIndexOf('.');
+            if (!DateTime.TryParseExact(key.Substring(dot + 1), "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var day) || day >= today) continue;
+            core.SetPref(key, "missed"); core.Call("earn", 0d, -2d); ShowToast(She + " missed an invitation " + she + " said yes to: -2 fame");
+        }
+    }
+
     void Attend(Ev e, string doneKey) {
         var (_, score, _) = DressCheck(e.tags, 2);
         int coins = Mathf.RoundToInt(e.coins * (0.25f + 0.75f * score / 100f)), fame = Mathf.RoundToInt(e.fame * score / 100f);
         core.SetPref(doneKey, "1"); if (e.rsvp) core.SetPref("inv." + e.Key, "attended");
         core.Call("earn", (double)coins, (double)fame);
-        eventResult = e.name + ": " + (score >= 85 ? "she was the best-dressed there. " : score >= 55 ? "she looked the part. " : "she turned up, but not dressed for it. ") + "+" + coins + " coins" + (fame > 0 ? ", +" + fame + " fame." : ".");
+        eventResult = e.name + ": " + (score >= 85 ? she + " was the best-dressed there. " : score >= 55 ? she + " looked the part. " : she + " turned up, but not dressed for it. ") + "+" + coins + " coins" + (fame > 0 ? ", +" + fame + " fame." : ".");
         dirty = true;
     }
 }

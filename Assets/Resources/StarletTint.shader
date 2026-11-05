@@ -17,6 +17,7 @@ Shader "Starlife/Starlet" {
         _Detail ("Fine surface detail (hair coils, weave)", Range(0,2)) = 0
         _DetailScale ("Detail per metre", Float) = 400
         _Glossiness ("Smoothness", Range(0,1)) = 0.25
+        _Metallic ("Metallic (gold, steel: the fashion library's metal parts)", Range(0,1)) = 0
         _Inset ("Shrink along the normal (m)", Float) = 0
         _Shrink ("Shrink towards the body axis (fraction)", Range(0,0.5)) = 0
         _ZPush ("Lose to anything nearly as close (depth units)", Float) = 0
@@ -68,7 +69,7 @@ Shader "Starlife/Starlet" {
         #pragma surface surf Standard fullforwardshadows alphatest:_Cutoff addshadow finalcolor:solid vertex:vert
         #pragma target 3.0
         sampler2D _MainTex, _BumpMap, _MakeupTex, _MakeupFx; half _Makeup;
-        fixed4 _Tint, _Mean; half _Recolor, _Lift, _Gain, _SatMask, _Glossiness, _Keep, _Sheen, _Detail, _SSS, _Hair; float4 _HairLight; float _Inset, _Shrink, _DetailScale;
+        fixed4 _Tint, _Mean; half _Recolor, _Lift, _Gain, _SatMask, _Glossiness, _Metallic, _Keep, _Sheen, _Detail, _SSS, _Hair; float4 _HairLight; float _Inset, _Shrink, _DetailScale;
         struct Input { float2 uv_MainTex; float3 viewDir; float3 objPos; float3 actorPos; float3 worldPos; float3 worldNormal; INTERNAL_DATA };
         // smooth 3D noise, for surface detail on pieces that have no texture of their own
         float hash3 (float3 p) { return frac(sin(dot(p, float3(12.9898, 78.233, 37.719))) * 43758.5453); }
@@ -131,7 +132,7 @@ Shader "Starlife/Starlet" {
             o.Emission = albedo * pow(rim, 3) * _Sheen;     // the soft edge light of fabric and skin
             // skin is not solid: light that enters it comes back out redder, most where the surface turns away (ears, nostrils, the edge of a cheek) and in its shadows
             o.Emission += albedo * half3(1.0, 0.30, 0.20) * _SSS * (0.10 + 0.55 * rim * rim) + hairGlow;
-            o.Metallic = 0; o.Smoothness = _Glossiness; o.Alpha = c.a;
+            o.Metallic = _Metallic; o.Smoothness = _Glossiness; o.Alpha = c.a;
             // the makeup's finish: gloss (wet lips), metallic (foiled lids, highlighter) and glitter (sparks that twinkle as she moves)
             fixed4 fx = tex2D(_MakeupFx, IN.uv_MainTex) * _Makeup;
             o.Smoothness = lerp(o.Smoothness, 0.94, fx.r); o.Metallic = lerp(o.Metallic, 0.7, fx.g);

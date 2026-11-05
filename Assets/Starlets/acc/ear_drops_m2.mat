@@ -46,18 +46,19 @@ Material:
     - _Detail: 0
     - _DetailScale: 400
     - _Gain: 1
-    - _Glossiness: 0.48000002
+    - _Glossiness: 0.76
     - _Hair: 0
     - _Inset: 0
     - _IsHead: 0
     - _Keep: 0
     - _Lift: 0
     - _Makeup: 0
+    - _Metallic: 0.8
     - _Recolor: 0
     - _SSS: 0
     - _SatMask: 0
     - _Shaped: 0
-    - _Sheen: 0.4
+    - _Sheen: 0.05
     - _Shrink: 0
     - _ZPush: 0
     m_Colors:

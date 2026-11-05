@@ -16,6 +16,7 @@ public sealed class SLCore {
     public Action<bool> Changed = _ => { };
     public Action<string> Toast = _ => { };
     public Action ProfileChanged = () => { };
+    public bool Recovered; public string LoadNote;      // what happened if the save was damaged, to tell the player
 
     public sealed class Host {
         readonly SLCore c; public Host(SLCore c) { this.c = c; }
@@ -28,9 +29,12 @@ public sealed class SLCore {
 
     public SLCore(string saveName = "starlife-save.json") {
         path = Path.Combine(Application.persistentDataPath, saveName);
-        if (File.Exists(path)) {
-            try { var s = JsonUtility.FromJson<Save>(File.ReadAllText(path)); for (int i = 0; i < s.keys.Count; i++) store[s.keys[i]] = s.values[i]; }
-            catch (Exception e) { Debug.LogWarning("Starlife: could not read the save file, starting fresh. " + e.Message); }
+        if (File.Exists(path) && !Read(path)) {
+            // never write over a damaged save: keep it aside, and go back to the copy before the last write
+            try { File.Copy(path, path + ".damaged-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"), true); } catch (Exception e) { Debug.LogWarning("Starlife: could not keep the damaged save. " + e.Message); }
+            Recovered = File.Exists(path + ".bak") && Read(path + ".bak");
+            LoadNote = Recovered ? "Your save was damaged, so the previous copy was restored" : "Your save could not be read. A copy was kept beside the save file";
+            dirty = Recovered;
         }
         engine = new Engine();
         engine.SetValue("host", new Host(this));
@@ -45,10 +49,25 @@ public sealed class SLCore {
     /// <summary>The host's own settings (job, underwear, avatar choices), kept in the same save file as the game's.</summary>
     public string Pref(string key, string def = "") => store.TryGetValue("host." + key, out var v) && v != null ? v : def;
     public void SetPref(string key, string value) { store["host." + key] = value; dirty = true; }
+    /// <summary>Every host setting whose key starts with this, without the "host." in front.</summary>
+    public List<string> PrefKeys(string prefix) { var r = new List<string>(); foreach (var k in store.Keys) if (k.StartsWith("host." + prefix, StringComparison.Ordinal)) r.Add(k.Substring(5)); return r; }
 
+    bool Read(string file) {
+        try {
+            var s = JsonUtility.FromJson<Save>(File.ReadAllText(file)); if (s == null || s.keys.Count != s.values.Count) return false;
+            store.Clear(); for (int i = 0; i < s.keys.Count; i++) store[s.keys[i]] = s.values[i];
+            return true;
+        } catch (Exception e) { Debug.LogWarning("Starlife: could not read " + file + ". " + e.Message); return false; }
+    }
+    /// <summary>The save is written beside the real one and swapped in whole, so a crash or a full disk cannot leave half a file.</summary>
     public void Flush() {
-        if (!dirty) return; dirty = false;
+        if (!dirty) return;
         var s = new Save(); foreach (var kv in store) { s.keys.Add(kv.Key); s.values.Add(kv.Value); }
-        File.WriteAllText(path, JsonUtility.ToJson(s));
+        string tmp = path + ".tmp";
+        try {
+            File.WriteAllText(tmp, JsonUtility.ToJson(s));
+            if (File.Exists(path)) File.Replace(tmp, path, path + ".bak"); else File.Move(tmp, path);
+            dirty = false;
+        } catch (Exception e) { Debug.LogWarning("Starlife: could not save, will try again. " + e.Message); }     // dirty stays set
     }
 }

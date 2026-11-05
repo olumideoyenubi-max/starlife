@@ -51,6 +51,20 @@ public static class SLWardrobe3D {
         { "hoops", "acc:ear_hoops_m" }, { "studs", "acc:ear_studs_m" }, { "drops", "acc:ear_drops_m+ear_drops_m2" },
         { "beret", "acc:hat_beret" }, { "beanie", "acc:hat_beanie" }, { "sunhat", "acc:hat_sunhat+hat_sunhat_m" }, { "cap", "acc:hat_cap" }, { "tiara", "acc:hat_tiara_m+hat_tiara_m2" },
         { "tote", "acc:hand_tote" }, { "clutch", "acc:hand_clutch+hand_clutch_m" }, { "crossbody", "acc:crossbody+crossbody_m" }, { "heartbag", "acc:heartbag+heartbag_m" },
+        // the fashion library (Tools/fashionlib/to_starlife.py): lib pieces ride the head, a hand or the torso (SLRig.Pin), libfit pieces are skinned like clothes
+        { "lux_aviator", "lib:glasses_lux_aviator+glasses_lux_aviator_m+glasses_lux_aviator_a!" }, { "lux_ballet", "libfit:lux_ballet!" },
+        { "lux_bangle", "libfit:lux_bangle+lux_bangle_m!" }, { "lux_belt", "lib:lux_belt+lux_belt_m!" },
+        { "lux_clutch", "lib:hand_lux_clutch+hand_lux_clutch_m+hand_lux_clutch_a!" }, { "lux_fedora", "lib:hat_lux_fedora!" },
+        { "lux_flapbag", "lib:lux_flapbag+lux_flapbag_m+lux_flapbag_t!" }, { "lux_hoops", "lib:ear_lux_hoops+ear_lux_hoops_m!" },
+        { "lux_loafer", "libfit:lux_loafer+lux_loafer_m!" }, { "lux_necklace", "lib:lux_necklace_m+lux_necklace_a+lux_necklace_t!" },
+        { "lux_scarf", "lib:lux_scarf!" }, { "lux_tote", "lib:hand_lux_tote+hand_lux_tote_m!" },
+        { "lux_watch", "libfit:lux_watch+lux_watch_m+lux_watch_a!" }, { "mid_backpack", "lib:mid_backpack+mid_backpack_m!" },
+        { "mid_beads", "libfit:mid_beads!" }, { "mid_belt", "lib:mid_belt+mid_belt_m!" },
+        { "mid_bucket", "lib:hat_mid_bucket+hat_mid_bucket_m!" }, { "mid_cap", "lib:hat_mid_cap!" },
+        { "mid_chain", "lib:mid_chain_t!" }, { "mid_crossbody", "lib:mid_crossbody+mid_crossbody_m!" },
+        { "mid_slide", "libfit:mid_slide!" }, { "mid_sneaker", "libfit:mid_sneaker+mid_sneaker_m!" },
+        { "mid_studs", "lib:ear_mid_studs_m+ear_mid_studs_a!" }, { "mid_sunglasses", "lib:glasses_mid_sunglasses+glasses_mid_sunglasses_m+glasses_mid_sunglasses_a!" },
+        { "mid_tote", "lib:hand_mid_tote!" }, { "mid_watch", "libfit:mid_watch+mid_watch_m+mid_watch_a!" },
     };
     // The men wear menswear made on their shared body (Tools/blender/make_men.py): every item, women's included, maps to
     // one of those sets. Dresses become a suit; accessories have no 3D piece on a man yet.
@@ -77,7 +91,7 @@ public static class SLWardrobe3D {
     public static List<Piece> Plan(List<(string slot, string item, Color color)> worn, Func<string, string, bool> has, bool male = false) {
         var map = male ? MenMap : Map; var bySlot = male ? MenBySlot : BySlot;
         var plan = new List<Piece>(); bool dress = worn.Exists(w => w.slot == "dress"), outer = worn.Exists(w => w.slot == "outer");
-        foreach (string slot in new[] { "shoes", "bottom", "top", "dress", "outer", "glasses", "necklace", "earrings", "hat", "bag" }) {
+        foreach (string slot in new[] { "shoes", "bottom", "top", "dress", "outer", "glasses", "necklace", "belt", "watch", "bracelet", "earrings", "hat", "bag" }) {
             int i = worn.FindIndex(w => w.slot == slot); if (i < 0) continue;
             if (dress && (slot == "top" || slot == "bottom")) continue;       // a dress covers both
             if (outer && slot == "top") continue;                             // the jackets come with their own top

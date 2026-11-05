@@ -1,0 +1,321 @@
+{
+ "id": "libfit",
+ "label": "libfit",
+ "parts": [
+  {
+   "mesh": "lux_ballet",
+   "material": "BeadLib_lux_ballet",
+   "tex": "lux_ballet_col.png",
+   "normal": "lux_ballet_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_bangle",
+   "material": "BeadLib_lux_bangle",
+   "tex": "lux_bangle_col.png",
+   "normal": "lux_bangle_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_bangle_m",
+   "material": "BeadLib_lux_bangle",
+   "tex": "lux_bangle_col.png",
+   "normal": "lux_bangle_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_loafer",
+   "material": "BeadLib_lux_loafer",
+   "tex": "lux_loafer_col.png",
+   "normal": "lux_loafer_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_loafer_m",
+   "material": "BeadLib_lux_loafer",
+   "tex": "lux_loafer_col.png",
+   "normal": "lux_loafer_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_watch",
+   "material": "BeadLib_lux_watch",
+   "tex": "lux_watch_col.png",
+   "normal": "lux_watch_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_watch_a",
+   "material": "BeadLib_lux_watch",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.949999988079071,
+    0.9700000286102295,
+    1.0,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_watch_m",
+   "material": "BeadLib_lux_watch",
+   "tex": "lux_watch_col.png",
+   "normal": "lux_watch_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_beads",
+   "material": "BeadLib_mid_beads",
+   "tex": "mid_beads_col.png",
+   "normal": "mid_beads_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_slide",
+   "material": "BeadLib_mid_slide",
+   "tex": "mid_slide_col.png",
+   "normal": "mid_slide_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_sneaker",
+   "material": "BeadLib_mid_sneaker",
+   "tex": "mid_sneaker_col.png",
+   "normal": "mid_sneaker_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_sneaker_m",
+   "material": "BeadLib_mid_sneaker",
+   "tex": "mid_sneaker_col.png",
+   "normal": "mid_sneaker_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_watch",
+   "material": "BeadLib_mid_watch",
+   "tex": "mid_watch_col.png",
+   "normal": "mid_watch_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_watch_a",
+   "material": "BeadLib_mid_watch",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.949999988079071,
+    0.9700000286102295,
+    1.0,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_watch_m",
+   "material": "BeadLib_mid_watch",
+   "tex": "mid_watch_col.png",
+   "normal": "mid_watch_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  }
+ ]
+}

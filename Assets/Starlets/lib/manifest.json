@@ -1,0 +1,762 @@
+{
+ "id": "lib",
+ "label": "lib",
+ "parts": [
+  {
+   "mesh": "glasses_lux_aviator",
+   "material": "BeadLib_lux_aviator",
+   "tex": "lux_aviator_col.png",
+   "normal": "lux_aviator_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "glasses_lux_aviator_a",
+   "material": "BeadLib_lux_aviator",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.949999988079071,
+    0.9700000286102295,
+    1.0,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "glasses_lux_aviator_m",
+   "material": "BeadLib_lux_aviator",
+   "tex": "lux_aviator_col.png",
+   "normal": "lux_aviator_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_belt",
+   "material": "BeadLib_lux_belt",
+   "tex": "lux_belt_col.png",
+   "normal": "lux_belt_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_belt_m",
+   "material": "BeadLib_lux_belt",
+   "tex": "lux_belt_col.png",
+   "normal": "lux_belt_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hand_lux_clutch",
+   "material": "BeadLib_lux_clutch",
+   "tex": "lux_clutch_col.png",
+   "normal": "lux_clutch_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hand_lux_clutch_a",
+   "material": "BeadLib_lux_clutch",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.949999988079071,
+    0.9700000286102295,
+    1.0,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hand_lux_clutch_m",
+   "material": "BeadLib_lux_clutch",
+   "tex": "lux_clutch_col.png",
+   "normal": "lux_clutch_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hat_lux_fedora",
+   "material": "BeadLib_lux_fedora",
+   "tex": "lux_fedora_col.png",
+   "normal": "lux_fedora_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_flapbag",
+   "material": "BeadLib_lux_flapbag",
+   "tex": "lux_flapbag_col.png",
+   "normal": "lux_flapbag_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_flapbag_m",
+   "material": "BeadLib_lux_flapbag",
+   "tex": "lux_flapbag_col.png",
+   "normal": "lux_flapbag_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_flapbag_t",
+   "material": "BeadLib_lux_flapbag",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.9149711507634493,
+    0.7543582016369328,
+    0.43873222554975655,
+    1.0
+   ],
+   "rough": 0.18,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "ear_lux_hoops",
+   "material": "BeadLib_lux_hoops",
+   "tex": "lux_hoops_col.png",
+   "normal": "lux_hoops_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "ear_lux_hoops_m",
+   "material": "BeadLib_lux_hoops",
+   "tex": "lux_hoops_col.png",
+   "normal": "lux_hoops_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_necklace_a",
+   "material": "BeadLib_lux_necklace",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.949999988079071,
+    0.9700000286102295,
+    1.0,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_necklace_m",
+   "material": "BeadLib_lux_necklace",
+   "tex": "lux_necklace_col.png",
+   "normal": "lux_necklace_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_necklace_t",
+   "material": "BeadLib_lux_necklace",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.9149711507634493,
+    0.7543582016369328,
+    0.43873222554975655,
+    1.0
+   ],
+   "rough": 0.18,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "lux_scarf",
+   "material": "BeadLib_lux_scarf",
+   "tex": "lux_scarf_col.png",
+   "normal": "lux_scarf_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hand_lux_tote",
+   "material": "BeadLib_lux_tote",
+   "tex": "lux_tote_col.png",
+   "normal": "lux_tote_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hand_lux_tote_m",
+   "material": "BeadLib_lux_tote",
+   "tex": "lux_tote_col.png",
+   "normal": "lux_tote_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_backpack",
+   "material": "BeadLib_mid_backpack",
+   "tex": "mid_backpack_col.png",
+   "normal": "mid_backpack_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_backpack_m",
+   "material": "BeadLib_mid_backpack",
+   "tex": "mid_backpack_col.png",
+   "normal": "mid_backpack_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_belt",
+   "material": "BeadLib_mid_belt",
+   "tex": "mid_belt_col.png",
+   "normal": "mid_belt_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_belt_m",
+   "material": "BeadLib_mid_belt",
+   "tex": "mid_belt_col.png",
+   "normal": "mid_belt_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hat_mid_bucket",
+   "material": "BeadLib_mid_bucket",
+   "tex": "mid_bucket_col.png",
+   "normal": "mid_bucket_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hat_mid_bucket_m",
+   "material": "BeadLib_mid_bucket",
+   "tex": "mid_bucket_col.png",
+   "normal": "mid_bucket_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hat_mid_cap",
+   "material": "BeadLib_mid_cap",
+   "tex": "mid_cap_col.png",
+   "normal": "mid_cap_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_chain_t",
+   "material": "BeadLib_mid_chain",
+   "tex": "",
+   "normal": "",
+   "alpha": false,
+   "color": [
+    0.8798484123544767,
+    0.8876915491418913,
+    0.9052371210127603,
+    1.0
+   ],
+   "rough": 0.18,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_crossbody",
+   "material": "BeadLib_mid_crossbody",
+   "tex": "mid_crossbody_col.png",
+   "normal": "mid_crossbody_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "mid_crossbody_m",
+   "material": "BeadLib_mid_crossbody",
+   "tex": "mid_crossbody_col.png",
+   "normal": "mid_crossbody_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "ear_mid_studs_a",
+   "material": "BeadLib_mid_studs",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.949999988079071,
+    0.9700000286102295,
+    1.0,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "ear_mid_studs_m",
+   "material": "BeadLib_mid_studs",
+   "tex": "mid_studs_col.png",
+   "normal": "mid_studs_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "glasses_mid_sunglasses",
+   "material": "BeadLib_mid_sunglasses",
+   "tex": "mid_sunglasses_col.png",
+   "normal": "mid_sunglasses_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "glasses_mid_sunglasses_a",
+   "material": "BeadLib_mid_sunglasses",
+   "tex": "",
+   "normal": "",
+   "alpha": true,
+   "color": [
+    0.029999999329447746,
+    0.03500000014901161,
+    0.03999999910593033,
+    1.0
+   ],
+   "rough": 0.05,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "glasses_mid_sunglasses_m",
+   "material": "BeadLib_mid_sunglasses",
+   "tex": "mid_sunglasses_col.png",
+   "normal": "mid_sunglasses_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.22,
+   "metal": 1.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  },
+  {
+   "mesh": "hand_mid_tote",
+   "material": "BeadLib_mid_tote",
+   "tex": "mid_tote_col.png",
+   "normal": "mid_tote_nrm.png",
+   "alpha": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "rough": 0.5,
+   "metal": 0.0,
+   "tone": [
+    1,
+    1,
+    1
+   ],
+   "lum": 1.0
+  }
+ ]
+}

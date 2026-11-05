@@ -124,7 +124,7 @@ public partial class SLApp {
         tcam.gameObject.SetActive(true);
         savedFog = RenderSettings.fog; savedShadowDist = QualitySettings.shadowDistance; savedCascades = QualitySettings.shadowCascades; savedSkybox = RenderSettings.skybox;
         savedAmbient = RenderSettings.ambientMode; savedSky = RenderSettings.ambientSkyColor; savedEq = RenderSettings.ambientEquatorColor; savedGround = RenderSettings.ambientGroundColor;
-        QualitySettings.shadowDistance = 80; QualitySettings.shadowCascades = 4;
+        QualitySettings.shadowDistance = 80; QualitySettings.shadowCascades = 4; ApplyQuality();
         town.root.gameObject.SetActive(true);
         BuildTownUI();
         foreach (var e in root.Children().ToList()) if (e != overlayHost && e != townUI) e.style.display = DisplayStyle.None;
@@ -145,6 +145,7 @@ public partial class SLApp {
         RenderSettings.ambientMode = savedAmbient; RenderSettings.ambientSkyColor = savedSky; RenderSettings.ambientEquatorColor = savedEq; RenderSettings.ambientGroundColor = savedGround;
         Shader.SetGlobalVector("_HairLight", -(Quaternion.Euler(40, 24, 0) * Vector3.forward));
         townUI.RemoveFromHierarchy(); townUI = null;
+        SLAudio.I?.Scene("suite"); ApplyQuality();
         foreach (var e in root.Children()) e.style.display = StyleKeyword.Null;
         root.RemoveFromClassList("in-town"); root.style.backgroundImage = Grad("#a9cdf2", "#e6f2fc");
         dirty = true; SetView(toView);
@@ -764,7 +765,8 @@ public partial class SLApp {
             var thumb = new SvgImage().Set("thumb:" + id + ":" + col, () => core.Call("thumb", id, col)); thumb.AddToClassList("pc-img"); thumb.pickingMode = PickingMode.Ignore;
             var tb = B("", "pc-thumb", () => TryPiece(idx)); tb.Add(thumb);
             var row = El("pc-row");
-            if (own) { if (wearing) row.Add(L("Wearing ✓", "pc-own")); else row.Add(B("Wear", "pc-btn", () => WearOwned(idx))); }
+            if (own) { if (wearing) row.Add(L("Wearing ✓", "pc-own")); else if (OverBudget(price, id)) row.Add(L("In storage", "pc-own")); else row.Add(B("Wear", "pc-btn", () => WearOwned(idx))); }
+            else if (OverBudget(price, id)) row.Add(L("Over budget on " + her + " wage", "pc-price"));
             else { row.Add(L(price + " coins", "pc-price")); var buy = B("Buy", "pc-btn buy", () => BuyPiece(idx)); buy.SetEnabled(profile.coins >= price); row.Add(buy); }
             btqGrid.Add(El("piece" + (shop.trying == i ? " on" : ""), tb, L(S(Get(it, "name")), "pc-name"), row));
         }
@@ -782,6 +784,7 @@ public partial class SLApp {
     }
     void BuyPiece(int i) {
         var it = shop.items[i]; int price = (int)F(Get(it, "price")); string id = Swap(S(Get(it, "item"))), col = S(Get(it, "color"));
+        if (OverBudget(price, id)) { ShowToast("That is over budget on " + her + " wage."); return; }
         if (profile.coins < price) { ShowToast("Not enough coins yet. Work, go to events and win contests to earn more."); return; }
         int fame = Mathf.RoundToInt(price / 15f);
         core.Call("earn", (-price).ToString(), fame.ToString());
@@ -966,6 +969,7 @@ public partial class SLApp {
             phonePanes.Add(L("GAME SPEED", "t-lbl"));
             var seg = El("t-seg"); foreach (var (v, l) in new[] { (0, "Pause"), (1, "Normal"), (4, "Fast") }) { int vv = v; seg.Add(B(l, tSpeed == v ? "on" : null, () => { tSpeed = vv; SaveLife(); RenderPhone(); })); } phonePanes.Add(seg);
             phonePanes.Add(L("One real second is one minute in town at normal speed. Sitting down makes time pass three times as fast.", "t-note"));
+            phonePanes.Add(B("Sound and settings (Esc)", null, () => { TogglePhone(false); OpenSettings(); }));
             return;
         }
         if (phoneTab == "map") {
@@ -996,7 +1000,7 @@ public partial class SLApp {
     // ---- the camera: a photo of the town as it is (no buttons in it), or a selfie with her posing; saved to the album
     bool selfie;
     void PhoneCamera() {
-        phonePanes.Add(L(selfie ? "Selfie: she turns to the camera and strikes a pose." : "Frame the shot with the town camera, then take the picture.", "t-note"));
+        phonePanes.Add(L(selfie ? "Selfie: " + she + " turns to the camera and strikes a pose." : "Frame the shot with the town camera, then take the picture.", "t-note"));
         var seg = El("t-seg"); seg.Add(B("Photo", !selfie ? "on" : null, () => { selfie = false; RenderPhone(); })); seg.Add(B("Selfie", selfie ? "on" : null, () => { selfie = true; RenderPhone(); })); phonePanes.Add(seg);
         phonePanes.Add(B("", "sp-shutter", () => StartCoroutine(TakePhoto())));
         phonePanes.Add(L("Photos are saved to your album.", "t-note"));
@@ -1005,7 +1009,7 @@ public partial class SLApp {
         TogglePhone(false); var keepYaw = cam.yaw; var keepDist = cam.dist; var keepPitch = cam.pitch; var keepEmote = player.mo.emote;
         if (selfie) { player.mo.emote = "pose"; cam.yaw = player.ry + 0.35f; cam.dist = 2.1f; cam.pitch = 0.08f; cam.focusY = 1.45f; cam.lastDrag = Time.time + 5; for (float w0 = Time.time; Time.time - w0 < 1.0f;) yield return null; }
         townUI.style.display = DisplayStyle.None; yield return null; yield return new WaitForEndOfFrame();
-        var tex = ScreenCapture.CaptureScreenshotAsTexture(); townUI.style.display = DisplayStyle.Flex;
+        var tex = ScreenCapture.CaptureScreenshotAsTexture(); townUI.style.display = DisplayStyle.Flex; SLAudio.I?.Play("shutter");
         string dir = shotsDir ?? System.IO.Path.Combine(Application.persistentDataPath, "album"); System.IO.Directory.CreateDirectory(dir);
         string file = System.IO.Path.Combine(dir, "town-" + System.DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".png"); System.IO.File.WriteAllBytes(file, tex.EncodeToPNG()); Destroy(tex);
         if (selfie) { cam.yaw = keepYaw; cam.dist = keepDist; cam.pitch = keepPitch; cam.focusY = null; player.mo.emote = keepEmote == "text" ? null : keepEmote; }

@@ -98,7 +98,8 @@ public static class SLBuild {
                 m.SetTexture("_MainTex", hasTex ? AssetDatabase.LoadAssetAtPath<Texture2D>(d + "/" + p.tex) : null);
                 m.SetTexture("_BumpMap", string.IsNullOrEmpty(p.normal) ? null : AssetDatabase.LoadAssetAtPath<Texture2D>(d + "/" + p.normal));
                 m.SetColor("_Tint", hasTex || p.color == null || p.color.Length < 3 ? Color.white : new Color(p.color[0], p.color[1], p.color[2]).gamma);
-                m.SetFloat("_Recolor", 0); m.SetFloat("_Inset", 0); m.SetFloat("_Cutoff", p.alpha ? 0.35f : 0); m.SetFloat("_Cull", 0); m.SetFloat("_Glossiness", isHair ? 0.18f : Mathf.Clamp01(1 - p.rough) * 0.6f);
+                m.SetFloat("_Recolor", 0); m.SetFloat("_Inset", 0); m.SetFloat("_Cutoff", p.alpha ? 0.35f : 0); m.SetFloat("_Cull", 0); m.SetFloat("_Glossiness", isHair ? 0.18f : Mathf.Clamp01(1 - p.rough) * (p.metal > 0.5f ? 0.95f : 0.6f));
+                m.SetFloat("_Metallic", Mathf.Clamp01(p.metal)); if (p.metal > 0.5f) m.SetFloat("_Sheen", 0.05f);     // metal parts (Tools/fashionlib): real metal, no fabric glow
                 EditorUtility.SetDirty(m); mats[p.mesh] = m;
             }
             // every piece becomes a direct child of the prefab, named after its mesh, so the game can pick pieces out by name
