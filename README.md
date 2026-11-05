@@ -230,3 +230,7 @@ and `Tools/sidebyside.sh <name> <height>` puts the two next to each other.
 ## Not ported yet
 
 Chat, the custom colour picker, and text inside drawings (the "Starlife" print on the tote, "MOVING CO." on the box).
+
+## License
+
+Copyright © 2026 Olumide Oyenubi. All rights reserved. See [LICENSE](LICENSE).
